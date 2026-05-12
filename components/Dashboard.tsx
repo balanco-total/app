@@ -8,8 +8,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
 import Logo from './Logo'
+import BillingBanner from './BillingBanner'
 
 type Profile = { id: string; name: string; account_id: string; role: string }
+type Account = { id: string; trial_ends_at: string; subscription_status: string } | null
 type Category = { id: string; account_id: string; name: string; color: string }
 type Expense = {
   id: string
@@ -97,7 +99,7 @@ function getAvatarColor(name: string) {
   return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]
 }
 
-export default function Dashboard({ user, profile }: { user: User; profile: Profile }) {
+export default function Dashboard({ user, profile, account }: { user: User; profile: Profile; account: Account }) {
   const supabase = createClient()
   const router = useRouter()
 
@@ -452,6 +454,14 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
             </div>
           </div>
         </div>
+
+        {account && (
+          <BillingBanner
+            subscriptionStatus={account.subscription_status}
+            trialEndsAt={account.trial_ends_at}
+            isOwner={profile.role === 'owner'}
+          />
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Expense Form */}

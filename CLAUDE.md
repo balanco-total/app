@@ -35,10 +35,12 @@ app/
   (auth)/invite/page.tsx             → /invite (public, invite acceptance)
   (auth)/reset-password/page.tsx     → /reset-password (public)
   (app)/app/layout.tsx               → auth guard for /app/*
-  (app)/app/page.tsx                 → /app (dashboard, passes user+profile to Dashboard)
+  (app)/app/page.tsx                 → /app (dashboard, passes user+profile+account to Dashboard)
   (app)/app/charts/page.tsx          → /app/charts
   (app)/app/users/page.tsx           → /app/users (owner only)
   (app)/app/profile/page.tsx         → /app/profile
+  (app)/app/billing/page.tsx         → /app/billing (subscription page, accessible when trial expired)
+  (app)/app/billing/success/page.tsx → /app/billing/success (post-payment confirmation)
 ```
 
 Route groups `(auth)` and `(app)` are invisible in URLs. `/` is the public landing page; the app lives under `/app`. Middleware handles auth redirects first; `(app)/app/layout.tsx` is a belt-and-suspenders server-side guard.
@@ -49,13 +51,15 @@ Route groups `(auth)` and `(app)` are invisible in URLs. `/` is the public landi
 - `components/ChartsPage.tsx` — `'use client'`, analytics charts (pie, bar, monthly trend)
 - `components/UsersPage.tsx` — `'use client'`, member management (invite, disable, delete)
 - `components/ProfilePage.tsx` — `'use client'`, profile settings, CSV/OFX import, data export
+- `components/BillingPage.tsx` — `'use client'`, subscription page with AbacatePay redirect
+- `components/BillingBanner.tsx` — `'use client'`, trial/subscription status banner shown in dashboard
 
 ### Supabase Utilities
 
 - `utils/supabase/client.ts` — browser client (use in client components)
 - `utils/supabase/server.ts` — server client (takes awaited `cookies()` as param)
 - `utils/supabase/middleware.ts` — not used by middleware.ts; kept for reference
-- `middleware.ts` — inlines Supabase client creation to refresh sessions and enforce auth redirects
+- `middleware.ts` — inlines Supabase client creation to refresh sessions, enforce auth redirects, and block expired/unsubscribed accounts (redirects to `/app/billing`)
 
 ### Database Schema (`supabase/schema.sql`)
 
@@ -78,9 +82,21 @@ Four tables: `accounts`, `profiles` (extends `auth.users`), `categories`, `expen
 - Physical deletion only (no soft deletes)
 - RLS on all tables — never bypass with service role key on client
 - Members can only edit/delete their own expenses (enforced by RLS: `user_id = auth.uid()`)
-- Billing: R$7.99/month, 7-day free trial (not yet implemented)
+- Billing: R$7.99/month, 7-day free trial
+
+### Billing Flow (AbacatePay)
+
+- `accounts` table has `trial_ends_at`, `subscription_status` (`trialing` | `active` | `past_due` | `canceled`), `abacatepay_subscription_id`
+- Middleware blocks all `/app/*` routes (except `/app/billing`) when trial expired AND not `active`
+- `POST /api/billing/subscribe` — creates subscription checkout in AbacatePay (no CPF/phone needed upfront; AbacatePay collects on hosted page), uses `account_id` as `externalId`
+- `POST /api/billing/webhook` — receives `subscription.completed` / `subscription.renewed` / `subscription.cancelled` events; validates HMAC-SHA256 signature; uses admin client to update `accounts`
+- Dashboard shows `BillingBanner` for non-active accounts (days remaining + "Assinar" button for owner)
+- `ABACATEPAY_PRODUCT_ID` must be a pre-created monthly product (cycle=MONTHLY, price=R$7.99) in AbacatePay dashboard
 
 ## Setup Required (One-time)
 
 1. Run `supabase/schema.sql` in Supabase SQL Editor
-2. Disable email confirmation: Supabase Dashboard → Authentication → Providers → Email → uncheck "Confirm email"
+2. Run `supabase/billing.sql` in Supabase SQL Editor
+3. Disable email confirmation: Supabase Dashboard → Authentication → Providers → Email → uncheck "Confirm email"
+4. Create a monthly product (R$7.99, cycle=MONTHLY) in AbacatePay dashboard → copy ID to `ABACATEPAY_PRODUCT_ID`
+5. Configure webhook URL in AbacatePay dashboard: `https://seudominio.com/api/billing/webhook?secret=SEU_SECRET` → use the same value in `ABACATEPAY_WEBHOOK_SECRET`

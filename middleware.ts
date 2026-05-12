@@ -55,6 +55,26 @@ export async function middleware(request: NextRequest) {
   if (!user && !isPublicRoute) return redirectTo('/login')
   if (user && isLoginRoute) return redirectTo('/app')
 
+  // Billing guard: block access to /app/* (except /app/billing) when trial expired and no active subscription
+  const isProtectedAppRoute =
+    pathname.startsWith('/app') &&
+    !pathname.startsWith('/app/billing')
+
+  if (user && isProtectedAppRoute) {
+    const { data: billingData } = await supabase
+      .from('profiles')
+      .select('accounts(subscription_status, trial_ends_at)')
+      .eq('id', user.id)
+      .single()
+
+    const acc = (billingData?.accounts as unknown as { subscription_status: string; trial_ends_at: string } | null)
+    if (acc) {
+      const trialActive = acc.subscription_status === 'trialing' && new Date(acc.trial_ends_at) > new Date()
+      const subscribed = acc.subscription_status === 'active'
+      if (!trialActive && !subscribed) return redirectTo('/app/billing')
+    }
+  }
+
   // Must return supabaseResponse — it carries the refreshed session cookies
   return supabaseResponse
 }
