@@ -86,7 +86,7 @@ function InviteForm() {
           <p className="text-gray-500 mb-6">
             Este link de convite é inválido, já foi utilizado ou expirou.
           </p>
-          <Link href="/login" className="text-red-600 font-semibold hover:underline">
+          <Link href="/login" className="text-[#1B4332] font-semibold hover:underline">
             Ir para o login
           </Link>
         </div>
@@ -116,7 +116,7 @@ function InviteForm() {
               required
               autoFocus
               maxLength={MAX_NAME}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
               placeholder="Como quer ser chamado"
             />
           </div>
@@ -129,7 +129,7 @@ function InviteForm() {
               required
               minLength={6}
               maxLength={MAX_PASSWORD}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
             />
           </div>
           <button

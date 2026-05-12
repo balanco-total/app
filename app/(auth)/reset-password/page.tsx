@@ -72,7 +72,7 @@ export default function ResetPasswordPage() {
           <p className="text-gray-500 mb-6">
             Este link de recuperação é inválido ou já expirou. Solicite um novo.
           </p>
-          <Link href="/login" className="text-red-600 font-semibold hover:underline">
+          <Link href="/login" className="text-[#1B4332] font-semibold hover:underline">
             Voltar ao login
           </Link>
         </div>
@@ -100,7 +100,7 @@ export default function ResetPasswordPage() {
               autoFocus
               minLength={6}
               maxLength={MAX_PASSWORD}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
             />
           </div>
           <div>
@@ -112,7 +112,7 @@ export default function ResetPasswordPage() {
               required
               minLength={6}
               maxLength={MAX_PASSWORD}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
             />
           </div>
           <button

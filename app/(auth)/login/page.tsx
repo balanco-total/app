@@ -91,7 +91,7 @@ function LoginForm() {
                 </p>
                 <button
                   onClick={() => { setView('login'); setRecoverySent(false) }}
-                  className="text-red-600 font-semibold hover:underline text-sm"
+                  className="text-[#1B4332] font-semibold hover:underline text-sm"
                 >
                   Voltar ao login
                 </button>
@@ -107,7 +107,7 @@ function LoginForm() {
                     required
                     autoFocus
                     maxLength={MAX_EMAIL}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
                   />
                 </div>
                 <button
@@ -154,7 +154,7 @@ function LoginForm() {
                   onChange={e => setEmail(e.target.value)}
                   required
                   maxLength={MAX_EMAIL}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
                 />
               </div>
               <div>
@@ -163,7 +163,7 @@ function LoginForm() {
                   <button
                     type="button"
                     onClick={switchToRecovery}
-                    className="text-xs text-red-500 hover:text-red-700 hover:underline transition"
+                    className="text-xs text-[#1B4332] hover:text-[#163a2b] hover:underline transition"
                   >
                     Esqueceu a senha?
                   </button>
@@ -174,7 +174,7 @@ function LoginForm() {
                   onChange={e => setPassword(e.target.value)}
                   required
                   maxLength={MAX_PASSWORD}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
                 />
               </div>
               <button
@@ -188,7 +188,7 @@ function LoginForm() {
 
             <p className="mt-6 text-center text-gray-600">
               Não tem conta?{' '}
-              <Link href="/signup" className="text-red-600 font-semibold hover:underline">
+              <Link href="/signup" className="text-[#1B4332] font-semibold hover:underline">
                 Cadastre-se
               </Link>
             </p>
