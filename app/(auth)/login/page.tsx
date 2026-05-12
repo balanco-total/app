@@ -132,7 +132,7 @@ function LoginForm() {
             <p className="text-gray-500 text-center mb-6">Faça login</p>
 
             {message === 'confirm-email' && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm mb-6">
                 Conta criada com sucesso! Acesse sua caixa de e-mail e clique no link de confirmação antes de fazer login.
               </div>
             )}
