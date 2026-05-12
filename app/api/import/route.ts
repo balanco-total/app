@@ -101,6 +101,7 @@ export async function POST(request: Request) {
       amount: Math.round(amount * 100) / 100,
       category_id: categoryId,
       date: isoDate,
+      paid_at: isoDate,
     })
   }
 
