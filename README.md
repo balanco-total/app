@@ -28,15 +28,16 @@ npm run lint     # ESLint
 
 ```
 app/
-  (auth)/login/page.tsx          → /login (público)
-  (auth)/signup/page.tsx         → /signup (público)
-  (auth)/invite/page.tsx         → /invite (público, aceite de convite)
-  (auth)/reset-password/page.tsx → /reset-password (público)
-  (app)/layout.tsx               → guard de auth para /
-  (app)/page.tsx                 → / (dashboard)
-  (app)/charts/page.tsx          → /charts
-  (app)/users/page.tsx           → /users (somente owner)
-  (app)/profile/page.tsx         → /profile
+  page.tsx                           → / (landing page, público)
+  (auth)/login/page.tsx              → /login (público)
+  (auth)/signup/page.tsx             → /signup (público)
+  (auth)/invite/page.tsx             → /invite (público, aceite de convite)
+  (auth)/reset-password/page.tsx     → /reset-password (público)
+  (app)/app/layout.tsx               → guard de auth para /app
+  (app)/app/page.tsx                 → /app (dashboard)
+  (app)/app/charts/page.tsx          → /app/charts
+  (app)/app/users/page.tsx           → /app/users (somente owner)
+  (app)/app/profile/page.tsx         → /app/profile
 ```
 
 ---
