@@ -51,7 +51,7 @@ Route groups `(auth)` and `(app)` are invisible in URLs. `/` is the public landi
 - `components/ChartsPage.tsx` — `'use client'`, analytics charts (pie, bar, monthly trend)
 - `components/UsersPage.tsx` — `'use client'`, member management (invite, disable, delete)
 - `components/ProfilePage.tsx` — `'use client'`, profile settings, CSV/OFX import, data export
-- `components/BillingPage.tsx` — `'use client'`, subscription page with AbacatePay redirect
+- `components/BillingPage.tsx` — `'use client'`, subscription page with Stripe Checkout redirect
 - `components/BillingBanner.tsx` — `'use client'`, trial/subscription status banner shown in dashboard
 
 ### Supabase Utilities
@@ -84,19 +84,24 @@ Four tables: `accounts`, `profiles` (extends `auth.users`), `categories`, `expen
 - Members can only edit/delete their own expenses (enforced by RLS: `user_id = auth.uid()`)
 - Billing: R$7.99/month, 7-day free trial
 
-### Billing Flow (AbacatePay)
+### Billing Flow (Stripe)
 
-- `accounts` table has `trial_ends_at`, `subscription_status` (`trialing` | `active` | `past_due` | `canceled`), `abacatepay_subscription_id`
+- `accounts` table has `trial_ends_at`, `subscription_status` (`trialing` | `active` | `past_due` | `canceled`), `stripe_subscription_id`
 - Middleware blocks all `/app/*` routes (except `/app/billing`) when trial expired AND not `active`
-- `POST /api/billing/subscribe` — creates subscription checkout in AbacatePay (no CPF/phone needed upfront; AbacatePay collects on hosted page), uses `account_id` as `externalId`
-- `POST /api/billing/webhook` — receives `subscription.completed` / `subscription.renewed` / `subscription.cancelled` events; validates HMAC-SHA256 signature; uses admin client to update `accounts`
+- `POST /api/billing/subscribe` — creates a Stripe Checkout Session (`mode: 'subscription'`), passes `client_reference_id: account_id` and `customer_email`; returns hosted checkout URL
+- `POST /api/billing/webhook` — receives Stripe events; verifies `stripe-signature` header with `stripe.webhooks.constructEvent()`; uses admin client to update `accounts`
+  - `checkout.session.completed` → `active`, stores `stripe_subscription_id`
+  - `customer.subscription.updated` → maps Stripe status to our status
+  - `customer.subscription.deleted` → `canceled`
+  - `invoice.payment_failed` → `past_due`
 - Dashboard shows `BillingBanner` for non-active accounts (days remaining + "Assinar" button for owner)
-- `ABACATEPAY_PRODUCT_ID` must be a pre-created monthly product (cycle=MONTHLY, price=R$7.99) in AbacatePay dashboard
+- `STRIPE_PRICE_ID` must be a pre-created recurring price (R$7.99/month) in the Stripe dashboard
 
 ## Setup Required (One-time)
 
 1. Run `supabase/schema.sql` in Supabase SQL Editor
 2. Run `supabase/billing.sql` in Supabase SQL Editor
-3. Disable email confirmation: Supabase Dashboard → Authentication → Providers → Email → uncheck "Confirm email"
-4. Create a monthly product (R$7.99, cycle=MONTHLY) in AbacatePay dashboard → copy ID to `ABACATEPAY_PRODUCT_ID`
-5. Configure webhook URL in AbacatePay dashboard: `https://seudominio.com/api/billing/webhook?secret=SEU_SECRET` → use the same value in `ABACATEPAY_WEBHOOK_SECRET`
+3. Run `supabase/stripe_migration.sql` in Supabase SQL Editor (renames `abacatepay_subscription_id` → `stripe_subscription_id`)
+4. Disable email confirmation: Supabase Dashboard → Authentication → Providers → Email → uncheck "Confirm email"
+5. In Stripe dashboard: create a recurring price (R$7.99/month, BRL) → copy Price ID to `STRIPE_PRICE_ID`
+6. In Stripe dashboard: create a webhook endpoint pointing to `https://seudominio.com/api/billing/webhook`, subscribe to events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed` → copy signing secret to `STRIPE_WEBHOOK_SECRET`
