@@ -366,15 +366,13 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                 </button>
                 {showAvatarMenu && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
-                    <p className="px-4 py-2 text-xs text-gray-400 font-medium truncate">{profile.name}</p>
-                    <hr className="border-gray-100" />
                     <Link
                       href="/profile"
                       onClick={() => setShowAvatarMenu(false)}
                       className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
                     >
                       <UserIcon size={16} className="text-gray-400" />
-                      Perfil
+                      {profile.name}
                     </Link>
                     <hr className="border-gray-100" />
                     <button
