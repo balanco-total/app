@@ -24,12 +24,30 @@ export async function POST() {
 
   const apiKey = process.env.ABACATEPAY_API_KEY
   const productId = process.env.ABACATEPAY_PRODUCT_ID
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
 
   if (!apiKey || !productId) {
-    console.error('Missing ABACATEPAY_API_KEY or ABACATEPAY_PRODUCT_ID')
+    console.error('[billing] Missing ABACATEPAY_API_KEY or ABACATEPAY_PRODUCT_ID')
     return NextResponse.json({ error: 'Configuração de pagamento incompleta.' }, { status: 500 })
   }
+
+  // Only include redirect URLs when APP_URL is a real public domain
+  const isPublicUrl = appUrl && !appUrl.includes('localhost')
+  const redirectUrls = isPublicUrl
+    ? {
+        completionUrl: `${appUrl}/app/billing/success`,
+        returnUrl: `${appUrl}/app/billing`,
+      }
+    : {}
+
+  const payload = {
+    items: [{ id: productId, quantity: 1 }],
+    externalId: profile.account_id,
+    methods: ['CARD'],
+    ...redirectUrls,
+  }
+
+  console.info('[billing] Creating subscription:', { productId, accountId: profile.account_id, appUrl })
 
   const res = await fetch(`${ABACATEPAY_API}/subscriptions/create`, {
     method: 'POST',
@@ -37,26 +55,22 @@ export async function POST() {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      items: [{ id: productId, quantity: 1 }],
-      externalId: profile.account_id,
-      completionUrl: `${appUrl}/app/billing/success`,
-      returnUrl: `${appUrl}/app/billing`,
-      methods: ['CARD'],
-    }),
+    body: JSON.stringify(payload),
   })
 
+  const json = await res.json()
+
   if (!res.ok) {
-    const body = await res.text()
-    console.error('AbacatePay error:', res.status, body)
+    console.error('[billing] AbacatePay error:', res.status, JSON.stringify(json))
     return NextResponse.json({ error: 'Erro ao criar assinatura. Tente novamente.' }, { status: 502 })
   }
 
-  const json = await res.json()
+  console.info('[billing] AbacatePay response:', JSON.stringify(json))
+
   const checkoutUrl: string | undefined = json?.data?.url
 
   if (!checkoutUrl) {
-    console.error('AbacatePay missing url in response:', json)
+    console.error('[billing] Missing url in response:', JSON.stringify(json))
     return NextResponse.json({ error: 'Resposta inválida do gateway de pagamento.' }, { status: 502 })
   }
 
