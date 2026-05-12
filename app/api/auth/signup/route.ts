@@ -2,12 +2,16 @@ import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { isValidEmail } from '@/utils/validation'
+import { checkRateLimit, getIp } from '@/utils/rateLimit'
 
 const MAX_NAME = 60
 const MAX_EMAIL = 100
 const MAX_PASSWORD = 40
 
 export async function POST(request: Request) {
+  if (!checkRateLimit(`signup:${getIp(request)}`, 10, 60 * 60 * 1000))
+    return NextResponse.json({ error: 'Muitas tentativas. Tente novamente em 1 hora.' }, { status: 429 })
+
   const body = await request.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'Requisição inválida.' }, { status: 400 })
 

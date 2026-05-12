@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { isValidFieldText } from '@/utils/validation'
+import { checkRateLimit } from '@/utils/rateLimit'
 
 const MIN_NAME = 3
 const MAX_NAME = 60
@@ -35,6 +36,9 @@ export async function POST(request: Request) {
     .single()
 
   if (!profile) return NextResponse.json({ error: 'Perfil não encontrado.' }, { status: 404 })
+
+  if (!checkRateLimit(`categories:${user.id}`, 20, 60 * 1000))
+    return NextResponse.json({ error: 'Muitas requisições. Tente novamente em 1 minuto.' }, { status: 429 })
 
   const { data: existing } = await supabase
     .from('categories')

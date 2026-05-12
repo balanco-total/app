@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { isValidFieldText } from '@/utils/validation'
+import { checkRateLimit } from '@/utils/rateLimit'
 
 const MAX_DESCRIPTION = 60
 const MAX_AMOUNT = 1_000_000 // R$ 1.000.000,00
@@ -38,6 +39,9 @@ export async function POST(request: Request) {
     .single()
 
   if (!profile) return NextResponse.json({ error: 'Perfil não encontrado.' }, { status: 404 })
+
+  if (!checkRateLimit(`expenses:${user.id}`, 60, 60 * 1000))
+    return NextResponse.json({ error: 'Muitas requisições. Tente novamente em 1 minuto.' }, { status: 429 })
 
   const { data, error } = await supabase
     .from('expenses')
