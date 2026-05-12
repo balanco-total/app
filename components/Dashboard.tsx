@@ -724,67 +724,136 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
               const date = new Date(exp.date)
               const isOwn = exp.user_id === user.id
               return (
-                <div key={exp.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className={`w-2 h-2 rounded-full ${category?.color ?? 'bg-gray-400'}`}></div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-800">{exp.description}</p>
-                      <p className="text-sm text-gray-500">
-                        {exp.profiles?.name} • {date.toLocaleDateString('pt-BR')} às{' '}
-                        {date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                <div key={exp.id}>
+                  {/* Mobile card */}
+                  <div className="sm:hidden p-4 bg-gray-50 rounded-xl">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className={`w-2 h-2 rounded-full shrink-0 mt-1.5 ${category?.color ?? 'bg-gray-400'}`} />
+                        <p className="font-medium text-gray-800 leading-snug">{exp.description}</p>
+                      </div>
+                      <p className="font-bold text-gray-800 shrink-0 ml-2">
+                        R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </div>
-                    <div className="relative">
-                      {isOwn ? (
-                        <button
-                          onClick={() => setEditingCategoryId(editingCategoryId === exp.id ? null : exp.id)}
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${category?.color ?? 'bg-gray-400'} text-white flex items-center gap-1 hover:opacity-80 transition`}
-                        >
-                          {category?.name ?? 'Sem categoria'}
-                          <ChevronDown size={10} className="opacity-70" />
-                        </button>
-                      ) : (
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${category?.color ?? 'bg-gray-400'} text-white`}>
-                          {category?.name ?? 'Sem categoria'}
-                        </span>
-                      )}
-                      {editingCategoryId === exp.id && (
-                        <div className="absolute right-0 top-full mt-1 z-20 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-[160px]">
-                          {categories.map(cat => (
-                            <button
-                              key={cat.id}
-                              onClick={() => { setEditingCategoryId(null); setPendingCategoryChange({ expenseId: exp.id, newCategoryId: cat.id }) }}
-                              className={`w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-sm text-left transition ${cat.id === exp.category_id ? 'font-semibold text-gray-900' : 'text-gray-700'}`}
-                            >
-                              <span className={`w-2 h-2 rounded-full ${cat.color} shrink-0`} />
-                              {cat.name}
-                            </button>
-                          ))}
+                    <p className="text-xs text-gray-500 mt-1 ml-4">
+                      {exp.profiles?.name} • {date.toLocaleDateString('pt-BR')} às{' '}
+                      {date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                    <div className="flex items-center justify-between mt-2.5 ml-4">
+                      <div className="relative">
+                        {isOwn ? (
+                          <button
+                            onClick={() => setEditingCategoryId(editingCategoryId === exp.id ? null : exp.id)}
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${category?.color ?? 'bg-gray-400'} text-white flex items-center gap-1 hover:opacity-80 transition`}
+                          >
+                            {category?.name ?? 'Sem categoria'}
+                            <ChevronDown size={10} className="opacity-70" />
+                          </button>
+                        ) : (
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${category?.color ?? 'bg-gray-400'} text-white`}>
+                            {category?.name ?? 'Sem categoria'}
+                          </span>
+                        )}
+                        {editingCategoryId === exp.id && (
+                          <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-[160px]">
+                            {categories.map(cat => (
+                              <button
+                                key={cat.id}
+                                onClick={() => { setEditingCategoryId(null); setPendingCategoryChange({ expenseId: exp.id, newCategoryId: cat.id }) }}
+                                className={`w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-sm text-left transition ${cat.id === exp.category_id ? 'font-semibold text-gray-900' : 'text-gray-700'}`}
+                              >
+                                <span className={`w-2 h-2 rounded-full ${cat.color} shrink-0`} />
+                                {cat.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {isOwn && (
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => togglePaid(exp)}
+                            title={exp.paid_at ? 'Desmarcar pagamento' : 'Marcar como pago'}
+                            className={`transition ${exp.paid_at ? 'text-green-500 hover:text-green-700' : 'text-gray-300 hover:text-gray-500'}`}
+                          >
+                            {exp.paid_at ? <CheckCircle2 size={18} /> : <Circle size={18} />}
+                          </button>
+                          <button
+                            onClick={() => deleteExpense(exp.id)}
+                            title="Excluir lançamento"
+                            className="text-red-500 hover:text-red-700 transition"
+                          >
+                            <Trash2 size={18} />
+                          </button>
                         </div>
                       )}
                     </div>
-                    <span className="font-bold text-gray-800 min-w-[100px] text-right">
-                      R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
                   </div>
-                  {isOwn && (
-                    <div className="ml-4 flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => togglePaid(exp)}
-                        title={exp.paid_at ? 'Desmarcar pagamento' : 'Marcar como pago'}
-                        className={`transition ${exp.paid_at ? 'text-green-500 hover:text-green-700' : 'text-gray-300 hover:text-gray-500'}`}
-                      >
-                        {exp.paid_at ? <CheckCircle2 size={18} /> : <Circle size={18} />}
-                      </button>
-                      <button
-                        onClick={() => deleteExpense(exp.id)}
-                        title="Excluir lançamento"
-                        className="text-red-500 hover:text-red-700 transition"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+
+                  {/* Desktop row */}
+                  <div className="hidden sm:flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className={`w-2 h-2 rounded-full ${category?.color ?? 'bg-gray-400'}`} />
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-800">{exp.description}</p>
+                        <p className="text-sm text-gray-500">
+                          {exp.profiles?.name} • {date.toLocaleDateString('pt-BR')} às{' '}
+                          {date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                      <div className="relative">
+                        {isOwn ? (
+                          <button
+                            onClick={() => setEditingCategoryId(editingCategoryId === exp.id ? null : exp.id)}
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${category?.color ?? 'bg-gray-400'} text-white flex items-center gap-1 hover:opacity-80 transition`}
+                          >
+                            {category?.name ?? 'Sem categoria'}
+                            <ChevronDown size={10} className="opacity-70" />
+                          </button>
+                        ) : (
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${category?.color ?? 'bg-gray-400'} text-white`}>
+                            {category?.name ?? 'Sem categoria'}
+                          </span>
+                        )}
+                        {editingCategoryId === exp.id && (
+                          <div className="absolute right-0 top-full mt-1 z-20 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-[160px]">
+                            {categories.map(cat => (
+                              <button
+                                key={cat.id}
+                                onClick={() => { setEditingCategoryId(null); setPendingCategoryChange({ expenseId: exp.id, newCategoryId: cat.id }) }}
+                                className={`w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-sm text-left transition ${cat.id === exp.category_id ? 'font-semibold text-gray-900' : 'text-gray-700'}`}
+                              >
+                                <span className={`w-2 h-2 rounded-full ${cat.color} shrink-0`} />
+                                {cat.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <span className="font-bold text-gray-800 min-w-[100px] text-right">
+                        R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
                     </div>
-                  )}
+                    {isOwn && (
+                      <div className="ml-4 flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => togglePaid(exp)}
+                          title={exp.paid_at ? 'Desmarcar pagamento' : 'Marcar como pago'}
+                          className={`transition ${exp.paid_at ? 'text-green-500 hover:text-green-700' : 'text-gray-300 hover:text-gray-500'}`}
+                        >
+                          {exp.paid_at ? <CheckCircle2 size={18} /> : <Circle size={18} />}
+                        </button>
+                        <button
+                          onClick={() => deleteExpense(exp.id)}
+                          title="Excluir lançamento"
+                          className="text-red-500 hover:text-red-700 transition"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )
             })}
