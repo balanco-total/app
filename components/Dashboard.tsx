@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
-import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRight, ChevronDown, Repeat, PieChart, User as UserIcon, Circle, CheckCircle2 } from 'lucide-react'
+import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRight, ChevronDown, Repeat, PieChart, User as UserIcon, Circle, CheckCircle2, CreditCard } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
@@ -424,6 +424,14 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                     >
                       <UserIcon size={16} className="text-gray-400" />
                       {profile.name}
+                    </Link>
+                    <Link
+                      href="/app/plan"
+                      onClick={() => setShowAvatarMenu(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
+                    >
+                      <CreditCard size={16} className="text-gray-400" />
+                      Meu plano
                     </Link>
                     {profile.role === 'owner' ? (
                       <Link

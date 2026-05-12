@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertCircle, CreditCard, Zap, Users, BarChart2, Download } from 'lucide-react'
+import { AlertCircle, CreditCard, Zap, Users, BarChart2, Download, Trash2 } from 'lucide-react'
 import Logo from './Logo'
 
 type Profile = { id: string; name: string; account_id: string; role: string }
@@ -17,6 +17,9 @@ export default function BillingPage({ profile, account }: { profile: Profile; ac
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   const days = daysRemaining(account.trial_ends_at)
   const isExpired = days === 0
@@ -34,6 +37,21 @@ export default function BillingPage({ profile, account }: { profile: Profile; ac
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erro ao iniciar assinatura.')
       setLoading(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true)
+    setDeleteError('')
+    try {
+      const res = await fetch('/api/account/delete', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erro desconhecido')
+      window.location.href = '/'
+    } catch (e: unknown) {
+      setDeleteError(e instanceof Error ? e.message : 'Erro ao excluir conta.')
+      setDeleting(false)
+      setConfirmDelete(false)
     }
   }
 
@@ -128,6 +146,49 @@ export default function BillingPage({ profile, account }: { profile: Profile; ac
         >
           Voltar ao painel
         </button>
+
+        {/* Delete account — shown only when trial expired, owner only */}
+        {isExpired && isOwner && (
+          <div className="mt-6 border-t border-gray-100 pt-5">
+            {deleteError && (
+              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2 mb-3">
+                {deleteError}
+              </p>
+            )}
+            {!confirmDelete ? (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="w-full flex items-center justify-center gap-2 text-sm text-red-500 hover:text-red-700 transition py-1"
+              >
+                <Trash2 size={14} />
+                Excluir conta permanentemente
+              </button>
+            ) : (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-sm font-semibold text-red-700 mb-1">Excluir conta permanentemente?</p>
+                <p className="text-sm text-red-600 mb-4">
+                  Todos os dados (despesas, categorias, usuários) serão apagados e não poderão ser recuperados.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleting}
+                    className="flex-1 bg-red-600 text-white text-sm font-semibold py-2 rounded-lg hover:bg-red-700 transition disabled:opacity-60"
+                  >
+                    {deleting ? 'Excluindo...' : 'Confirmar exclusão'}
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    disabled={deleting}
+                    className="flex-1 bg-gray-100 text-gray-700 text-sm font-semibold py-2 rounded-lg hover:bg-gray-200 transition"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
