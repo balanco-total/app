@@ -415,7 +415,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
               <PlusCircle size={24} className="text-red-600" />
-              Nova Despesa
+              Nova despesa
             </h2>
             <div className="space-y-4">
               <div>
@@ -536,7 +536,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                     <div className="mt-3 pt-3 border-t border-gray-100 bg-gray-50 rounded-xl px-3 py-3 space-y-3">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                          Data do lançamento
+                          Data
                         </label>
                         <div className="relative">
                           <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -596,7 +596,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
           {/* Category Summary */}
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Resumo por Categoria</h2>
+              <h2 className="text-xl font-bold text-gray-800">Resumo por categoria</h2>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => shiftMonth(-1)}
@@ -621,7 +621,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
               </div>
             </div>
             <div className="bg-red-50 rounded-lg p-4 mb-4">
-              <p className="text-sm text-gray-600">Total do Mês</p>
+              <p className="text-sm text-gray-600">Total do mês</p>
               <p className="text-3xl font-bold text-red-600">
                 R$ {totalMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
@@ -661,7 +661,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
 
         {/* Recent Expenses */}
         <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Últimos Lançamentos</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Últimos lançamentos</h2>
           {editingCategoryId && (
             <div className="fixed inset-0 z-10" onClick={() => setEditingCategoryId(null)} />
           )}
