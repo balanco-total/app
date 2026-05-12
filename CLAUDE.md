@@ -53,6 +53,7 @@ Route groups `(auth)` and `(app)` are invisible in URLs. `/` is the public landi
 - `components/ProfilePage.tsx` — `'use client'`, profile settings, CSV/OFX import, data export
 - `components/BillingPage.tsx` — `'use client'`, subscription page with Stripe Checkout redirect
 - `components/BillingBanner.tsx` — `'use client'`, trial/subscription status banner shown in dashboard
+- `components/ProfilePage.tsx` — `'use client'`, profile settings, CSV/OFX import, data export, Pluggy bank connections
 
 ### Supabase Utilities
 
@@ -102,6 +103,8 @@ Four tables: `accounts`, `profiles` (extends `auth.users`), `categories`, `expen
 1. Run `supabase/schema.sql` in Supabase SQL Editor
 2. Run `supabase/billing.sql` in Supabase SQL Editor
 3. Run `supabase/stripe_migration.sql` in Supabase SQL Editor (renames `abacatepay_subscription_id` → `stripe_subscription_id`)
-4. Disable email confirmation: Supabase Dashboard → Authentication → Providers → Email → uncheck "Confirm email"
-5. In Stripe dashboard: create a recurring price (R$7.99/month, BRL) → copy Price ID to `STRIPE_PRICE_ID`
-6. In Stripe dashboard: create a webhook endpoint pointing to `https://seudominio.com/api/billing/webhook`, subscribe to events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed` → copy signing secret to `STRIPE_WEBHOOK_SECRET`
+4. Run `supabase/pluggy_migration.sql` in Supabase SQL Editor (adds `pluggy_transaction_id` to expenses + creates `bank_connections` table)
+5. Disable email confirmation: Supabase Dashboard → Authentication → Providers → Email → uncheck "Confirm email"
+6. In Stripe dashboard: create a recurring price (R$7.99/month, BRL) → copy Price ID to `STRIPE_PRICE_ID`
+7. In Stripe dashboard: create a webhook endpoint pointing to `https://seudominio.com/api/billing/webhook`, subscribe to events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed` → copy signing secret to `STRIPE_WEBHOOK_SECRET`
+8. In Pluggy dashboard: create an application → copy Client ID and Secret to `PLUGGY_CLIENT_ID` / `PLUGGY_CLIENT_SECRET`
