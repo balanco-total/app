@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
-import { PlusCircle, Users, Calendar, Trash2, LogOut } from 'lucide-react'
+import { PlusCircle, Users, Calendar, Trash2, LogOut, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 type Profile = { id: string; name: string; account_id: string; role: string }
@@ -56,6 +56,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   const [amount, setAmount] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
+  const [newCategoryName, setNewCategoryName] = useState('')
 
   useEffect(() => {
     loadData()
@@ -121,6 +122,47 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
       return
     }
     setExpenses(expenses.filter(e => e.id !== expenseId))
+  }
+
+  const CATEGORY_COLORS = [
+    'bg-orange-500', 'bg-blue-500', 'bg-red-500', 'bg-purple-500',
+    'bg-green-500', 'bg-indigo-500', 'bg-pink-500', 'bg-gray-500',
+    'bg-yellow-500', 'bg-teal-500', 'bg-cyan-500', 'bg-rose-500',
+  ]
+
+  const addCategory = async () => {
+    const name = newCategoryName.trim()
+    if (!name) return
+
+    const color = CATEGORY_COLORS[categories.length % CATEGORY_COLORS.length]
+
+    const { data, error } = await supabase
+      .from('categories')
+      .insert({ name, color, account_id: profile.account_id })
+      .select()
+      .single()
+
+    if (error || !data) {
+      alert('Erro ao adicionar categoria.')
+      return
+    }
+
+    setCategories([...categories, data])
+    setSelectedCategory(data.id)
+    setNewCategoryName('')
+  }
+
+  const deleteCategory = async (cat: Category) => {
+    if (!confirm(`Excluir a categoria "${cat.name}"? As despesas associadas ficarão sem categoria.`)) return
+
+    const { error } = await supabase.from('categories').delete().eq('id', cat.id)
+    if (error) {
+      alert('Erro ao excluir categoria.')
+      return
+    }
+
+    setCategories(categories.filter(c => c.id !== cat.id))
+    if (selectedCategory === cat.id) setSelectedCategory('')
   }
 
   const handleSignOut = async () => {
@@ -212,18 +254,40 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                 <label className="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
                 <div className="flex flex-wrap gap-2">
                   {categories.map(cat => (
-                    <button
+                    <div
                       key={cat.id}
-                      onClick={() => setSelectedCategory(cat.id)}
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
+                      className={`flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-full text-sm font-medium transition ${
                         selectedCategory === cat.id
                           ? `${cat.color} text-white`
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : 'bg-gray-100 text-gray-700'
                       }`}
                     >
-                      {cat.name}
-                    </button>
+                      <button onClick={() => setSelectedCategory(cat.id)}>
+                        {cat.name}
+                      </button>
+                      <button
+                        onClick={e => { e.stopPropagation(); deleteCategory(cat) }}
+                        className={`rounded-full p-0.5 hover:bg-black/20 transition ${
+                          selectedCategory === cat.id ? 'text-white' : 'text-gray-400'
+                        }`}
+                        title="Excluir categoria"
+                      >
+                        <X size={11} />
+                      </button>
+                    </div>
                   ))}
+
+                  {/* Nova categoria inline */}
+                  <div className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm bg-gray-50 border-2 border-dashed border-gray-300">
+                    <input
+                      type="text"
+                      value={newCategoryName}
+                      onChange={e => setNewCategoryName(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCategory() } }}
+                      placeholder="Nova categoria"
+                      className="bg-transparent outline-none w-32 text-gray-500 placeholder-gray-400 text-sm"
+                    />
+                  </div>
                 </div>
               </div>
               <button
