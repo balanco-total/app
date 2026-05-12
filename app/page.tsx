@@ -29,12 +29,6 @@ const features = [
       'Veja o saldo do mês, total de recebimentos e pagamentos. Resumo por categoria com percentuais e os últimos lançamentos da conta.',
   },
   {
-    icon: Users,
-    title: 'Compartilhe com a família',
-    description:
-      'Convide cônjuge, parceiro ou quem mora com você. Cada um lança os próprios gastos e você tem visão unificada.',
-  },
-  {
     icon: BarChart3,
     title: 'Gráficos analíticos',
     description:
@@ -169,6 +163,30 @@ export default function LandingPage() {
               Do lançamento manual à importação do extrato do banco — tudo focado em controle pessoal de gastos.
             </p>
           </div>
+          {/* Card destaque — Compartilhe com a família */}
+          <div className="bg-[#1B4332] rounded-2xl p-8 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+            <div className="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <Users className="w-7 h-7 text-white" />
+            </div>
+            <div className="flex-1">
+              <span className="inline-block bg-[#F5A623] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide mb-3">
+                Para toda a família
+              </span>
+              <h3 className="text-xl font-black text-white mb-2">Compartilhe com a família</h3>
+              <p className="text-white/75 leading-relaxed">
+                Convide cônjuge, parceiro ou quem mora com você. Cada pessoa lança os próprios gastos
+                e você tem uma visão unificada de tudo — sem misturar, sem perder controle.
+              </p>
+            </div>
+            <div className="hidden lg:flex flex-col gap-2 text-sm flex-shrink-0">
+              {['Convite por link', 'Cada um vê o próprio', 'Visão consolidada'].map(item => (
+                <span key={item} className="flex items-center gap-2 text-white/80">
+                  <Check className="w-4 h-4 text-[#F5A623]" /> {item}
+                </span>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map(({ icon: Icon, title, description }) => (
               <div
