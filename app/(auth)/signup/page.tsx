@@ -1,9 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+
+const MAX_NAME = 60
+const MAX_EMAIL = 100
+const MAX_PASSWORD = 40
 
 export default function SignupPage() {
   const [name, setName] = useState('')
@@ -12,22 +15,29 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const supabase = createClient()
   const router = useRouter()
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError('')
 
-    const { error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name: name.trim() } },
+    if (name.trim().length === 0) { setError('Nome é obrigatório.'); return }
+    if (name.trim().length > MAX_NAME) { setError(`Nome deve ter no máximo ${MAX_NAME} caracteres.`); return }
+    if (email.length > MAX_EMAIL) { setError(`E-mail deve ter no máximo ${MAX_EMAIL} caracteres.`); return }
+    if (password.length > MAX_PASSWORD) { setError(`Senha deve ter no máximo ${MAX_PASSWORD} caracteres.`); return }
+
+    setLoading(true)
+
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
     })
 
-    if (authError) {
-      setError(authError.message)
+    const json = await res.json()
+
+    if (!res.ok) {
+      setError(json.error ?? 'Erro ao criar conta.')
       setLoading(false)
       return
     }
@@ -52,6 +62,7 @@ export default function SignupPage() {
               value={name}
               onChange={e => setName(e.target.value)}
               required
+              maxLength={MAX_NAME}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Seu nome"
             />
@@ -63,6 +74,7 @@ export default function SignupPage() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
+              maxLength={MAX_EMAIL}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -74,6 +86,7 @@ export default function SignupPage() {
               onChange={e => setPassword(e.target.value)}
               required
               minLength={6}
+              maxLength={MAX_PASSWORD}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>

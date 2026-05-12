@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS public.accounts (
 CREATE TABLE IF NOT EXISTS public.profiles (
   id         uuid        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   account_id uuid        NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
-  name       text        NOT NULL,
+  name       varchar(60) NOT NULL CHECK (char_length(name) >= 1),
   role       text        NOT NULL DEFAULT 'owner' CHECK (role IN ('owner', 'member')),
   created_at timestamptz NOT NULL DEFAULT now()
 );
