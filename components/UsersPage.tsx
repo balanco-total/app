@@ -169,14 +169,14 @@ export default function UsersPage({ profile }: { profile: Profile }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center">
         <div className="text-xl text-gray-600">BalançoTotal...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 p-4">
       <div className="max-w-2xl mx-auto">
 
         {/* Header */}
@@ -193,7 +193,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
             </div>
             <button
               onClick={openInviteModal}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+              className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
             >
               <UserPlus size={18} />
               Convidar
@@ -204,7 +204,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
         {/* Members list */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <Users size={20} className="text-blue-600" />
+            <Users size={20} className="text-red-600" />
             Membros
           </h2>
           <div className="space-y-3">
@@ -239,7 +239,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
 
                   <div className="flex items-center gap-2">
                     {isSelf && (
-                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                      <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
                         Você
                       </span>
                     )}
@@ -338,7 +338,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
                     required
                     autoFocus
                     maxLength={100}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     placeholder="email@exemplo.com"
                   />
                 </div>
@@ -346,7 +346,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
                   <button
                     type="submit"
                     disabled={inviting}
-                    className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+                    className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
                   >
                     {inviting ? 'Gerando...' : 'Gerar link'}
                   </button>
@@ -366,7 +366,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
                   <span className="flex-1 text-xs text-gray-700 break-all">{inviteLink}</span>
                   <button
                     onClick={() => copyLink(inviteLink)}
-                    className="text-blue-600 hover:text-blue-800 transition shrink-0 mt-0.5"
+                    className="text-red-600 hover:text-red-800 transition shrink-0 mt-0.5"
                     title="Copiar link"
                   >
                     {copied ? <Check size={18} /> : <Copy size={18} />}
@@ -403,9 +403,9 @@ export default function UsersPage({ profile }: { profile: Profile }) {
                   <button
                     onClick={() => confirmDelete(true)}
                     disabled={deleteLoading}
-                    className="w-full text-left p-4 border-2 border-blue-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition disabled:opacity-40"
+                    className="w-full text-left p-4 border-2 border-red-200 rounded-xl hover:border-red-400 hover:bg-red-50 transition disabled:opacity-40"
                   >
-                    <p className="font-semibold text-blue-700">Migrar lançamentos para mim</p>
+                    <p className="font-semibold text-red-700">Migrar lançamentos para mim</p>
                     <p className="text-sm text-gray-500 mt-0.5">
                       Os lançamentos ficam na conta, transferidos para o proprietário.
                     </p>

@@ -58,7 +58,7 @@ export default function ResetPasswordPage() {
 
   if (status === 'waiting') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center">
         <div className="text-xl text-gray-600">Verificando link...</div>
       </div>
     )
@@ -66,13 +66,13 @@ export default function ResetPasswordPage() {
 
   if (status === 'invalid') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-3">Link inválido ou expirado</h1>
           <p className="text-gray-500 mb-6">
             Este link de recuperação é inválido ou já expirou. Solicite um novo.
           </p>
-          <Link href="/login" className="text-blue-600 font-semibold hover:underline">
+          <Link href="/login" className="text-red-600 font-semibold hover:underline">
             Voltar ao login
           </Link>
         </div>
@@ -81,7 +81,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
         <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">BalançoTotal</h1>
         <p className="text-gray-500 text-center mb-6">Criar nova senha</p>
@@ -100,7 +100,7 @@ export default function ResetPasswordPage() {
               autoFocus
               minLength={6}
               maxLength={MAX_PASSWORD}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
           <div>
@@ -112,13 +112,13 @@ export default function ResetPasswordPage() {
               required
               minLength={6}
               maxLength={MAX_PASSWORD}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
           >
             {loading ? 'Salvando...' : 'Salvar nova senha'}
           </button>

@@ -72,7 +72,7 @@ function InviteForm() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center">
         <div className="text-xl text-gray-600">BalançoTotal...</div>
       </div>
     )
@@ -80,13 +80,13 @@ function InviteForm() {
 
   if (!isValid) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-3">Convite inválido</h1>
           <p className="text-gray-500 mb-6">
             Este link de convite é inválido, já foi utilizado ou expirou.
           </p>
-          <Link href="/login" className="text-blue-600 font-semibold hover:underline">
+          <Link href="/login" className="text-red-600 font-semibold hover:underline">
             Ir para o login
           </Link>
         </div>
@@ -95,7 +95,7 @@ function InviteForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
         <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">BalançoTotal</h1>
         <p className="text-gray-500 text-center mb-1">Você foi convidado!</p>
@@ -116,7 +116,7 @@ function InviteForm() {
               required
               autoFocus
               maxLength={MAX_NAME}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
               placeholder="Como quer ser chamado"
             />
           </div>
@@ -129,13 +129,13 @@ function InviteForm() {
               required
               minLength={6}
               maxLength={MAX_PASSWORD}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
           >
             {submitting ? 'Criando conta...' : 'Entrar na conta'}
           </button>

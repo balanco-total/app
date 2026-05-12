@@ -21,8 +21,8 @@ type Expense = {
 
 const COLOR_MAP: Record<string, string> = {
   'bg-orange-500': '#f97316',
-  'bg-blue-500':   '#3b82f6',
-  'bg-red-500':    '#ef4444',
+  'bg-blue-500':  '#3b82f6',
+  'bg-red-500':   '#ef4444',
   'bg-purple-500': '#a855f7',
   'bg-green-500':  '#22c55e',
   'bg-indigo-500': '#6366f1',
@@ -55,7 +55,7 @@ function BarTooltip({ active, payload, label }: any) {
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm">
       <p className="font-semibold text-gray-700 mb-1">{label}</p>
-      <p className="text-blue-600 font-bold">{fmt(payload[0].value)}</p>
+      <p className="text-red-600 font-bold">{fmt(payload[0].value)}</p>
     </div>
   )
 }
@@ -143,7 +143,7 @@ export default function ChartsPage({ profile, categories, expenses }: {
   }, [monthlyExpenses])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 p-4">
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
@@ -174,9 +174,9 @@ export default function ChartsPage({ profile, categories, expenses }: {
             >
               <ChevronLeft size={18} />
             </button>
-            <div className="flex items-center gap-2 px-4 py-1.5 bg-blue-50 border border-blue-200 rounded-lg min-w-[172px] justify-center">
-              <Calendar size={15} className="text-blue-500 shrink-0" />
-              <span className="text-sm font-semibold text-blue-700">
+            <div className="flex items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg min-w-[172px] justify-center">
+              <Calendar size={15} className="text-red-500 shrink-0" />
+              <span className="text-sm font-semibold text-red-700">
                 {MONTHS_PT[selMonthNum - 1]} {selYear}
               </span>
             </div>
@@ -190,7 +190,7 @@ export default function ChartsPage({ profile, categories, expenses }: {
           </div>
           <div className="text-right">
             <p className="text-xs text-gray-500">Total do mês</p>
-            <p className="text-xl font-bold text-blue-600">{fmt(totalMonth)}</p>
+            <p className="text-xl font-bold text-red-600">{fmt(totalMonth)}</p>
           </div>
         </div>
 
@@ -271,9 +271,9 @@ export default function ChartsPage({ profile, categories, expenses }: {
               >
                 <ChevronLeft size={18} />
               </button>
-              <div className="flex items-center gap-2 px-4 py-1.5 bg-blue-50 border border-blue-200 rounded-lg min-w-[172px] justify-center">
-                <Calendar size={15} className="text-blue-500 shrink-0" />
-                <span className="text-sm font-semibold text-blue-700">
+              <div className="flex items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg min-w-[172px] justify-center">
+                <Calendar size={15} className="text-red-500 shrink-0" />
+                <span className="text-sm font-semibold text-red-700">
                   {MONTHS_PT[trendMonthNum - 1]} {trendYear}
                 </span>
               </div>
@@ -294,7 +294,7 @@ export default function ChartsPage({ profile, categories, expenses }: {
               <Tooltip content={<BarTooltip />} />
               <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={60}>
                 {monthlyTrend.map((entry, i) => (
-                  <Cell key={i} fill={entry.isCurrent ? '#3b82f6' : '#bfdbfe'} />
+                  <Cell key={i} fill={entry.isCurrent ? '#ef4444' : '#fecaca'} />
                 ))}
               </Bar>
             </BarChart>

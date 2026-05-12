@@ -69,7 +69,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
         <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">BalançoTotal</h1>
 
@@ -90,7 +90,7 @@ function LoginForm() {
                 </p>
                 <button
                   onClick={() => { setView('login'); setRecoverySent(false) }}
-                  className="text-blue-600 font-semibold hover:underline text-sm"
+                  className="text-red-600 font-semibold hover:underline text-sm"
                 >
                   Voltar ao login
                 </button>
@@ -106,13 +106,13 @@ function LoginForm() {
                     required
                     autoFocus
                     maxLength={MAX_EMAIL}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={recoveryLoading}
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+                  className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
                 >
                   {recoveryLoading ? 'Enviando...' : 'Enviar link de recuperação'}
                 </button>
@@ -131,7 +131,7 @@ function LoginForm() {
             <p className="text-gray-500 text-center mb-6">Faça login</p>
 
             {message === 'confirm-email' && (
-              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm mb-6">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
                 Conta criada com sucesso! Acesse sua caixa de e-mail e clique no link de confirmação antes de fazer login.
               </div>
             )}
@@ -153,7 +153,7 @@ function LoginForm() {
                   onChange={e => setEmail(e.target.value)}
                   required
                   maxLength={MAX_EMAIL}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
               </div>
               <div>
@@ -162,7 +162,7 @@ function LoginForm() {
                   <button
                     type="button"
                     onClick={switchToRecovery}
-                    className="text-xs text-blue-500 hover:text-blue-700 hover:underline transition"
+                    className="text-xs text-red-500 hover:text-red-700 hover:underline transition"
                   >
                     Esqueceu a senha?
                   </button>
@@ -173,13 +173,13 @@ function LoginForm() {
                   onChange={e => setPassword(e.target.value)}
                   required
                   maxLength={MAX_PASSWORD}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
               </div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+                className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
               >
                 {loading ? 'Entrando...' : 'Entrar'}
               </button>
@@ -187,7 +187,7 @@ function LoginForm() {
 
             <p className="mt-6 text-center text-gray-600">
               Não tem conta?{' '}
-              <Link href="/signup" className="text-blue-600 font-semibold hover:underline">
+              <Link href="/signup" className="text-red-600 font-semibold hover:underline">
                 Cadastre-se
               </Link>
             </p>

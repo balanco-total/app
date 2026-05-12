@@ -323,7 +323,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center">
         <div className="text-xl text-gray-600">BalançoTotal...</div>
       </div>
     )
@@ -334,7 +334,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   const totalMonth = monthlyExpenses.reduce((sum, e) => sum + e.amount, 0)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
@@ -403,7 +403,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
           {/* Expense Form */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <PlusCircle size={24} className="text-blue-600" />
+              <PlusCircle size={24} className="text-red-600" />
               Nova Despesa
             </h2>
             <div className="space-y-4">
@@ -414,7 +414,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                   maxLength={60}
                   value={description}
                   onChange={e => setDescription(e.target.value.replace(FIELD_PATTERN, ''))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Ex: Supermercado"
                 />
               </div>
@@ -425,7 +425,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                   inputMode="numeric"
                   value={amount}
                   onChange={e => setAmount(applyMask(e.target.value))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="0,00"
                 />
               </div>
@@ -483,7 +483,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                   />
                   <span>Opções avançadas</span>
                   {!showAdvanced && (parseDateDisplay(expenseDate) || quantity !== '1') && (
-                    <span className="ml-auto flex items-center gap-1 text-xs text-blue-500 font-medium">
+                    <span className="ml-auto flex items-center gap-1 text-xs text-red-500 font-medium">
                       {quantity !== '1' && <Repeat size={11} />}
                       {quantity !== '1' ? `${quantity}×` : ''}
                       {parseDateDisplay(expenseDate) ? ` ${expenseDate}` : ''}
@@ -537,7 +537,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                             onChange={e => setExpenseDate(applyDateMask(e.target.value))}
                             placeholder="DD/MM/AAAA"
                             maxLength={10}
-                            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 text-sm"
+                            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-700 text-sm"
                           />
                         </div>
                       </div>
@@ -555,17 +555,17 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                           }}
                           min="1"
                           max="99"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                         />
                         {installmentWarning ? (
                           <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
                             <span>⚠</span> {installmentWarning}
                           </p>
                         ) : installmentPreview ? (
-                          <div className="mt-2 flex items-center gap-2.5 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                            <Repeat size={13} className="text-blue-400 shrink-0" />
+                          <div className="mt-2 flex items-center gap-2.5 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                            <Repeat size={13} className="text-red-400 shrink-0" />
                             <div className="leading-snug">
-                              <p className="text-xs text-blue-400">{installmentPreview}</p>
+                              <p className="text-xs text-red-400">{installmentPreview}</p>
                             </div>
                           </div>
                         ) : null}
@@ -577,7 +577,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
 
               <button
                 onClick={addExpense}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+                className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition"
               >
                 {parseInt(quantity, 10) > 1 ? `Adicionar ${quantity} parcelas` : 'Adicionar despesa'}
               </button>
@@ -596,9 +596,9 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                 >
                   <ChevronLeft size={18} />
                 </button>
-                <div className="flex items-center gap-2 px-4 py-1.5 bg-blue-50 border border-blue-200 rounded-lg min-w-[172px] justify-center">
-                  <Calendar size={15} className="text-blue-500 shrink-0" />
-                  <span className="text-sm font-semibold text-blue-700">
+                <div className="flex items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg min-w-[172px] justify-center">
+                  <Calendar size={15} className="text-red-500 shrink-0" />
+                  <span className="text-sm font-semibold text-red-700">
                     {MONTHS_PT[selMonthNum - 1]} {selYear}
                   </span>
                 </div>
@@ -611,9 +611,9 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                 </button>
               </div>
             </div>
-            <div className="bg-blue-50 rounded-lg p-4 mb-4">
+            <div className="bg-red-50 rounded-lg p-4 mb-4">
               <p className="text-sm text-gray-600">Total do Mês</p>
-              <p className="text-3xl font-bold text-blue-600">
+              <p className="text-3xl font-bold text-red-600">
                 R$ {totalMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
@@ -745,7 +745,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
               <div className="flex gap-3">
                 <button
                   onClick={() => { updateExpenseCategory(pendingCategoryChange.expenseId, pendingCategoryChange.newCategoryId); setPendingCategoryChange(null) }}
-                  className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition"
+                  className="flex-1 bg-red-600 text-white py-2.5 rounded-lg font-semibold hover:bg-red-700 transition"
                 >
                   Confirmar
                 </button>
