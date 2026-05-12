@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
-import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRight, PieChart } from 'lucide-react'
+import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRight, PieChart, User as UserIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -46,9 +46,34 @@ const DEFAULT_CATEGORIES = [
   { name: 'Outros', color: 'bg-gray-500' },
 ]
 
+const AVATAR_COLORS = ['#3b82f6','#22c55e','#a855f7','#f97316','#ef4444','#14b8a6','#6366f1','#ec4899']
+
+function getInitials(name: string) {
+  return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
+}
+
+function getAvatarColor(name: string) {
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h)
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]
+}
+
 export default function Dashboard({ user, profile }: { user: User; profile: Profile }) {
   const supabase = createClient()
   const router = useRouter()
+
+  const [showAvatarMenu, setShowAvatarMenu] = useState(false)
+  const avatarRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
+        setShowAvatarMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const [members, setMembers] = useState<Profile[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -217,11 +242,8 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">BalançoTotal</h1>
-              <p className="text-gray-600 mt-1">Olá, {profile.name}!</p>
-            </div>
-            <div className="flex gap-3">
+            <h1 className="text-3xl font-bold text-gray-800">BalançoTotal</h1>
+            <div className="flex items-center gap-3">
               <Link
                 href="/charts"
                 className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
@@ -244,13 +266,40 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                   <span className="text-gray-700 font-medium">{members.length} usuário(s)</span>
                 </div>
               )}
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-2 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
-              >
-                <LogOut size={20} />
-                Sair
-              </button>
+
+              {/* Avatar dropdown */}
+              <div className="relative" ref={avatarRef}>
+                <button
+                  onClick={() => setShowAvatarMenu(v => !v)}
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow hover:opacity-90 transition"
+                  style={{ backgroundColor: getAvatarColor(profile.name) }}
+                  title={profile.name}
+                >
+                  {getInitials(profile.name)}
+                </button>
+                {showAvatarMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                    <p className="px-4 py-2 text-xs text-gray-400 font-medium truncate">{profile.name}</p>
+                    <hr className="border-gray-100" />
+                    <Link
+                      href="/profile"
+                      onClick={() => setShowAvatarMenu(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
+                    >
+                      <UserIcon size={16} className="text-gray-400" />
+                      Perfil
+                    </Link>
+                    <hr className="border-gray-100" />
+                    <button
+                      onClick={handleSignOut}
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-red-600 hover:bg-red-50 transition text-sm"
+                    >
+                      <LogOut size={16} />
+                      Sair
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
