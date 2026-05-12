@@ -17,7 +17,7 @@ export default async function Page() {
     .single()
 
   if (!profile) redirect('/login')
-  if (profile.role !== 'owner') redirect('/')
+  if (profile.role !== 'owner') redirect('/app')
 
   return <UsersPage profile={profile} />
 }

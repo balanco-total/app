@@ -196,7 +196,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <Link href="/" className="text-gray-500 hover:text-gray-700 transition">
+              <Link href="/app" className="text-gray-500 hover:text-gray-700 transition">
                 <ArrowLeft size={24} />
               </Link>
               <div>

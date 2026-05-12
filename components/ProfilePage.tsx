@@ -393,7 +393,7 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
     setShowDeleteModal(false)
     setDeleteConfirm('')
     setDeleteLoading(false)
-    router.push('/')
+    router.push('/app')
     router.refresh()
   }
 
@@ -405,7 +405,7 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <div className="flex items-center gap-4">
             <Link
-              href="/"
+              href="/app"
               className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-600"
             >
               <ArrowLeft size={20} />

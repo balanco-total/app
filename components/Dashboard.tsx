@@ -381,7 +381,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
             <Logo height={40} width={130} />
             <div className="flex items-center gap-3">
               <Link
-                href="/charts"
+                href="/app/charts"
                 className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
                 title="Ver gráficos"
               >
@@ -390,7 +390,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
               </Link>
               {profile.role === 'owner' ? (
                 <Link
-                  href="/users"
+                  href="/app/users"
                   className="hidden sm:flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
                 >
                   <Users size={20} className="text-gray-600" />
@@ -416,7 +416,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                 {showAvatarMenu && (
                   <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
                     <Link
-                      href="/profile"
+                      href="/app/profile"
                       onClick={() => setShowAvatarMenu(false)}
                       className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
                     >
@@ -425,7 +425,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                     </Link>
                     {profile.role === 'owner' ? (
                       <Link
-                        href="/users"
+                        href="/app/users"
                         onClick={() => setShowAvatarMenu(false)}
                         className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
                       >

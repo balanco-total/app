@@ -27,15 +27,15 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
-  // Routes accessible without a session (unauthenticated users won't be sent to /login)
+  // Routes accessible without a session
   const isPublicRoute =
+    pathname === '/' ||
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
     pathname.startsWith('/invite') ||
-    pathname.startsWith('/landing') ||
     pathname.startsWith('/api/')
 
-  // Routes where an already-authenticated user should be sent to the dashboard instead
+  // Routes where an already-authenticated user should be sent to the app instead
   const isLoginRoute =
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
@@ -53,7 +53,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!user && !isPublicRoute) return redirectTo('/login')
-  if (user && isLoginRoute) return redirectTo('/')
+  if (user && isLoginRoute) return redirectTo('/app')
 
   // Must return supabaseResponse — it carries the refreshed session cookies
   return supabaseResponse

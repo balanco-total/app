@@ -144,7 +144,7 @@ export default function ChartsPage({ profile, categories, expenses }: {
           {/* Row 1: back + title + total */}
           <div className="flex items-center gap-4">
             <Link
-              href="/"
+              href="/app"
               className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-600 shrink-0"
               title="Voltar ao dashboard"
             >
