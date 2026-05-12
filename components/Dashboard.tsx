@@ -33,7 +33,7 @@ function parseMasked(value: string): number {
   return parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0
 }
 
-const FIELD_PATTERN = /[^a-zA-Z0-9\-\/\. ]/g
+const FIELD_PATTERN = /[^a-zA-Z0-9\-\/\. À-ÿ]/g
 
 const DEFAULT_CATEGORIES = [
   { name: 'Alimentação', color: 'bg-orange-500' },
