@@ -526,7 +526,6 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                           Data do lançamento
-                          <span className="ml-1 text-xs text-gray-400 font-normal">(padrão: hoje)</span>
                         </label>
                         <div className="relative">
                           <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -544,7 +543,6 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                           Quantidade
-                          <span className="ml-1 text-xs text-gray-400 font-normal">(1 a 99)</span>
                         </label>
                         <input
                           type="number"
@@ -631,7 +629,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                         <span className="font-medium text-gray-700">{cat.name}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-gray-500">{pct.toFixed(1)}%</span>
+                        <span className="text-sm font-medium text-gray-500">{pct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</span>
                         <span className="font-bold text-gray-800 min-w-[100px] text-right">
                           R$ {cat.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>

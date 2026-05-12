@@ -66,7 +66,7 @@ function PieTooltip({ active, payload }: any) {
     <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm">
       <p className="font-semibold text-gray-700">{payload[0].name}</p>
       <p className="font-bold" style={{ color: payload[0].payload.fill }}>{fmt(payload[0].value)}</p>
-      <p className="text-gray-500">{(payload[0].payload.percent * 100).toFixed(1)}%</p>
+      <p className="text-gray-500">{(payload[0].payload.percent * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</p>
     </div>
   )
 }
