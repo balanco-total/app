@@ -240,7 +240,7 @@ export default function ChartsPage({ profile, categories, expenses }: {
                   <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                   <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#6b7280' }} />
                   <YAxis tickFormatter={fmtAxis} tick={{ fontSize: 11, fill: '#6b7280' }} width={60} />
-                  <Tooltip content={<BarTooltip />} />
+                  <Tooltip content={<BarTooltip />} cursor={false} />
                   <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={80}>
                     {userBarData.map((_, i) => (
                       <Cell key={i} fill={FALLBACK_COLORS[i % FALLBACK_COLORS.length]} />
