@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { ArrowLeft, UserPlus, Copy, Check, Clock, Users, Trash2, UserX, UserCheck } from 'lucide-react'
 import Link from 'next/link'
+import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
 
 type Profile = {
   id: string
@@ -40,6 +41,9 @@ export default function UsersPage({ profile }: { profile: Profile }) {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+
+  const { toasts, toast, dismiss } = useToast()
+  const { confirmState, showConfirm, handleConfirm, handleCancel } = useConfirm()
 
   useEffect(() => { loadData() }, [])
 
@@ -100,10 +104,16 @@ export default function UsersPage({ profile }: { profile: Profile }) {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const revokeInvite = async (invite: Invite) => {
-    if (!confirm(`Revogar convite para ${invite.email}?`)) return
-    await supabase.from('invites').delete().eq('id', invite.id)
-    setInvites(invites.filter(i => i.id !== invite.id))
+  const revokeInvite = (invite: Invite) => {
+    showConfirm({
+      title: 'Revogar convite?',
+      body: `O convite para ${invite.email} será cancelado.`,
+      confirmLabel: 'Revogar',
+      onConfirm: async () => {
+        await supabase.from('invites').delete().eq('id', invite.id)
+        setInvites(prev => prev.filter(i => i.id !== invite.id))
+      },
+    })
   }
 
   const openDeleteModal = async (member: Profile) => {
@@ -128,7 +138,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
     const json = await res.json()
 
     if (!res.ok) {
-      alert(json.error ?? 'Erro ao excluir membro.')
+      toast.error(json.error ?? 'Erro ao excluir membro.')
       setDeleteLoading(false)
       return
     }
@@ -144,27 +154,29 @@ export default function UsersPage({ profile }: { profile: Profile }) {
       ? `${member.name} voltará a ter acesso à conta.`
       : `${member.name} será desconectado imediatamente e não poderá mais fazer login.`
 
-    if (!confirm(`${action} ${member.name}?\n\n${detail}`)) return
-
-    setActionLoading(member.id)
-
-    const res = await fetch(`/api/users/${member.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ disabled: !member.is_disabled }),
+    showConfirm({
+      title: `${action} ${member.name}?`,
+      body: detail,
+      confirmLabel: action,
+      onConfirm: async () => {
+        setActionLoading(member.id)
+        const res = await fetch(`/api/users/${member.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ disabled: !member.is_disabled }),
+        })
+        const json = await res.json()
+        if (!res.ok) {
+          toast.error(json.error ?? 'Erro ao atualizar membro.')
+          setActionLoading(null)
+          return
+        }
+        setMembers(prev => prev.map(m =>
+          m.id === member.id ? { ...m, is_disabled: !m.is_disabled } : m
+        ))
+        setActionLoading(null)
+      },
     })
-    const json = await res.json()
-
-    if (!res.ok) {
-      alert(json.error ?? 'Erro ao atualizar membro.')
-      setActionLoading(null)
-      return
-    }
-
-    setMembers(members.map(m =>
-      m.id === member.id ? { ...m, is_disabled: !m.is_disabled } : m
-    ))
-    setActionLoading(null)
   }
 
   if (loading) {
@@ -447,6 +459,9 @@ export default function UsersPage({ profile }: { profile: Profile }) {
           </div>
         </div>
       )}
+
+      <ConfirmModal {...confirmState} onConfirm={handleConfirm} onCancel={handleCancel} />
+      <Toasts toasts={toasts} dismiss={dismiss} />
     </div>
   )
 }

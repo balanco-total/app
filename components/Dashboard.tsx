@@ -6,6 +6,7 @@ import type { User } from '@supabase/supabase-js'
 import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRight, ChevronDown, Repeat, PieChart, User as UserIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
 
 type Profile = { id: string; name: string; account_id: string; role: string }
 type Category = { id: string; account_id: string; name: string; color: string }
@@ -127,6 +128,9 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
   const [pendingCategoryChange, setPendingCategoryChange] = useState<{ expenseId: string; newCategoryId: string | null } | null>(null)
 
+  const { toasts, toast, dismiss } = useToast()
+  const { confirmState, showConfirm, handleConfirm, handleCancel } = useConfirm()
+
   useEffect(() => {
     loadData()
   }, [])
@@ -155,17 +159,17 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   }
 
   const addExpense = async () => {
-    if (!description.trim()) { alert('Descrição é obrigatória.'); return }
+    if (!description.trim()) { toast.error('Descrição é obrigatória.'); return }
     const parsedAmount = parseMasked(amount)
-    if (parsedAmount <= 0) { alert('Valor deve ser maior que zero.'); return }
-    if (!selectedCategory) { alert('Selecione uma categoria.'); return }
+    if (parsedAmount <= 0) { toast.error('Valor deve ser maior que zero.'); return }
+    if (!selectedCategory) { toast.error('Selecione uma categoria.'); return }
 
     const today = new Date()
     const todayInternal = toLocalDateStr(today)
     const internalDate = parseDateDisplay(expenseDate)
 
     if (!internalDate) {
-      alert('Data inválida. Use o formato DD/MM/AAAA.')
+      toast.error('Data inválida. Use o formato DD/MM/AAAA.')
       return
     }
 
@@ -175,7 +179,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
       const minDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
       const maxDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 90)
       if (parsed < minDate || parsed > maxDate) {
-        alert('Data fora do intervalo permitido (máximo 1 ano atrás e 90 dias à frente).')
+        toast.error('Data fora do intervalo permitido (máximo 1 ano atrás e 90 dias à frente).')
         return
       }
     }
@@ -190,7 +194,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
         if (check.getDate() !== d) {
           const idx = (m - 1 + i) % 12
           const yr = y + Math.floor((m - 1 + i) / 12)
-          alert(`O dia ${d} não existe em ${MONTHS_PT_LOWER[idx]} de ${yr}. As parcelas não podem ser criadas.`)
+          toast.error(`O dia ${d} não existe em ${MONTHS_PT_LOWER[idx]} de ${yr}. As parcelas não podem ser criadas.`)
           return
         }
       }
@@ -214,7 +218,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
     const json = await res.json()
 
     if (!res.ok) {
-      alert(json.error ?? 'Erro ao adicionar despesa.')
+      toast.error(json.error ?? 'Erro ao adicionar despesa.')
       return
     }
 
@@ -227,14 +231,17 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
     setQuantity('1')
   }
 
-  const deleteExpense = async (expenseId: string) => {
-    if (!confirm('Excluir este lançamento?')) return
-    const { error } = await supabase.from('expenses').delete().eq('id', expenseId)
-    if (error) {
-      alert('Erro ao excluir despesa.')
-      return
-    }
-    setExpenses(expenses.filter(e => e.id !== expenseId))
+  const deleteExpense = (expenseId: string) => {
+    showConfirm({
+      title: 'Excluir lançamento?',
+      body: 'Esta ação não pode ser desfeita.',
+      confirmLabel: 'Excluir',
+      onConfirm: async () => {
+        const { error } = await supabase.from('expenses').delete().eq('id', expenseId)
+        if (error) { toast.error('Erro ao excluir despesa.'); return }
+        setExpenses(prev => prev.filter(e => e.id !== expenseId))
+      },
+    })
   }
 
   const updateExpenseCategory = async (expenseId: string, newCategoryId: string | null) => {
@@ -242,7 +249,10 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
     setExpenses(prev => prev.map(e => e.id === expenseId ? { ...e, category_id: newCategoryId } : e))
     setEditingCategoryId(null)
     const { error } = await supabase.from('expenses').update({ category_id: newCategoryId }).eq('id', expenseId)
-    if (error) setExpenses(prev => prev.map(e => e.id === expenseId ? { ...e, category_id: original } : e))
+    if (error) {
+      setExpenses(prev => prev.map(e => e.id === expenseId ? { ...e, category_id: original } : e))
+      toast.error('Erro ao atualizar categoria.')
+    }
   }
 
   const CATEGORY_COLORS = [
@@ -255,7 +265,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
     const name = newCategoryName.trim()
     if (!name) return
     if (name.length < 3) {
-      alert('O nome da categoria deve ter pelo menos 3 caracteres.')
+      toast.error('O nome da categoria deve ter pelo menos 3 caracteres.')
       return
     }
 
@@ -270,7 +280,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
     const json = await res.json()
 
     if (!res.ok) {
-      alert(json.error ?? 'Erro ao adicionar categoria.')
+      toast.error(json.error ?? 'Erro ao adicionar categoria.')
       return
     }
 
@@ -279,17 +289,18 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
     setNewCategoryName('')
   }
 
-  const deleteCategory = async (cat: Category) => {
-    if (!confirm(`Excluir a categoria "${cat.name}"? As despesas associadas ficarão sem categoria.`)) return
-
-    const { error } = await supabase.from('categories').delete().eq('id', cat.id)
-    if (error) {
-      alert('Erro ao excluir categoria.')
-      return
-    }
-
-    setCategories(categories.filter(c => c.id !== cat.id))
-    if (selectedCategory === cat.id) setSelectedCategory('')
+  const deleteCategory = (cat: Category) => {
+    showConfirm({
+      title: `Excluir categoria "${cat.name}"?`,
+      body: 'As despesas associadas ficarão sem categoria.',
+      confirmLabel: 'Excluir',
+      onConfirm: async () => {
+        const { error } = await supabase.from('categories').delete().eq('id', cat.id)
+        if (error) { toast.error('Erro ao excluir categoria.'); return }
+        setCategories(prev => prev.filter(c => c.id !== cat.id))
+        if (selectedCategory === cat.id) setSelectedCategory('')
+      },
+    })
   }
 
   const handleSignOut = async () => {
@@ -758,6 +769,9 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
           </div>
         )
       })()}
+
+      <ConfirmModal {...confirmState} onConfirm={handleConfirm} onCancel={handleCancel} />
+      <Toasts toasts={toasts} dismiss={dismiss} />
     </div>
   )
 }

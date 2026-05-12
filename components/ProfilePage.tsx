@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import { ArrowLeft, User, Lock, Download, Upload, FileText, AlertCircle, X, Trash2, Check, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useToast, Toasts } from './toast'
 
 type Profile = { id: string; name: string; account_id: string; role: string }
 
@@ -188,6 +189,8 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
   const [importError, setImportError] = useState('')
   const [importResult, setImportResult] = useState<{ count: number } | null>(null)
 
+  const { toasts, toast, dismiss } = useToast()
+
   const saveName = async (e: React.FormEvent) => {
     e.preventDefault()
     setNameMsg(null)
@@ -258,7 +261,7 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
       .order('date', { ascending: false })
 
     if (!data || data.length === 0) {
-      alert('Nenhum lançamento encontrado.')
+      toast.warn('Nenhum lançamento encontrado.')
       setCsvLoading(false)
       return
     }
@@ -764,6 +767,8 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
           </div>
         </div>
       )}
+
+      <Toasts toasts={toasts} dismiss={dismiss} />
     </div>
   )
 }
