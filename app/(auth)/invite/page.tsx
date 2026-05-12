@@ -15,6 +15,7 @@ function InviteForm() {
   const supabase = createClient()
 
   const [email, setEmail] = useState('')
+  const [ownerEmail, setOwnerEmail] = useState('')
   const [isValid, setIsValid] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(true)
   const [name, setName] = useState('')
@@ -30,6 +31,7 @@ function InviteForm() {
         setIsValid(false)
       } else {
         setEmail(data[0].email)
+        setOwnerEmail(data[0].owner_email ?? '')
         setIsValid(data[0].is_valid)
       }
       setLoading(false)
@@ -98,7 +100,7 @@ function InviteForm() {
         <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">BalançoTotal</h1>
         <p className="text-gray-500 text-center mb-1">Você foi convidado!</p>
         <p className="text-center text-sm text-gray-400 mb-8">
-          Conta vinculada a <span className="font-medium text-gray-600">{email}</span>
+          Conta vinculada a <span className="font-medium text-gray-600">{ownerEmail}</span>
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
