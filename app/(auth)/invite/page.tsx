@@ -5,6 +5,9 @@ import { createClient } from '@/utils/supabase/client'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+const MAX_NAME = 60
+const MAX_PASSWORD = 40
+
 function InviteForm() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
@@ -35,21 +38,29 @@ function InviteForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSubmitting(true)
     setError('')
 
-    const { error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name: name.trim() } },
+    if (name.trim().length === 0) { setError('Nome é obrigatório.'); return }
+    if (name.trim().length > MAX_NAME) { setError(`Nome deve ter no máximo ${MAX_NAME} caracteres.`); return }
+    if (password.length > MAX_PASSWORD) { setError(`Senha deve ter no máximo ${MAX_PASSWORD} caracteres.`); return }
+
+    setSubmitting(true)
+
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
     })
 
-    if (authError) {
-      if (authError.message.toLowerCase().includes('already registered')) {
-        setError('Este e-mail já possui uma conta. Faça login com suas credenciais existentes.')
-      } else {
-        setError(authError.message)
-      }
+    const json = await res.json()
+
+    if (!res.ok) {
+      const msg = json.error ?? ''
+      setError(
+        msg.toLowerCase().includes('already registered')
+          ? 'Este e-mail já possui uma conta. Faça login com suas credenciais existentes.'
+          : msg || 'Erro ao criar conta.'
+      )
       setSubmitting(false)
       return
     }
@@ -102,6 +113,7 @@ function InviteForm() {
               onChange={e => setName(e.target.value)}
               required
               autoFocus
+              maxLength={MAX_NAME}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Como quer ser chamado"
             />
@@ -114,6 +126,7 @@ function InviteForm() {
               onChange={e => setPassword(e.target.value)}
               required
               minLength={6}
+              maxLength={MAX_PASSWORD}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>

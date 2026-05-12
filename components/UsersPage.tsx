@@ -59,8 +59,14 @@ export default function UsersPage({ profile }: { profile: Profile }) {
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()
-    setInviting(true)
     setError('')
+
+    if (inviteEmail.trim().length > 100) {
+      setError('E-mail deve ter no máximo 100 caracteres.')
+      return
+    }
+
+    setInviting(true)
 
     const { data: token, error: rpcError } = await supabase.rpc('create_invite', {
       p_email: inviteEmail.trim(),
@@ -212,6 +218,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
                     onChange={e => setInviteEmail(e.target.value)}
                     required
                     autoFocus
+                    maxLength={100}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="email@exemplo.com"
                   />
