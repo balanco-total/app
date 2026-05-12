@@ -16,7 +16,7 @@ export default async function AppPage() {
     .eq('id', user.id)
     .single()
 
-  if (!profile) redirect('/login')
+  if (!profile) redirect('/api/auth/signout')
 
   return <Dashboard user={user} profile={profile} />
 }
