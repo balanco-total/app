@@ -7,6 +7,7 @@ import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRig
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
+import Logo from './Logo'
 
 type Profile = { id: string; name: string; account_id: string; role: string }
 type Category = { id: string; account_id: string; name: string; color: string }
@@ -360,7 +361,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center">
-        <div className="text-xl text-gray-600">BalançoTotal...</div>
+        <Logo />
       </div>
     )
   }
@@ -376,7 +377,8 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-gray-800">BalançoTotal</h1>
+
+            <Logo height={40} width={130} />
             <div className="flex items-center gap-3">
               <Link
                 href="/charts"

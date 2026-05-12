@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 
 const MAX_NAME = 60
 const MAX_EMAIL = 100
@@ -48,7 +49,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">BalançoTotal</h1>
+        <div className="flex justify-center mb-4"><Logo /></div>
         <p className="text-gray-500 text-center mb-8">Crie sua conta</p>
 
         <form onSubmit={handleSignup} className="space-y-4">
