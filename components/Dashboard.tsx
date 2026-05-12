@@ -19,6 +19,19 @@ type Expense = {
   profiles: { name: string } | null
 }
 
+const MAX_CENTS = 100_000_000 // R$ 1.000.000,00
+
+function applyMask(value: string): string {
+  const digits = value.replace(/\D/g, '')
+  if (!digits) return ''
+  const cents = Math.min(parseInt(digits, 10), MAX_CENTS)
+  return (cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function parseMasked(value: string): number {
+  return parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0
+}
+
 const DEFAULT_CATEGORIES = [
   { name: 'Alimentação', color: 'bg-orange-500' },
   { name: 'Transporte', color: 'bg-blue-500' },
@@ -83,7 +96,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
         account_id: profile.account_id,
         user_id: profile.id,
         description: description.trim(),
-        amount: parseFloat(amount),
+        amount: parseMasked(amount),
         category_id: selectedCategory,
         date: new Date().toISOString(),
       })
@@ -177,6 +190,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                 <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
                 <input
                   type="text"
+                  maxLength={60}
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -186,10 +200,10 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Valor (R$)</label>
                 <input
-                  type="number"
-                  step="0.01"
+                  type="text"
+                  inputMode="numeric"
                   value={amount}
-                  onChange={e => setAmount(e.target.value)}
+                  onChange={e => setAmount(applyMask(e.target.value))}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="0,00"
                 />
