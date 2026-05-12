@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 CREATE TABLE IF NOT EXISTS public.categories (
   id         uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
   account_id uuid        NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
-  name       text        NOT NULL,
+  name       varchar(60) NOT NULL CHECK (char_length(name) >= 3),
   color      text        NOT NULL DEFAULT 'bg-gray-500',
   created_at timestamptz NOT NULL DEFAULT now()
 );
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS public.expenses (
   id          uuid           PRIMARY KEY DEFAULT gen_random_uuid(),
   account_id  uuid           NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
   user_id     uuid           NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  description text           NOT NULL,
+  description varchar(60)    NOT NULL CHECK (char_length(description) >= 1),
   amount      numeric(12, 2) NOT NULL CHECK (amount > 0),
   category_id uuid           REFERENCES public.categories(id) ON DELETE SET NULL,
   date        timestamptz    NOT NULL DEFAULT now(),

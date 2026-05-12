@@ -89,30 +89,25 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   }
 
   const addExpense = async () => {
-    if (!description.trim() || !amount || !selectedCategory) {
-      alert('Preencha todos os campos!')
+    if (!description.trim()) { alert('Descrição é obrigatória.'); return }
+    const parsedAmount = parseMasked(amount)
+    if (parsedAmount <= 0) { alert('Valor deve ser maior que zero.'); return }
+    if (!selectedCategory) { alert('Selecione uma categoria.'); return }
+
+    const res = await fetch('/api/expenses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description, amount: parsedAmount, category_id: selectedCategory }),
+    })
+
+    const json = await res.json()
+
+    if (!res.ok) {
+      alert(json.error ?? 'Erro ao adicionar despesa.')
       return
     }
 
-    const { data, error } = await supabase
-      .from('expenses')
-      .insert({
-        account_id: profile.account_id,
-        user_id: profile.id,
-        description: description.trim(),
-        amount: parseMasked(amount),
-        category_id: selectedCategory,
-        date: new Date().toISOString(),
-      })
-      .select('*, profiles(name)')
-      .single()
-
-    if (error) {
-      alert('Erro ao adicionar despesa.')
-      return
-    }
-
-    setExpenses([data, ...expenses])
+    setExpenses([json, ...expenses])
     setDescription('')
     setAmount('')
     setSelectedCategory('')
@@ -142,27 +137,23 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
       return
     }
 
-    const exists = categories.some(c => c.name.toLowerCase() === name.toLowerCase())
-    if (exists) {
-      alert(`A categoria "${name}" já existe.`)
-      return
-    }
-
     const color = CATEGORY_COLORS[categories.length % CATEGORY_COLORS.length]
 
-    const { data, error } = await supabase
-      .from('categories')
-      .insert({ name, color, account_id: profile.account_id })
-      .select()
-      .single()
+    const res = await fetch('/api/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, color }),
+    })
 
-    if (error || !data) {
-      alert('Erro ao adicionar categoria.')
+    const json = await res.json()
+
+    if (!res.ok) {
+      alert(json.error ?? 'Erro ao adicionar categoria.')
       return
     }
 
-    setCategories([...categories, data])
-    setSelectedCategory(data.id)
+    setCategories([...categories, json])
+    setSelectedCategory(json.id)
     setNewCategoryName('')
   }
 
@@ -321,6 +312,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                       onChange={e => setNewCategoryName(e.target.value.replace(FIELD_PATTERN, ''))}
                       onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCategory() } }}
                       placeholder="Nova categoria"
+                      maxLength={60}
                       className="bg-transparent outline-none w-32 text-gray-500 placeholder-gray-400 text-sm"
                     />
                   </div>
