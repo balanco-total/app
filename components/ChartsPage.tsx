@@ -80,25 +80,18 @@ export default function ChartsPage({ profile, categories, expenses }: {
   const nowKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 
   const [selectedMonth, setSelectedMonth] = useState(nowKey)
-  const [trendCenter, setTrendCenter] = useState(nowKey)
 
   const [selYear, selMonthNum] = selectedMonth.split('-').map(Number)
-  const [trendYear, trendMonthNum] = trendCenter.split('-').map(Number)
 
   const shiftMonth = (delta: number) => {
     const d = new Date(selYear, selMonthNum - 1 + delta)
     setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
   }
 
-  const shiftTrend = (delta: number) => {
-    const d = new Date(trendYear, trendMonthNum - 1 + delta)
-    setTrendCenter(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
-  }
-
-  // 9-month window centered on trendCenter; real current month always highlighted
+  // 9-month window centered on selectedMonth; real current month always highlighted
   const monthlyTrend = useMemo(() => {
     return Array.from({ length: 9 }, (_, i) => {
-      const d = new Date(trendYear, trendMonthNum - 1 - 4 + i)
+      const d = new Date(selYear, selMonthNum - 1 - 4 + i)
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
       const label = `${MONTHS_PT[d.getMonth()].slice(0, 3)} ${String(d.getFullYear()).slice(2)}`
       const total = expenses
@@ -106,7 +99,7 @@ export default function ChartsPage({ profile, categories, expenses }: {
         .reduce((s, e) => s + e.amount, 0)
       return { key, label, total, isCurrent: key === nowKey }
     })
-  }, [expenses, trendCenter])
+  }, [expenses, selectedMonth])
 
   // Selected month expenses
   const monthlyExpenses = useMemo(
@@ -148,49 +141,44 @@ export default function ChartsPage({ profile, categories, expenses }: {
 
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <Link
               href="/"
-              className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-600"
+              className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-600 shrink-0"
               title="Voltar ao dashboard"
             >
               <ArrowLeft size={20} />
             </Link>
-            <div>
+            <div className="flex-1 min-w-0">
               <h1 className="text-3xl font-bold text-gray-800">Gráficos</h1>
               <p className="text-gray-600 mt-1">Análise visual das suas despesas</p>
             </div>
-          </div>
-        </div>
-
-        {/* Month picker + total */}
-        <div className="bg-white rounded-2xl shadow-lg px-6 py-4 mb-6 flex flex-wrap items-center justify-between gap-4">
-          <p className="text-sm font-medium text-gray-600">Período dos gráficos por categoria e por usuário</p>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => shiftMonth(-1)}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500"
-              title="Mês anterior"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <div className="flex items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg min-w-[172px] justify-center">
-              <Calendar size={15} className="text-red-500 shrink-0" />
-              <span className="text-sm font-semibold text-red-700">
-                {MONTHS_PT[selMonthNum - 1]} {selYear}
-              </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => shiftMonth(-1)}
+                className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500"
+                title="Mês anterior"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <div className="flex items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg min-w-[172px] justify-center">
+                <Calendar size={15} className="text-red-500 shrink-0" />
+                <span className="text-sm font-semibold text-red-700">
+                  {MONTHS_PT[selMonthNum - 1]} {selYear}
+                </span>
+              </div>
+              <button
+                onClick={() => shiftMonth(1)}
+                className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500"
+                title="Próximo mês"
+              >
+                <ChevronRight size={18} />
+              </button>
             </div>
-            <button
-              onClick={() => shiftMonth(1)}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500"
-              title="Próximo mês"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
-          <div className="text-right">
-            <p className="text-xs text-gray-500">Total do mês</p>
-            <p className="text-xl font-bold text-red-600">{fmt(totalMonth)}</p>
+            <div className="text-right shrink-0">
+              <p className="text-xs text-gray-500">Total do mês</p>
+              <p className="text-xl font-bold text-red-600">{fmt(totalMonth)}</p>
+            </div>
           </div>
         </div>
 
@@ -199,7 +187,7 @@ export default function ChartsPage({ profile, categories, expenses }: {
 
           {/* Category Pie */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Despesas por Categoria</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Lançamentos por categoria</h2>
             {categoryPieData.length === 0 ? (
               <div className="flex items-center justify-center h-72 text-gray-400 text-sm">
                 Nenhuma despesa neste mês.
@@ -236,7 +224,7 @@ export default function ChartsPage({ profile, categories, expenses }: {
 
           {/* User Bar */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Lançamentos por Usuário</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Lançamentos por úsuário</h2>
             {userBarData.length === 0 ? (
               <div className="flex items-center justify-center h-72 text-gray-400 text-sm">
                 Nenhuma despesa neste mês.
@@ -263,28 +251,6 @@ export default function ChartsPage({ profile, categories, expenses }: {
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-gray-800">Evolução Mensal</h2>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => shiftTrend(-1)}
-                className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500 hover:text-gray-700"
-                title="Mês anterior"
-              >
-                <ChevronLeft size={18} />
-              </button>
-              <div className="flex items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg min-w-[172px] justify-center">
-                <Calendar size={15} className="text-red-500 shrink-0" />
-                <span className="text-sm font-semibold text-red-700">
-                  {MONTHS_PT[trendMonthNum - 1]} {trendYear}
-                </span>
-              </div>
-              <button
-                onClick={() => shiftTrend(1)}
-                className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500 hover:text-gray-700"
-                title="Próximo mês"
-              >
-                <ChevronRight size={18} />
-              </button>
-            </div>
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={monthlyTrend} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
