@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
-import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRight, PieChart, User as UserIcon } from 'lucide-react'
+import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRight, ChevronDown, Repeat, PieChart, User as UserIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -48,6 +48,42 @@ const DEFAULT_CATEGORIES = [
 
 const AVATAR_COLORS = ['#3b82f6','#22c55e','#a855f7','#f97316','#ef4444','#14b8a6','#6366f1','#ec4899']
 
+const MONTHS_PT_LOWER = [
+  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
+]
+
+function toLocalDateStr(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+function toLocalDateDisplay(date: Date): string {
+  const d = String(date.getDate()).padStart(2, '0')
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  return `${d}/${m}/${date.getFullYear()}`
+}
+
+// Applies DD/MM/AAAA mask as the user types
+function applyDateMask(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 8)
+  if (digits.length <= 2) return digits
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
+}
+
+// Converts DD/MM/AAAA → YYYY-MM-DD; returns '' if incomplete or invalid
+function parseDateDisplay(display: string): string {
+  const digits = display.replace(/\D/g, '')
+  if (digits.length < 8) return ''
+  const d = digits.slice(0, 2), m = digits.slice(2, 4), y = digits.slice(4, 8)
+  const parsed = new Date(parseInt(y), parseInt(m) - 1, parseInt(d))
+  if (parsed.getDate() !== parseInt(d) || parsed.getMonth() !== parseInt(m) - 1) return ''
+  return `${y}-${m}-${d}`
+}
+
 function getInitials(name: string) {
   return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
 }
@@ -84,6 +120,9 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   const [amount, setAmount] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [expenseDate, setExpenseDate] = useState(() => toLocalDateDisplay(new Date()))
+  const [quantity, setQuantity] = useState('1')
   const [newCategoryName, setNewCategoryName] = useState('')
 
   useEffect(() => {
@@ -119,10 +158,55 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
     if (parsedAmount <= 0) { alert('Valor deve ser maior que zero.'); return }
     if (!selectedCategory) { alert('Selecione uma categoria.'); return }
 
+    const today = new Date()
+    const todayInternal = toLocalDateStr(today)
+    const internalDate = parseDateDisplay(expenseDate)
+
+    if (!internalDate) {
+      alert('Data inválida. Use o formato DD/MM/AAAA.')
+      return
+    }
+
+    if (internalDate !== todayInternal) {
+      const [y, m, d] = internalDate.split('-').map(Number)
+      const parsed = new Date(y, m - 1, d)
+      const minDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
+      const maxDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 90)
+      if (parsed < minDate || parsed > maxDate) {
+        alert('Data fora do intervalo permitido (máximo 1 ano atrás e 90 dias à frente).')
+        return
+      }
+    }
+
+    const qty = Math.max(1, Math.min(99, parseInt(quantity, 10) || 1))
+    const dateStr = internalDate
+
+    if (qty > 1) {
+      const [y, m, d] = dateStr.split('-').map(Number)
+      for (let i = 1; i < qty; i++) {
+        const check = new Date(y, m - 1 + i, d)
+        if (check.getDate() !== d) {
+          const idx = (m - 1 + i) % 12
+          const yr = y + Math.floor((m - 1 + i) / 12)
+          alert(`O dia ${d} não existe em ${MONTHS_PT_LOWER[idx]} de ${yr}. As parcelas não podem ser criadas.`)
+          return
+        }
+      }
+    }
+
+    // Send date only when it differs from today so server uses exact timestamp for same-day entries
+    const body: Record<string, unknown> = {
+      description,
+      amount: parsedAmount,
+      category_id: selectedCategory,
+    }
+    if (internalDate !== todayInternal) body.date = internalDate
+    if (qty > 1) body.quantity = qty
+
     const res = await fetch('/api/expenses', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description, amount: parsedAmount, category_id: selectedCategory }),
+      body: JSON.stringify(body),
     })
 
     const json = await res.json()
@@ -132,10 +216,13 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
       return
     }
 
-    setExpenses([json, ...expenses])
+    const created: Expense[] = Array.isArray(json) ? json : [json]
+    setExpenses([...created, ...expenses])
     setDescription('')
     setAmount('')
     setSelectedCategory('')
+    setExpenseDate(toLocalDateDisplay(new Date()))
+    setQuantity('1')
   }
 
   const deleteExpense = async (expenseId: string) => {
@@ -375,11 +462,116 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                   </div>
                 </div>
               </div>
+              {/* Advanced options toggle */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanced(v => !v)}
+                  className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition w-full"
+                >
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`}
+                  />
+                  <span>Opções avançadas</span>
+                  {!showAdvanced && (parseDateDisplay(expenseDate) || quantity !== '1') && (
+                    <span className="ml-auto flex items-center gap-1 text-xs text-blue-500 font-medium">
+                      {quantity !== '1' && <Repeat size={11} />}
+                      {quantity !== '1' ? `${quantity}×` : ''}
+                      {parseDateDisplay(expenseDate) ? ` ${expenseDate}` : ''}
+                    </span>
+                  )}
+                </button>
+
+                {showAdvanced && (() => {
+                  const today = new Date()
+                  const todayStr = toLocalDateStr(today)
+                  const internalDate = parseDateDisplay(expenseDate)
+                  const dateStr = internalDate || todayStr
+                  const qty = Math.max(1, Math.min(99, parseInt(quantity, 10) || 1))
+
+                  const installmentWarning = (() => {
+                    if (qty <= 1) return null
+                    const [y, m, d] = dateStr.split('-').map(Number)
+                    for (let i = 1; i < qty; i++) {
+                      const check = new Date(y, m - 1 + i, d)
+                      if (check.getDate() !== d) {
+                        const idx = (m - 1 + i) % 12
+                        const yr = y + Math.floor((m - 1 + i) / 12)
+                        return `Dia ${d} não existe em ${MONTHS_PT_LOWER[idx]} de ${yr}`
+                      }
+                    }
+                    return null
+                  })()
+
+                  const installmentPreview = (() => {
+                    if (qty <= 1 || installmentWarning) return null
+                    const [y, m, d] = dateStr.split('-').map(Number)
+                    const last = new Date(y, m - 1 + qty - 1, d)
+                    const fmt = (dd: number, mm: number, yy: number) =>
+                      `${String(dd).padStart(2,'0')}/${String(mm).padStart(2,'0')}/${yy}`
+                    return `${fmt(d, m, y)} à ${fmt(last.getDate(), last.getMonth() + 1, last.getFullYear())}`
+                  })()
+
+                  return (
+                    <div className="mt-3 pt-3 border-t border-gray-100 bg-gray-50 rounded-xl px-3 py-3 space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          Data do lançamento
+                          <span className="ml-1 text-xs text-gray-400 font-normal">(padrão: hoje)</span>
+                        </label>
+                        <div className="relative">
+                          <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={expenseDate}
+                            onChange={e => setExpenseDate(applyDateMask(e.target.value))}
+                            placeholder="DD/MM/AAAA"
+                            maxLength={10}
+                            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          Quantidade
+                          <span className="ml-1 text-xs text-gray-400 font-normal">(1 a 99)</span>
+                        </label>
+                        <input
+                          type="number"
+                          value={quantity}
+                          onChange={e => {
+                            const v = e.target.value
+                            if (v === '' || (parseInt(v, 10) >= 1 && parseInt(v, 10) <= 99)) setQuantity(v)
+                          }}
+                          min="1"
+                          max="99"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        />
+                        {installmentWarning ? (
+                          <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                            <span>⚠</span> {installmentWarning}
+                          </p>
+                        ) : installmentPreview ? (
+                          <div className="mt-2 flex items-center gap-2.5 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+                            <Repeat size={13} className="text-blue-400 shrink-0" />
+                            <div className="leading-snug">
+                              <p className="text-xs text-blue-400">{installmentPreview}</p>
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  )
+                })()}
+              </div>
+
               <button
                 onClick={addExpense}
                 className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
               >
-                Adicionar Despesa
+                {parseInt(quantity, 10) > 1 ? `Adicionar ${quantity} parcelas` : 'Adicionar despesa'}
               </button>
             </div>
           </div>

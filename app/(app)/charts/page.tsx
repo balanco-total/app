@@ -18,11 +18,6 @@ export default async function Page() {
 
   if (!profile) redirect('/login')
 
-  const sixMonthsAgo = new Date()
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
-  sixMonthsAgo.setDate(1)
-  sixMonthsAgo.setHours(0, 0, 0, 0)
-
   const [categoriesRes, expensesRes] = await Promise.all([
     supabase
       .from('categories')
@@ -33,8 +28,8 @@ export default async function Page() {
       .from('expenses')
       .select('id, user_id, amount, category_id, date, profiles(name)')
       .eq('account_id', profile.account_id)
-      .gte('date', sixMonthsAgo.toISOString())
-      .order('date', { ascending: false }),
+      .order('date', { ascending: false })
+      .limit(2000),
   ])
 
   return (

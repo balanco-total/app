@@ -77,29 +77,36 @@ export default function ChartsPage({ profile, categories, expenses }: {
   expenses: Expense[]
 }) {
   const now = new Date()
-  const [selectedMonth, setSelectedMonth] = useState(
-    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-  )
+  const nowKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+
+  const [selectedMonth, setSelectedMonth] = useState(nowKey)
+  const [trendCenter, setTrendCenter] = useState(nowKey)
 
   const [selYear, selMonthNum] = selectedMonth.split('-').map(Number)
+  const [trendYear, trendMonthNum] = trendCenter.split('-').map(Number)
 
   const shiftMonth = (delta: number) => {
     const d = new Date(selYear, selMonthNum - 1 + delta)
     setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
   }
 
-  // Last 6 months bar data (always relative to current real month)
-  const last6Months = useMemo(() => {
-    return Array.from({ length: 6 }, (_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() - 5 + i)
+  const shiftTrend = (delta: number) => {
+    const d = new Date(trendYear, trendMonthNum - 1 + delta)
+    setTrendCenter(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+  }
+
+  // 9-month window centered on trendCenter; real current month always highlighted
+  const monthlyTrend = useMemo(() => {
+    return Array.from({ length: 9 }, (_, i) => {
+      const d = new Date(trendYear, trendMonthNum - 1 - 4 + i)
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
       const label = `${MONTHS_PT[d.getMonth()].slice(0, 3)} ${String(d.getFullYear()).slice(2)}`
       const total = expenses
         .filter(e => e.date.slice(0, 7) === key)
         .reduce((s, e) => s + e.amount, 0)
-      return { key, label, total }
+      return { key, label, total, isCurrent: key === nowKey }
     })
-  }, [expenses])
+  }, [expenses, trendCenter])
 
   // Selected month expenses
   const monthlyExpenses = useMemo(
@@ -252,16 +259,44 @@ export default function ChartsPage({ profile, categories, expenses }: {
           </div>
         </div>
 
-        {/* Last 6 months bar */}
+        {/* Monthly trend — 9 months centered on trendCenter */}
         <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Total dos Últimos 6 Meses</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-800">Evolução Mensal</h2>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => shiftTrend(-1)}
+                className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500 hover:text-gray-700"
+                title="Mês anterior"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <div className="flex items-center gap-2 px-4 py-1.5 bg-blue-50 border border-blue-200 rounded-lg min-w-[172px] justify-center">
+                <Calendar size={15} className="text-blue-500 shrink-0" />
+                <span className="text-sm font-semibold text-blue-700">
+                  {MONTHS_PT[trendMonthNum - 1]} {trendYear}
+                </span>
+              </div>
+              <button
+                onClick={() => shiftTrend(1)}
+                className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500 hover:text-gray-700"
+                title="Próximo mês"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={last6Months} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
+            <BarChart data={monthlyTrend} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              <XAxis dataKey="label" tick={{ fontSize: 12, fill: '#6b7280' }} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#6b7280' }} />
               <YAxis tickFormatter={fmtAxis} tick={{ fontSize: 11, fill: '#6b7280' }} width={75} />
               <Tooltip content={<BarTooltip />} />
-              <Bar dataKey="total" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={80} />
+              <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={60}>
+                {monthlyTrend.map((entry, i) => (
+                  <Cell key={i} fill={entry.isCurrent ? '#3b82f6' : '#bfdbfe'} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
