@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 
 const MAX_NAME = 60
 const MAX_PASSWORD = 40
@@ -73,7 +74,7 @@ function InviteForm() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center">
-        <div className="text-xl text-gray-600">BalançoTotal...</div>
+        <Logo />
       </div>
     )
   }
@@ -97,7 +98,7 @@ function InviteForm() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">BalançoTotal</h1>
+        <div className="flex justify-center mb-4"><Logo /></div>
         <p className="text-gray-500 text-center mb-1">Você foi convidado!</p>
         <p className="text-center text-sm text-gray-400 mb-8">
           Conta vinculada a <span className="font-medium text-gray-600">{ownerEmail}</span>

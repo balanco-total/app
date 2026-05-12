@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import { ArrowLeft, UserPlus, Copy, Check, Clock, Users, Trash2, UserX, UserCheck } from 'lucide-react'
 import Link from 'next/link'
 import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
+import Logo from './Logo'
 
 type Profile = {
   id: string
@@ -182,7 +183,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center">
-        <div className="text-xl text-gray-600">BalançoTotal...</div>
+        <Logo />
       </div>
     )
   }
@@ -205,7 +206,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
             </div>
             <button
               onClick={openInviteModal}
-              className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+              className="flex items-center gap-2 bg-[#1B4332] text-white px-4 py-2 rounded-lg hover:bg-[#163a2b] transition"
             >
               <UserPlus size={18} />
               Convidar
@@ -216,7 +217,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
         {/* Members list */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <Users size={20} className="text-red-600" />
+            <Users size={20} className="text-[#1B4332]" />
             Membros
           </h2>
           <div className="space-y-3">
@@ -358,7 +359,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
                   <button
                     type="submit"
                     disabled={inviting}
-                    className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
+                    className="flex-1 bg-[#1B4332] text-white py-2 rounded-lg font-semibold hover:bg-[#163a2b] transition disabled:opacity-50"
                   >
                     {inviting ? 'Gerando...' : 'Gerar link'}
                   </button>
