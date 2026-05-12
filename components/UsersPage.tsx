@@ -2,10 +2,17 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { ArrowLeft, UserPlus, Copy, Check, Clock, Users, Trash2 } from 'lucide-react'
+import { ArrowLeft, UserPlus, Copy, Check, Clock, Users, Trash2, UserX, UserCheck } from 'lucide-react'
 import Link from 'next/link'
 
-type Profile = { id: string; name: string; account_id: string; role: string; created_at: string }
+type Profile = {
+  id: string
+  name: string
+  account_id: string
+  role: string
+  created_at: string
+  is_disabled: boolean
+}
 type Invite = {
   id: string
   token: string
@@ -14,6 +21,7 @@ type Invite = {
   expires_at: string
   created_at: string
 }
+type DeleteTarget = { member: Profile; expenseCount: number }
 
 export default function UsersPage({ profile }: { profile: Profile }) {
   const supabase = createClient()
@@ -22,12 +30,16 @@ export default function UsersPage({ profile }: { profile: Profile }) {
   const [invites, setInvites] = useState<Invite[]>([])
   const [loading, setLoading] = useState(true)
 
-  const [showModal, setShowModal] = useState(false)
+  const [showInviteModal, setShowInviteModal] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteLink, setInviteLink] = useState('')
   const [inviting, setInviting] = useState(false)
-  const [error, setError] = useState('')
+  const [inviteError, setInviteError] = useState('')
   const [copied, setCopied] = useState(false)
+
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   useEffect(() => { loadData() }, [])
 
@@ -35,7 +47,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
     const [membersRes, invitesRes] = await Promise.all([
       supabase
         .from('profiles')
-        .select('id, name, account_id, role, created_at')
+        .select('id, name, account_id, role, created_at, is_disabled')
         .eq('account_id', profile.account_id)
         .order('created_at'),
       supabase
@@ -50,36 +62,34 @@ export default function UsersPage({ profile }: { profile: Profile }) {
     setLoading(false)
   }
 
-  const openModal = () => {
+  const openInviteModal = () => {
     setInviteEmail('')
     setInviteLink('')
-    setError('')
-    setShowModal(true)
+    setInviteError('')
+    setShowInviteModal(true)
   }
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
+    setInviteError('')
 
     if (inviteEmail.trim().length > 100) {
-      setError('E-mail deve ter no máximo 100 caracteres.')
+      setInviteError('E-mail deve ter no máximo 100 caracteres.')
       return
     }
 
     setInviting(true)
-
     const { data: token, error: rpcError } = await supabase.rpc('create_invite', {
       p_email: inviteEmail.trim(),
     })
 
     if (rpcError || !token) {
-      setError('Erro ao gerar convite. Verifique o e-mail e tente novamente.')
+      setInviteError('Erro ao gerar convite. Verifique o e-mail e tente novamente.')
       setInviting(false)
       return
     }
 
-    const link = `${window.location.origin}/invite?token=${token}`
-    setInviteLink(link)
+    setInviteLink(`${window.location.origin}/invite?token=${token}`)
     setInviting(false)
     await loadData()
   }
@@ -96,6 +106,67 @@ export default function UsersPage({ profile }: { profile: Profile }) {
     setInvites(invites.filter(i => i.id !== invite.id))
   }
 
+  const openDeleteModal = async (member: Profile) => {
+    setActionLoading(member.id)
+    const { count } = await supabase
+      .from('expenses')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', member.id)
+    setDeleteTarget({ member, expenseCount: count ?? 0 })
+    setActionLoading(null)
+  }
+
+  const confirmDelete = async (migrate: boolean) => {
+    if (!deleteTarget) return
+    setDeleteLoading(true)
+
+    const res = await fetch(`/api/users/${deleteTarget.member.id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ migrate }),
+    })
+    const json = await res.json()
+
+    if (!res.ok) {
+      alert(json.error ?? 'Erro ao excluir membro.')
+      setDeleteLoading(false)
+      return
+    }
+
+    setMembers(members.filter(m => m.id !== deleteTarget.member.id))
+    setDeleteTarget(null)
+    setDeleteLoading(false)
+  }
+
+  const handleToggleDisable = async (member: Profile) => {
+    const action = member.is_disabled ? 'Habilitar' : 'Desabilitar'
+    const detail = member.is_disabled
+      ? `${member.name} voltará a ter acesso à conta.`
+      : `${member.name} será desconectado imediatamente e não poderá mais fazer login.`
+
+    if (!confirm(`${action} ${member.name}?\n\n${detail}`)) return
+
+    setActionLoading(member.id)
+
+    const res = await fetch(`/api/users/${member.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ disabled: !member.is_disabled }),
+    })
+    const json = await res.json()
+
+    if (!res.ok) {
+      alert(json.error ?? 'Erro ao atualizar membro.')
+      setActionLoading(null)
+      return
+    }
+
+    setMembers(members.map(m =>
+      m.id === member.id ? { ...m, is_disabled: !m.is_disabled } : m
+    ))
+    setActionLoading(null)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -107,6 +178,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-2xl mx-auto">
+
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center">
@@ -120,7 +192,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
               </div>
             </div>
             <button
-              onClick={openModal}
+              onClick={openInviteModal}
               className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
             >
               <UserPlus size={18} />
@@ -136,22 +208,69 @@ export default function UsersPage({ profile }: { profile: Profile }) {
             Membros
           </h2>
           <div className="space-y-3">
-            {members.map(m => (
-              <div key={m.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-800">{m.name}</p>
-                  <p className="text-sm text-gray-500">
-                    {m.role === 'owner' ? 'Proprietário' : 'Membro'} •{' '}
-                    desde {new Date(m.created_at).toLocaleDateString('pt-BR')}
-                  </p>
+            {members.map(m => {
+              const isSelf = m.id === profile.id
+              const isOwner = m.role === 'owner'
+              const loading = actionLoading === m.id
+
+              return (
+                <div
+                  key={m.id}
+                  className={`flex items-center justify-between p-3 rounded-lg ${
+                    m.is_disabled ? 'bg-red-50' : 'bg-gray-50'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className={`font-medium ${m.is_disabled ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                        {m.name}
+                      </p>
+                      {m.is_disabled && (
+                        <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">
+                          Desabilitado
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      {isOwner ? 'Proprietário' : 'Membro'} •{' '}
+                      desde {new Date(m.created_at).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {isSelf && (
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                        Você
+                      </span>
+                    )}
+                    {!isSelf && !isOwner && (
+                      <>
+                        <button
+                          onClick={() => handleToggleDisable(m)}
+                          disabled={loading}
+                          title={m.is_disabled ? 'Habilitar membro' : 'Desabilitar membro'}
+                          className={`p-2 rounded-lg transition disabled:opacity-40 ${
+                            m.is_disabled
+                              ? 'text-green-600 hover:bg-green-50'
+                              : 'text-yellow-600 hover:bg-yellow-50'
+                          }`}
+                        >
+                          {m.is_disabled ? <UserCheck size={18} /> : <UserX size={18} />}
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(m)}
+                          disabled={loading}
+                          title="Excluir membro"
+                          className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition disabled:opacity-40"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
-                {m.id === profile.id && (
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-                    Você
-                  </span>
-                )}
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
@@ -195,7 +314,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
       </div>
 
       {/* Invite modal */}
-      {showModal && (
+      {showInviteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full">
             <h3 className="text-xl font-bold text-gray-800 mb-1">Convidar usuário</h3>
@@ -205,8 +324,8 @@ export default function UsersPage({ profile }: { profile: Profile }) {
 
             {!inviteLink ? (
               <form onSubmit={handleInvite} className="space-y-4">
-                {error && (
-                  <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">{error}</div>
+                {inviteError && (
+                  <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">{inviteError}</div>
                 )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -233,7 +352,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setShowModal(false)}
+                    onClick={() => setShowInviteModal(false)}
                     className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition"
                   >
                     Cancelar
@@ -242,9 +361,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
               </form>
             ) : (
               <div className="space-y-4">
-                <p className="text-sm text-gray-600">
-                  Copie e envie este link para o convidado:
-                </p>
+                <p className="text-sm text-gray-600">Copie e envie este link para o convidado:</p>
                 <div className="flex items-start gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
                   <span className="flex-1 text-xs text-gray-700 break-all">{inviteLink}</span>
                   <button
@@ -256,13 +373,77 @@ export default function UsersPage({ profile }: { profile: Profile }) {
                   </button>
                 </div>
                 <button
-                  onClick={() => setShowModal(false)}
+                  onClick={() => setShowInviteModal(false)}
                   className="w-full bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition"
                 >
                   Fechar
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Delete modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold text-gray-800 mb-2">
+              Excluir {deleteTarget.member.name}
+            </h3>
+
+            {deleteTarget.expenseCount > 0 ? (
+              <>
+                <p className="text-gray-600 text-sm mb-6">
+                  Este membro possui{' '}
+                  <strong>{deleteTarget.expenseCount} lançamento(s)</strong>.
+                  O que deseja fazer com eles?
+                </p>
+                <div className="space-y-3 mb-4">
+                  <button
+                    onClick={() => confirmDelete(true)}
+                    disabled={deleteLoading}
+                    className="w-full text-left p-4 border-2 border-blue-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition disabled:opacity-40"
+                  >
+                    <p className="font-semibold text-blue-700">Migrar lançamentos para mim</p>
+                    <p className="text-sm text-gray-500 mt-0.5">
+                      Os lançamentos ficam na conta, transferidos para o proprietário.
+                    </p>
+                  </button>
+                  <button
+                    onClick={() => confirmDelete(false)}
+                    disabled={deleteLoading}
+                    className="w-full text-left p-4 border-2 border-red-200 rounded-xl hover:border-red-400 hover:bg-red-50 transition disabled:opacity-40"
+                  >
+                    <p className="font-semibold text-red-700">Excluir com os lançamentos</p>
+                    <p className="text-sm text-gray-500 mt-0.5">
+                      O membro e todos os seus lançamentos serão removidos permanentemente.
+                    </p>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-600 text-sm mb-6">
+                  Este membro não possui lançamentos. Deseja excluí-lo permanentemente?
+                </p>
+                <button
+                  onClick={() => confirmDelete(false)}
+                  disabled={deleteLoading}
+                  className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50 mb-3"
+                >
+                  {deleteLoading ? 'Excluindo...' : 'Excluir membro'}
+                </button>
+              </>
+            )}
+
+            <button
+              onClick={() => setDeleteTarget(null)}
+              disabled={deleteLoading}
+              className="w-full bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition"
+            >
+              Cancelar
+            </button>
           </div>
         </div>
       )}

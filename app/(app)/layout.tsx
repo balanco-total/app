@@ -9,5 +9,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (!user) redirect('/login')
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_disabled')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.is_disabled) {
+    await supabase.auth.signOut()
+    redirect('/login')
+  }
+
   return <>{children}</>
 }
