@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
-import { PlusCircle, Users, Calendar, Trash2, LogOut, X } from 'lucide-react'
+import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -184,6 +184,18 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
     router.refresh()
   }
 
+  const MONTHS_PT = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+  ]
+
+  const [selYear, selMonthNum] = selectedMonth.split('-').map(Number)
+
+  const shiftMonth = (delta: number) => {
+    const d = new Date(selYear, selMonthNum - 1 + delta)
+    setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+  }
+
   const getMonthlyExpenses = () =>
     expenses.filter(e => new Date(e.date).toISOString().slice(0, 7) === selectedMonth)
 
@@ -326,14 +338,27 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-gray-800">Resumo por Categoria</h2>
-              <div className="flex items-center gap-2">
-                <Calendar size={20} className="text-gray-600" />
-                <input
-                  type="month"
-                  value={selectedMonth}
-                  onChange={e => setSelectedMonth(e.target.value)}
-                  className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => shiftMonth(-1)}
+                  className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500 hover:text-gray-700"
+                  title="Mês anterior"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <div className="flex items-center gap-2 px-4 py-1.5 bg-blue-50 border border-blue-200 rounded-lg min-w-[172px] justify-center">
+                  <Calendar size={15} className="text-blue-500 shrink-0" />
+                  <span className="text-sm font-semibold text-blue-700">
+                    {MONTHS_PT[selMonthNum - 1]} {selYear}
+                  </span>
+                </div>
+                <button
+                  onClick={() => shiftMonth(1)}
+                  className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500 hover:text-gray-700"
+                  title="Próximo mês"
+                >
+                  <ChevronRight size={18} />
+                </button>
               </div>
             </div>
             <div className="bg-blue-50 rounded-lg p-4 mb-4">
