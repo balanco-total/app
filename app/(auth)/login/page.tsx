@@ -15,6 +15,11 @@ function LoginForm() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const [view, setView] = useState<'login' | 'recovery'>('login')
+  const [recoveryEmail, setRecoveryEmail] = useState('')
+  const [recoverySent, setRecoverySent] = useState(false)
+  const [recoveryLoading, setRecoveryLoading] = useState(false)
+
   const supabase = createClient()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -41,59 +46,153 @@ function LoginForm() {
     router.refresh()
   }
 
+  const handleRecovery = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setRecoveryLoading(true)
+
+    // Rate-limited server route — never reveals whether the email exists
+    await fetch('/api/auth/recover', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: recoveryEmail.trim().toLowerCase() }),
+    })
+
+    setRecoverySent(true)
+    setRecoveryLoading(false)
+  }
+
+  const switchToRecovery = () => {
+    setView('recovery')
+    setRecoveryEmail(email) // pre-fill if already typed
+    setRecoverySent(false)
+    setError('')
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
         <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">BalançoTotal</h1>
-        <p className="text-gray-500 text-center mb-6">Faça login para continuar</p>
 
-        {message === 'confirm-email' && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm mb-6">
-            Conta criada com sucesso! Acesse sua caixa de e-mail e clique no link de confirmação antes de fazer login.
-          </div>
+        {view === 'recovery' ? (
+          <>
+            <p className="text-gray-500 text-center mb-6">Recuperar senha</p>
+
+            {recoverySent ? (
+              <div className="text-center space-y-4">
+                <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto">
+                  <svg className="w-7 h-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="text-gray-700 font-medium">E-mail enviado</p>
+                <p className="text-sm text-gray-500">
+                  Se este e-mail estiver cadastrado, você receberá um link em breve. Verifique sua caixa de entrada e a pasta de spam.
+                </p>
+                <button
+                  onClick={() => { setView('login'); setRecoverySent(false) }}
+                  className="text-blue-600 font-semibold hover:underline text-sm"
+                >
+                  Voltar ao login
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleRecovery} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
+                  <input
+                    type="email"
+                    value={recoveryEmail}
+                    onChange={e => setRecoveryEmail(e.target.value)}
+                    required
+                    autoFocus
+                    maxLength={MAX_EMAIL}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={recoveryLoading}
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+                >
+                  {recoveryLoading ? 'Enviando...' : 'Enviar link de recuperação'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setView('login')}
+                  className="w-full text-gray-500 hover:text-gray-700 text-sm transition"
+                >
+                  Voltar ao login
+                </button>
+              </form>
+            )}
+          </>
+        ) : (
+          <>
+            <p className="text-gray-500 text-center mb-6">Faça login</p>
+
+            {message === 'confirm-email' && (
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm mb-6">
+                Conta criada com sucesso! Acesse sua caixa de e-mail e clique no link de confirmação antes de fazer login.
+              </div>
+            )}
+            {message === 'password-reset' && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm mb-6">
+                Senha atualizada com sucesso. Faça login com sua nova senha.
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              {error && (
+                <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">{error}</div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  maxLength={MAX_EMAIL}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-medium text-gray-700">Senha</label>
+                  <button
+                    type="button"
+                    onClick={switchToRecovery}
+                    className="text-xs text-blue-500 hover:text-blue-700 hover:underline transition"
+                  >
+                    Esqueceu a senha?
+                  </button>
+                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  maxLength={MAX_PASSWORD}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+              >
+                {loading ? 'Entrando...' : 'Entrar'}
+              </button>
+            </form>
+
+            <p className="mt-6 text-center text-gray-600">
+              Não tem conta?{' '}
+              <Link href="/signup" className="text-blue-600 font-semibold hover:underline">
+                Cadastre-se
+              </Link>
+            </p>
+          </>
         )}
-
-        <form onSubmit={handleLogin} className="space-y-4">
-          {error && (
-            <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">{error}</div>
-          )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              maxLength={MAX_EMAIL}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Senha</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              maxLength={MAX_PASSWORD}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
-          >
-            {loading ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-gray-600">
-          Não tem conta?{' '}
-          <Link href="/signup" className="text-blue-600 font-semibold hover:underline">
-            Cadastre-se
-          </Link>
-        </p>
       </div>
     </div>
   )
