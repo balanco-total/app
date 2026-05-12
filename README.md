@@ -1,281 +1,234 @@
-# Prompt técnico final — **BalançoTotal**
+# BalançoTotal
 
-## 1. Identidade do sistema
-- **Nome do sistema:** BalançoTotal
-- **Domínio oficial:** https://balancototal.com.br
-- **Tipo:** Aplicação web financeira com suporte a PWA, multiusuário por conta e cobrança recorrente.
+Aplicação web de controle financeiro com suporte a múltiplos usuários por conta, análise por categoria e importação de extratos.
 
 ---
 
-## 2. Objetivo geral
-Desenvolver uma **aplicação web de controle financeiro** para **lançamento, gestão e análise de recebimentos e pagamentos**, com:
-- Conta única por cliente
-- Subusuários
-- Parcelamentos
-- Unificação de lançamentos
-- Auditoria completa
-- Assinatura recorrente
-- Dashboard analítico
-- PWA instalável
-- Backoffice administrativo
+## Stack
+
+- **Framework:** Next.js 14 (App Router)
+- **UI:** Tailwind CSS + Lucide React
+- **Backend:** Supabase (PostgreSQL + Auth)
+- **Linguagem:** TypeScript
 
 ---
 
-## 3. Stack tecnológica obrigatória
-- **Frontend:** Next.js (App Router)
-- **UI:** shadcn/ui + Tailwind CSS
-- **Backend / BaaS:** Supabase
-- **Banco de dados:** PostgreSQL (Supabase)
-- **Autenticação:** Supabase Auth (JWT)
-- **Pagamentos:** Stripe (assinaturas recorrentes)
-- **E-mails:** Supabase (transacional)
-- **PWA:** Service Worker + Web App Manifest
+## Comandos
+
+```bash
+npm run dev      # Servidor de desenvolvimento (http://localhost:3000)
+npm run build    # Build de produção
+npm run start    # Servidor de produção
+npm run lint     # ESLint
+```
 
 ---
 
-## 4. Autenticação e segurança
+## Estrutura de rotas
 
-### 4.1 Cadastro
-- Campos obrigatórios:
-  - `username`
-  - `email`
-  - `password`
-- Senha armazenada de forma criptografada.
-- Confirmação de e-mail obrigatória para ativação da conta.
-
-### 4.2 Login
-- Login via e-mail e senha.
-- Autenticação JWT.
-- Sessão persistente.
-
----
-
-## 5. Recuperação de senha
-
-- A tela de login deve conter a opção **“Esqueci minha senha”**.
-- O usuário deve informar:
-  - `email`
-  - `username`
-- Fluxo:
-  1. O sistema verifica internamente se o e-mail existe.
-  2. Se existir, envia e-mail com link/token para redefinição de senha.
-  3. Se não existir, nenhuma informação é revelada.
-- Mensagem exibida ao usuário (sempre a mesma):
-  > “Se os dados estiverem corretos, um e-mail para redefinição de senha foi enviado.”
-- Objetivo: evitar varredura por robôs.
+```
+app/
+  (auth)/login/page.tsx          → /login (público)
+  (auth)/signup/page.tsx         → /signup (público)
+  (auth)/invite/page.tsx         → /invite (público, aceite de convite)
+  (auth)/reset-password/page.tsx → /reset-password (público)
+  (app)/layout.tsx               → guard de auth para /
+  (app)/page.tsx                 → / (dashboard)
+  (app)/charts/page.tsx          → /charts
+  (app)/users/page.tsx           → /users (somente owner)
+  (app)/profile/page.tsx         → /profile
+```
 
 ---
 
-## 6. Estrutura de contas e usuários
+## Autenticação
 
-### 6.1 Conta
-- Um usuário pertence a **apenas uma conta**.
-- Cada conta possui:
-  - 1 usuário principal (owner)
-  - N subusuários
+### Cadastro
+- Campos: nome, e-mail, senha.
+- Auto-registro cria conta como **owner**.
+- Aceite de convite cria o usuário como **member** na conta do convidante.
+- Rate limit: 10 cadastros/hora por IP.
 
-### 6.2 Subusuários
-- Convite via e-mail com token.
-- Subusuários:
-  - Criam lançamentos
-  - Editam/excluem apenas lançamentos próprios
-  - Não gerenciam usuários, categorias ou plano
+### Login
+- E-mail + senha via Supabase Auth (JWT).
+- Sessão persistente gerenciada pelo middleware.
 
----
+### Recuperação de senha
+- Usuário informa o e-mail e recebe link de redefinição.
+- Mensagem padrão exibida independentemente de o e-mail existir (proteção contra enumeração).
 
-## 7. Categorias e subcategorias
-
-### 7.1 Categorias
-- Criadas por conta.
-- Categorias globais apenas como sugestão.
-- Exclusão e edição afetam somente a conta.
-- Exclusão física.
-
-### 7.2 Subcategorias
-- Deve ser possível criar subcategorias.
-- Limite: apenas 1 nível (categoria → subcategoria).
-- Subcategorias herdam o tipo da categoria.
+### Fluxo de convite
+- Token UUID com validade de 7 dias.
+- Owner gera o link; convidado acessa `/invite?token=...` e cria sua conta.
+- Convite pendente anterior para o mesmo e-mail é revogado automaticamente ao gerar um novo.
 
 ---
 
-## 8. Lançamentos financeiros
+## Contas e usuários
 
-### 8.1 Tipos
-- Pagamento (vermelho)
-- Recebimento (verde)
+### Estrutura
+- Cada usuário pertence a **uma única conta**.
+- Conta tem 1 owner e N members.
 
-### 8.2 Campos
-- Tipo
-- Descrição
-- Categoria / Subcategoria
-- Valor total
-- Data de emissão
-- Parcelamento (1x a 12x)
-- Datas das parcelas
+### Papéis
+| Ação | Owner | Member |
+|---|---|---|
+| Criar lançamento | ✓ | ✓ |
+| Editar/excluir lançamento próprio | ✓ | ✓ |
+| Editar/excluir lançamento de outro | ✓ | ✗ |
+| Gerenciar categorias | ✓ | ✗ |
+| Gerenciar usuários | ✓ | ✗ |
+| Exportar/importar dados | ✓ | ✗ |
+| Excluir todos os lançamentos | ✓ | ✗ |
+| Excluir conta | ✓ | ✗ |
 
-### 8.3 Parcelamento
-- Valor dividido igualmente.
-- Usuário pode ajustar valores manualmente.
-- Parcelas:
-  - Mensais
-  - Registros independentes
-  - Relacionadas via `lancamento_pai_id`
-
----
-
-## 9. Status de parcelas
-Cada parcela possui:
-- Status: paga | pendente
-- Data de pagamento (editável)
-- Valor pago (editável)
+### Gerenciamento de members (owner only)
+- **Desativar/reativar:** bloqueia o login via ban no Supabase Auth.
+- **Excluir member:** duas opções — migrar lançamentos para o owner ou excluir permanentemente junto com os lançamentos.
+- Rate limit: 20 ações/minuto por usuário.
 
 ---
 
-## 10. Unificação de lançamentos
+## Categorias
 
-### 10.1 Regras
-- Apenas lançamentos:
-  - Do mesmo tipo
-  - Pendentes
-- Lançamentos pagos não podem ser unificados.
-
-### 10.2 Categorias diferentes
-- Realizar rateio proporcional por categoria.
-- Preservar:
-  - Categoria original
-  - Valor original
-  - Referência ao lançamento original
+- Escopo por conta (não globais).
+- Nome único por conta (case-insensitive).
+- Mínimo 3 caracteres, máximo 60.
+- Cor atribuída automaticamente de uma paleta de 12 cores.
+- Exclusão física; lançamentos associados ficam sem categoria (`NULL`).
+- Rate limit: 20 criações/minuto por usuário.
 
 ---
 
-## 11. Dashboard
-- Saldo mensal (somente parcelas pagas)
-- Total de recebimentos (verde)
-- Total de pagamentos (vermelho)
-- Gráficos por categoria
+## Lançamentos
+
+### Tipos
+- **Pagamento** (vermelho)
+- **Recebimento** (verde)
+
+### Campos
+- Descrição (mín. 1 char)
+- Tipo (pagamento | recebimento)
+- Valor total (máx. R$ 1.000.000,00)
+- Categoria (opcional)
+- Data de emissão (opcional; aceita de 1 ano atrás até 90 dias no futuro)
+- Quantidade de parcelas (1–99)
+- Status de pagamento (pago | pendente)
+
+### Parcelamento
+- Valor dividido igualmente entre as parcelas.
+- Cada parcela é um registro independente na tabela `expenses`.
+- Parcelas de meses subsequentes calculadas a partir da data base; datas inválidas (ex.: 31 de fevereiro) são ajustadas para o último dia do mês.
+- Parcelas importadas de OFX/CSV entram como **pagas**.
+
+### Ações sobre lançamentos
+- **Marcar como pago:** permite editar o valor pago no momento da confirmação.
+- **Excluir:** exclusão física, irreversível, com confirmação.
+- Subusuário só pode editar/excluir lançamentos criados por ele mesmo (RLS).
+
+### Rate limit de criação
+- 60 requisições/minuto por usuário.
 
 ---
 
-## 12. Grid de lançamentos
-- Cada parcela é uma linha.
-- Filtros:
-  - Categoria / Subcategoria
-  - Usuário
-  - Tipo
-- Ações:
-  - Editar
-  - Excluir (parcela ou grupo)
+## Dashboard
+
+- Filtro por mês (mês/ano) com navegação anterior/próximo.
+- **Cards de resumo:** total de recebimentos, total de pagamentos e saldo do mês (somente lançamentos pagos).
+- **Resumo por categoria:** lista de categorias com valor total e percentual sobre o total de pagamentos do mês.
+- **Lançamentos recentes:** últimos 20 lançamentos do mês, com usuário, categoria, valor, data e status.
+- Indicação visual de tipo por cor (vermelho = pagamento, verde = recebimento).
 
 ---
 
-## 13. Logs e auditoria
+## Gráficos (`/charts`)
 
-### 13.1 Tela de logs
-Tela exclusiva para logs das ações dos usuários da conta.
-
-### 13.2 Eventos registrados
-- Login / logout
-- Criação, edição e exclusão de:
-  - Lançamentos
-  - Parcelas
-  - Categorias
-  - Subcategorias
-- Unificações
-- Alteração de e-mail e senha
-- Exclusão de conta
-
-### 13.3 Filtros
-- Usuário
-- Ação
-- Intervalo de datas
+- Filtro por mês com navegação.
+- **Pizza por categoria:** distribuição percentual de pagamentos por categoria no mês.
+- **Barras por usuário:** total gasto por membro da conta no mês.
+- **Tendência mensal:** janela de 9 meses (4 anteriores + atual + 4 seguintes), mês corrente destacado em vermelho; meses futuros exibem apenas receitas/pagamentos lançados.
+- Valores exibidos em formato pt-BR; números ≥ 1.000 abreviados com "k".
 
 ---
 
-## 14. Perfil do usuário
+## Perfil (`/profile`)
 
-### 14.1 Alteração de e-mail
-- Requer confirmação via link enviado ao novo e-mail.
+### Edição de nome
+- Máximo 60 caracteres.
+- Rate limit: 10 alterações/minuto.
 
-### 14.2 Alteração de senha
-- Exigir senha atual.
-- Validar senha atual antes da troca.
+### Alteração de senha
+- Requer senha atual (re-autenticação via Supabase).
+- Nova senha: 6–40 caracteres.
 
----
+### Exportação de dados (CSV)
+- Exporta todos os lançamentos da conta.
+- Formato: UTF-8 com BOM, delimitador ponto-e-vírgula.
+- Colunas: data, tipo, valor, descrição, categoria, usuário.
 
-## 15. Exclusão de conta
-- Botão vermelho:
-  **“Excluir minha conta e dados”**
-- Fluxo:
-  1. Solicitação
-  2. Envio de e-mail com link/token
-  3. Exclusão apenas após confirmação
-- Exclusão física e irreversível.
+### Importação de lançamentos (CSV / OFX)
+- **CSV:** detecta automaticamente delimitador (vírgula ou ponto-e-vírgula).
+  - Formatos de data aceitos: `DD/MM/YYYY`, `YYYY-MM-DD`.
+  - Parseamento de valor: ignora `R$`, espaços, trata ponto/vírgula como separadores decimais/milhar.
+  - Categoria casada por nome (case-insensitive); sem correspondência → categoria "Outros".
+- **OFX:** parseamento de transações `<STMTTRN>`.
+  - Formato de data: `YYYYMMDD`.
+  - Valor positivo → recebimento; negativo → pagamento.
+- Limite: 1.000 lançamentos por importação.
+- Todos os lançamentos importados entram como **pagos**.
+- Rate limit: 5 importações/hora por usuário.
 
----
+### Exclusão de todos os lançamentos
+- Somente owner.
+- Requer digitar `EXCLUIR` para confirmar.
+- Rate limit: 3 operações/hora.
 
-## 16. Landing Page
-
-### 16.1 Estrutura
-- Página pública
-- Apresentação do BalançoTotal
-- Benefícios
-- Prints do sistema
-- CTA para cadastro
-
-### 16.2 Planos
-Apenas um plano:
-- Mensal: R$ 8,97
-- Anual: R$ 79,90
-- Trial: 7 dias grátis
-- Cobrança recorrente no cartão
-
----
-
-## 17. Assinaturas e pagamentos (Stripe)
-
-- Assinatura recorrente
-- Controle de status:
-  - Trial
-  - Ativa
-  - Cancelada
-  - Inadimplente
-- Usuário só pode usar o sistema com:
-  - Trial válido ou
-  - Assinatura ativa
+### Exclusão de conta
+- Somente owner.
+- Requer digitar `APAGAR CONTA` para confirmar.
+- Exclui fisicamente: todos os members, lançamentos, categorias e a própria conta.
+- Rate limit: 3 operações/hora.
 
 ---
 
-## 18. Backoffice / Gestor
+## Segurança
 
-Painel administrativo para gestão do sistema:
-- Contas
-- Usuários
-- Status de assinatura
-- Logs
-- Métricas (MRR, churn, trials)
-
----
-
-## 19. Segurança
-
-- Proibido SQL com template string.
-- Apenas queries parametrizadas / Supabase client / RPC.
-- RLS rigoroso.
-- Proteção contra enumeração de e-mails.
+- **RLS** ativo em todas as tabelas; sem bypass por service role no cliente.
+- Apenas queries parametrizadas ou via Supabase client/RPC — proibido SQL com template string.
+- `get_my_account_id()` como `SECURITY DEFINER` para evitar recursão de RLS.
+- Rate limiting em memória em todas as rotas de API (por IP e por usuário).
+- Proteção contra enumeração de e-mails na recuperação de senha.
 
 ---
 
-## 20. PWA
-- Service Worker
-- Web App Manifest
-- Instalação no celular
-- Modo standalone
+## PWA
+
+- Web App Manifest configurado.
+- Theme color: `#1B4332`.
+- Suporte a instalação em dispositivos móveis (iOS e Android).
+- Status bar translúcida no iOS.
 
 ---
 
-## 21. Restrições finais
-- Usuário pertence a apenas uma conta
-- Exclusões sempre físicas
-- Logs obrigatórios
-- Cores obrigatórias por tipo
-- Auditoria não pode ser desativada
+## Schema do banco (`supabase/schema.sql`)
+
+Quatro tabelas principais:
+
+| Tabela | Descrição |
+|---|---|
+| `accounts` | Container compartilhado por todos os usuários de uma conta |
+| `profiles` | Estende `auth.users`; armazena nome, papel (owner/member) e flag `disabled` |
+| `categories` | Categorias por conta; nome único case-insensitive |
+| `expenses` | Lançamentos; `user_id` referencia `profiles.id` |
+
+- `profiles.id = auth.users.id` (mesmo UUID).
+- Trigger `handle_new_user()` em `auth.users` cria automaticamente account + profile no cadastro.
+- Convites gerenciados por RPC (`create_invite`, `get_invite_by_token`) em `supabase/invites.sql`.
+
+---
+
+## Setup (primeira vez)
+
+1. Executar `supabase/schema.sql` no SQL Editor do Supabase.
+2. Executar `supabase/invites.sql` no SQL Editor do Supabase.
+3. Desativar confirmação de e-mail: Supabase Dashboard → Authentication → Providers → Email → desmarcar "Confirm email".
