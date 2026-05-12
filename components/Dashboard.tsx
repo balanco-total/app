@@ -119,6 +119,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   }
 
   const deleteExpense = async (expenseId: string) => {
+    if (!confirm('Excluir este lançamento?')) return
     const { error } = await supabase.from('expenses').delete().eq('id', expenseId)
     if (error) {
       alert('Erro ao excluir despesa.')
@@ -364,21 +365,38 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
             <div className="bg-blue-50 rounded-lg p-4 mb-4">
               <p className="text-sm text-gray-600">Total do Mês</p>
               <p className="text-3xl font-bold text-blue-600">
-                R$ {totalMonth.toFixed(2).replace('.', ',')}
+                R$ {totalMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
             <div className="space-y-3">
-              {categorySummary.map(cat => (
-                <div key={cat.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${cat.color}`}></div>
-                    <span className="font-medium text-gray-700">{cat.name}</span>
+              {categorySummary.filter(cat => cat.total > 0).length === 0 && (
+                <p className="text-center text-gray-500 py-4">Nenhuma despesa neste mês.</p>
+              )}
+              {categorySummary.filter(cat => cat.total > 0).map(cat => {
+                const pct = totalMonth > 0 ? (cat.total / totalMonth) * 100 : 0
+                return (
+                  <div key={cat.id} className="p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${cat.color}`}></div>
+                        <span className="font-medium text-gray-700">{cat.name}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-gray-500">{pct.toFixed(1)}%</span>
+                        <span className="font-bold text-gray-800 min-w-[100px] text-right">
+                          R$ {cat.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div
+                        className={`${cat.color} h-1.5 rounded-full transition-all duration-500`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
                   </div>
-                  <span className="font-bold text-gray-800">
-                    R$ {cat.total.toFixed(2).replace('.', ',')}
-                  </span>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </div>
@@ -405,12 +423,13 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                       {category?.name ?? 'Sem categoria'}
                     </span>
                     <span className="font-bold text-gray-800 min-w-[100px] text-right">
-                      R$ {exp.amount.toFixed(2).replace('.', ',')}
+                      R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
                   {exp.user_id === user.id && (
                     <button
                       onClick={() => deleteExpense(exp.id)}
+                      title="Excluir lançamento"
                       className="ml-4 text-red-500 hover:text-red-700 transition"
                     >
                       <Trash2 size={18} />
