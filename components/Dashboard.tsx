@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import { PlusCircle, Users, Calendar, Trash2, LogOut, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 type Profile = { id: string; name: string; account_id: string; role: string }
 type Category = { id: string; account_id: string; name: string; color: string }
@@ -205,10 +206,20 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
               <p className="text-gray-600 mt-1">Olá, {profile.name}!</p>
             </div>
             <div className="flex gap-3">
-              <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg">
-                <Users size={20} className="text-gray-600" />
-                <span className="text-gray-700 font-medium">{members.length} usuário(s)</span>
-              </div>
+              {profile.role === 'owner' ? (
+                <Link
+                  href="/users"
+                  className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+                >
+                  <Users size={20} className="text-gray-600" />
+                  <span className="text-gray-700 font-medium">{members.length} usuário(s)</span>
+                </Link>
+              ) : (
+                <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg">
+                  <Users size={20} className="text-gray-600" />
+                  <span className="text-gray-700 font-medium">{members.length} usuário(s)</span>
+                </div>
+              )}
               <button
                 onClick={handleSignOut}
                 className="flex items-center gap-2 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
