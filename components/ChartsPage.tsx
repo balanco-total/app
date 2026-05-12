@@ -141,7 +141,8 @@ export default function ChartsPage({ profile, categories, expenses }: {
 
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <div className="flex flex-wrap items-center gap-4">
+          {/* Row 1: back + title + total */}
+          <div className="flex items-center gap-4">
             <Link
               href="/"
               className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-600 shrink-0"
@@ -150,35 +151,39 @@ export default function ChartsPage({ profile, categories, expenses }: {
               <ArrowLeft size={20} />
             </Link>
             <div className="flex-1 min-w-0">
-              <h1 className="text-3xl font-bold text-gray-800">Gráficos</h1>
-              <p className="text-gray-600 mt-1">Análise visual das suas despesas</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Gráficos</h1>
+              <p className="text-gray-600 mt-0.5 text-sm sm:text-base">Análise visual das suas despesas</p>
             </div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => shiftMonth(-1)}
-                className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500"
-                title="Mês anterior"
-              >
+            {/* Month nav — desktop only */}
+            <div className="hidden sm:flex items-center gap-1">
+              <button onClick={() => shiftMonth(-1)} className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500" title="Mês anterior">
                 <ChevronLeft size={18} />
               </button>
-              <div className="flex items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg min-w-[172px] justify-center">
+              <div className="flex items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg min-w-[160px] justify-center">
                 <Calendar size={15} className="text-red-500 shrink-0" />
-                <span className="text-sm font-semibold text-red-700">
-                  {MONTHS_PT[selMonthNum - 1]} {selYear}
-                </span>
+                <span className="text-sm font-semibold text-red-700">{MONTHS_PT[selMonthNum - 1]} {selYear}</span>
               </div>
-              <button
-                onClick={() => shiftMonth(1)}
-                className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500"
-                title="Próximo mês"
-              >
+              <button onClick={() => shiftMonth(1)} className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500" title="Próximo mês">
                 <ChevronRight size={18} />
               </button>
             </div>
             <div className="text-right shrink-0">
               <p className="text-xs text-gray-500">Total do mês</p>
-              <p className="text-xl font-bold text-red-600">{fmt(totalMonth)}</p>
+              <p className="text-lg sm:text-xl font-bold text-red-600">{fmt(totalMonth)}</p>
             </div>
+          </div>
+          {/* Row 2: month nav — mobile only */}
+          <div className="sm:hidden flex items-center gap-1 mt-4">
+            <button onClick={() => shiftMonth(-1)} className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500" title="Mês anterior">
+              <ChevronLeft size={18} />
+            </button>
+            <div className="flex-1 flex items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg justify-center">
+              <Calendar size={15} className="text-red-500 shrink-0" />
+              <span className="text-sm font-semibold text-red-700">{MONTHS_PT[selMonthNum - 1]} {selYear}</span>
+            </div>
+            <button onClick={() => shiftMonth(1)} className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500" title="Próximo mês">
+              <ChevronRight size={18} />
+            </button>
           </div>
         </div>
 
@@ -234,7 +239,7 @@ export default function ChartsPage({ profile, categories, expenses }: {
                 <BarChart data={userBarData} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                   <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#6b7280' }} />
-                  <YAxis tickFormatter={fmtAxis} tick={{ fontSize: 11, fill: '#6b7280' }} width={75} />
+                  <YAxis tickFormatter={fmtAxis} tick={{ fontSize: 11, fill: '#6b7280' }} width={60} />
                   <Tooltip content={<BarTooltip />} />
                   <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={80}>
                     {userBarData.map((_, i) => (
@@ -256,7 +261,7 @@ export default function ChartsPage({ profile, categories, expenses }: {
             <BarChart data={monthlyTrend} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#6b7280' }} />
-              <YAxis tickFormatter={fmtAxis} tick={{ fontSize: 11, fill: '#6b7280' }} width={75} />
+              <YAxis tickFormatter={fmtAxis} tick={{ fontSize: 11, fill: '#6b7280' }} width={60} />
               <Tooltip content={<BarTooltip />} />
               <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={60}>
                 {monthlyTrend.map((entry, i) => (
