@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { isValidEmail } from '@/utils/validation'
 
 const MAX_NAME = 60
 const MAX_EMAIL = 100
@@ -20,6 +21,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'E-mail é obrigatório.' }, { status: 400 })
   if (email.length > MAX_EMAIL)
     return NextResponse.json({ error: `E-mail deve ter no máximo ${MAX_EMAIL} caracteres.` }, { status: 400 })
+  if (!isValidEmail(email))
+    return NextResponse.json({ error: 'E-mail inválido.' }, { status: 400 })
   if (!password || password.length === 0)
     return NextResponse.json({ error: 'Senha é obrigatória.' }, { status: 400 })
   if (password.length > MAX_PASSWORD)
