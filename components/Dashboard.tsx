@@ -128,6 +128,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   const [newCategoryName, setNewCategoryName] = useState('')
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
   const [pendingCategoryChange, setPendingCategoryChange] = useState<{ expenseId: string; newCategoryId: string | null } | null>(null)
+  const [pendingPaidToggle, setPendingPaidToggle] = useState<{ expense: Expense; amountDisplay: string } | null>(null)
   const [paid, setPaid] = useState(false)
 
   const { toasts, toast, dismiss } = useToast()
@@ -249,21 +250,23 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   }
 
   const togglePaid = (exp: Expense) => {
-    const willPay = !exp.paid_at
-    showConfirm({
-      title: willPay ? 'Marcar como pago?' : 'Desmarcar pagamento?',
-      body: exp.description,
-      confirmLabel: willPay ? 'Marcar pago' : 'Desmarcar',
-      onConfirm: async () => {
-        const newPaidAt = willPay ? new Date().toISOString() : null
-        const { error } = await supabase
-          .from('expenses')
-          .update({ paid_at: newPaidAt })
-          .eq('id', exp.id)
-        if (error) { toast.error('Erro ao atualizar pagamento.'); return }
-        setExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, paid_at: newPaidAt } : e))
-      },
-    })
+    if (!exp.paid_at) {
+      setPendingPaidToggle({
+        expense: exp,
+        amountDisplay: exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      })
+    } else {
+      showConfirm({
+        title: 'Desmarcar pagamento?',
+        body: exp.description,
+        confirmLabel: 'Desmarcar',
+        onConfirm: async () => {
+          const { error } = await supabase.from('expenses').update({ paid_at: null }).eq('id', exp.id)
+          if (error) { toast.error('Erro ao atualizar pagamento.'); return }
+          setExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, paid_at: null } : e))
+        },
+      })
+    }
   }
 
   const updateExpenseCategory = async (expenseId: string, newCategoryId: string | null) => {
@@ -806,6 +809,60 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                 </button>
                 <button
                   onClick={() => setPendingCategoryChange(null)}
+                  className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {pendingPaidToggle && (() => {
+        const { expense: exp, amountDisplay } = pendingPaidToggle
+        const newAmount = parseMasked(amountDisplay)
+        const isValid = newAmount > 0 && newAmount <= 1_000_000
+        const amountChanged = isValid && newAmount !== exp.amount
+        return (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+              <h3 className="text-lg font-bold text-gray-800 mb-1">Marcar como pago?</h3>
+              <p className="text-sm text-gray-500 mb-4 truncate">{exp.description}</p>
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Valor (R$)</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={amountDisplay}
+                  onChange={e => setPendingPaidToggle(prev => prev ? { ...prev, amountDisplay: applyMask(e.target.value) } : null)}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${!isValid && amountDisplay ? 'border-red-400' : 'border-gray-300'}`}
+                />
+                {!isValid && amountDisplay && (
+                  <p className="text-xs text-red-500 mt-1">Valor inválido.</p>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  disabled={!isValid}
+                  onClick={async () => {
+                    if (!isValid) return
+                    const now = new Date().toISOString()
+                    const updates: Record<string, unknown> = { paid_at: now }
+                    if (amountChanged) updates.amount = newAmount
+                    const { error } = await supabase.from('expenses').update(updates).eq('id', exp.id)
+                    if (error) { toast.error('Erro ao atualizar lançamento.'); return }
+                    setExpenses(prev => prev.map(e =>
+                      e.id === exp.id ? { ...e, paid_at: now, ...(amountChanged ? { amount: newAmount } : {}) } : e
+                    ))
+                    setPendingPaidToggle(null)
+                  }}
+                  className="flex-1 bg-red-600 text-white py-2.5 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {amountChanged ? 'Editar e pagar' : 'Marcar pago'}
+                </button>
+                <button
+                  onClick={() => setPendingPaidToggle(null)}
                   className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition"
                 >
                   Cancelar
