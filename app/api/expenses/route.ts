@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { isValidFieldText } from '@/utils/validation'
 
 const MAX_DESCRIPTION = 60
+const MAX_AMOUNT = 1_000_000 // R$ 1.000.000,00
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null)
@@ -19,6 +20,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Descrição contém caracteres inválidos.' }, { status: 400 })
   if (typeof amount !== 'number' || amount <= 0)
     return NextResponse.json({ error: 'Valor deve ser maior que zero.' }, { status: 400 })
+  if (amount > MAX_AMOUNT)
+    return NextResponse.json({ error: 'Valor não pode ser maior que R$ 1.000.000,00.' }, { status: 400 })
   if (!category_id)
     return NextResponse.json({ error: 'Categoria é obrigatória.' }, { status: 400 })
 
