@@ -19,5 +19,11 @@ export default async function Page() {
   if (!profile) redirect('/login')
   if (profile.role !== 'owner') redirect('/app')
 
-  return <UsersPage profile={profile} />
+  const { data: account } = await supabase
+    .from('accounts')
+    .select('id, trial_ends_at, subscription_status')
+    .eq('id', profile.account_id)
+    .single()
+
+  return <UsersPage profile={profile} account={account ?? null} />
 }

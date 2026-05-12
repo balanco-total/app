@@ -18,7 +18,7 @@ export default async function Page() {
 
   if (!profile) redirect('/login')
 
-  const [categoriesRes, expensesRes] = await Promise.all([
+  const [categoriesRes, expensesRes, membersRes, accountRes] = await Promise.all([
     supabase
       .from('categories')
       .select('id, name, color')
@@ -30,6 +30,15 @@ export default async function Page() {
       .eq('account_id', profile.account_id)
       .order('date', { ascending: false })
       .limit(2000),
+    supabase
+      .from('profiles')
+      .select('id, name, account_id, role')
+      .eq('account_id', profile.account_id),
+    supabase
+      .from('accounts')
+      .select('id, trial_ends_at, subscription_status')
+      .eq('id', profile.account_id)
+      .single(),
   ])
 
   return (
@@ -37,6 +46,8 @@ export default async function Page() {
       profile={profile}
       categories={categoriesRes.data ?? []}
       expenses={(expensesRes.data ?? []) as any}
+      members={membersRes.data ?? []}
+      account={accountRes.data ?? null}
     />
   )
 }

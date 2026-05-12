@@ -1,14 +1,19 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts'
-import { ArrowLeft, Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Calendar, ChevronLeft, ChevronRight, Users, LogOut, User as UserIcon, CreditCard, Home } from 'lucide-react'
 import Link from 'next/link'
+import { createClient } from '@/utils/supabase/client'
+import { useRouter } from 'next/navigation'
+import Logo from './Logo'
+import BillingBanner from './BillingBanner'
 
 type Profile = { id: string; name: string; account_id: string; role: string }
+type Account = { id: string; trial_ends_at: string; subscription_status: string } | null
 type Category = { id: string; name: string; color: string }
 type Expense = {
   id: string
@@ -44,6 +49,18 @@ const MONTHS_PT = [
   'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro',
 ]
 
+const AVATAR_COLORS = ['#3b82f6','#22c55e','#a855f7','#f97316','#ef4444','#14b8a6','#6366f1','#ec4899']
+
+function getInitials(name: string) {
+  return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
+}
+
+function getAvatarColor(name: string) {
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h)
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]
+}
+
 const fmt = (v: number) =>
   `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
@@ -71,11 +88,35 @@ function PieTooltip({ active, payload }: any) {
   )
 }
 
-export default function ChartsPage({ profile, categories, expenses }: {
+export default function ChartsPage({ profile, categories, expenses, members, account }: {
   profile: Profile
   categories: Category[]
   expenses: Expense[]
+  members: Profile[]
+  account: Account
 }) {
+  const supabase = createClient()
+  const router = useRouter()
+
+  const [showAvatarMenu, setShowAvatarMenu] = useState(false)
+  const avatarRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
+        setShowAvatarMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
+
   const now = new Date()
   const nowKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 
@@ -88,7 +129,6 @@ export default function ChartsPage({ profile, categories, expenses }: {
     setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
   }
 
-  // 9-month window centered on selectedMonth; real current month always highlighted
   const monthlyTrend = useMemo(() => {
     return Array.from({ length: 9 }, (_, i) => {
       const d = new Date(selYear, selMonthNum - 1 - 4 + i)
@@ -101,7 +141,6 @@ export default function ChartsPage({ profile, categories, expenses }: {
     })
   }, [expenses, selectedMonth])
 
-  // Selected month expenses
   const monthlyExpenses = useMemo(
     () => expenses.filter(e => e.date.slice(0, 7) === selectedMonth),
     [expenses, selectedMonth]
@@ -109,7 +148,6 @@ export default function ChartsPage({ profile, categories, expenses }: {
 
   const totalMonth = monthlyExpenses.reduce((s, e) => s + e.amount, 0)
 
-  // Category pie
   const categoryPieData = useMemo(() => {
     const data = categories
       .map((cat, i) => ({
@@ -124,7 +162,6 @@ export default function ChartsPage({ profile, categories, expenses }: {
     return data.map(d => ({ ...d, percent: total > 0 ? d.value / total : 0 }))
   }, [categories, monthlyExpenses])
 
-  // User bar
   const userBarData = useMemo(() => {
     const map = new Map<string, { name: string; total: number }>()
     monthlyExpenses.forEach(e => {
@@ -139,51 +176,124 @@ export default function ChartsPage({ profile, categories, expenses }: {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 p-4">
       <div className="max-w-7xl mx-auto">
 
-        {/* Header */}
+        {/* Header — identical to Dashboard */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          {/* Row 1: back + title + total */}
-          <div className="flex items-center gap-4">
-            <Link
-              href="/app"
-              className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-600 shrink-0"
-              title="Voltar ao dashboard"
-            >
-              <ArrowLeft size={20} />
-            </Link>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Gráficos</h1>
-              <p className="text-gray-600 mt-0.5 text-sm sm:text-base">Análise visual das suas despesas</p>
-            </div>
-            {/* Month nav — desktop only */}
-            <div className="hidden sm:flex items-center gap-1">
-              <button onClick={() => shiftMonth(-1)} className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500" title="Mês anterior">
-                <ChevronLeft size={18} />
-              </button>
-              <div className="flex items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg min-w-[160px] justify-center">
-                <Calendar size={15} className="text-red-500 shrink-0" />
-                <span className="text-sm font-semibold text-red-700">{MONTHS_PT[selMonthNum - 1]} {selYear}</span>
+          <div className="flex justify-between items-center">
+            <Link href="/app"><Logo height={40} width={130} /></Link>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/app"
+                className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+                title="Voltar ao dashboard"
+              >
+                <Home size={20} className="text-gray-600" />
+                <span className="text-gray-700 font-medium">Dashboard</span>
+              </Link>
+              {profile.role === 'owner' ? (
+                <Link
+                  href="/app/users"
+                  className="hidden sm:flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+                >
+                  <Users size={20} className="text-gray-600" />
+                  <span className="text-gray-700 font-medium">{members.length} usuário(s)</span>
+                </Link>
+              ) : (
+                <div className="hidden sm:flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg">
+                  <Users size={20} className="text-gray-600" />
+                  <span className="text-gray-700 font-medium">{members.length} usuário(s)</span>
+                </div>
+              )}
+
+              {/* Avatar dropdown */}
+              <div className="relative" ref={avatarRef}>
+                <button
+                  onClick={() => setShowAvatarMenu(v => !v)}
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow hover:opacity-90 transition"
+                  style={{ backgroundColor: getAvatarColor(profile.name) }}
+                  title={profile.name}
+                >
+                  {getInitials(profile.name)}
+                </button>
+                {showAvatarMenu && (
+                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                    <Link
+                      href="/app/profile"
+                      onClick={() => setShowAvatarMenu(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
+                    >
+                      <UserIcon size={16} className="text-gray-400" />
+                      {profile.name}
+                    </Link>
+                    <Link
+                      href="/app/plan"
+                      onClick={() => setShowAvatarMenu(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
+                    >
+                      <CreditCard size={16} className="text-gray-400" />
+                      Meu plano
+                    </Link>
+                    {profile.role === 'owner' ? (
+                      <Link
+                        href="/app/users"
+                        onClick={() => setShowAvatarMenu(false)}
+                        className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
+                      >
+                        <Users size={16} className="text-gray-400" />
+                        {members.length} usuário(s)
+                      </Link>
+                    ) : (
+                      <div className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-500 text-sm">
+                        <Users size={16} className="text-gray-400" />
+                        {members.length} usuário(s)
+                      </div>
+                    )}
+                    <hr className="border-gray-100" />
+                    <button
+                      onClick={handleSignOut}
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-red-600 hover:bg-red-50 transition text-sm"
+                    >
+                      <LogOut size={16} />
+                      Sair
+                    </button>
+                  </div>
+                )}
               </div>
-              <button onClick={() => shiftMonth(1)} className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500" title="Próximo mês">
-                <ChevronRight size={18} />
-              </button>
-            </div>
-            <div className="text-right shrink-0">
-              <p className="text-xs text-gray-500">Total do mês</p>
-              <p className="text-lg sm:text-xl font-bold text-red-600">{fmt(totalMonth)}</p>
             </div>
           </div>
-          {/* Row 2: month nav — mobile only */}
-          <div className="sm:hidden flex items-center gap-1 mt-4">
-            <button onClick={() => shiftMonth(-1)} className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500" title="Mês anterior">
-              <ChevronLeft size={18} />
-            </button>
-            <div className="flex-1 flex items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg justify-center">
-              <Calendar size={15} className="text-red-500 shrink-0" />
-              <span className="text-sm font-semibold text-red-700">{MONTHS_PT[selMonthNum - 1]} {selYear}</span>
+        </div>
+
+        {account && (
+          <BillingBanner
+            subscriptionStatus={account.subscription_status}
+            trialEndsAt={account.trial_ends_at}
+            isOwner={profile.role === 'owner'}
+          />
+        )}
+
+        {/* Month filter + total */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="hidden sm:block text-gray-600 mt-0.5 text-sm sm:text-base">Análise visual das suas despesas</p>
             </div>
-            <button onClick={() => shiftMonth(1)} className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500" title="Próximo mês">
-              <ChevronRight size={18} />
-            </button>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <button onClick={() => shiftMonth(-1)} className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500" title="Mês anterior">
+                  <ChevronLeft size={18} />
+                </button>
+                <div className="flex items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg min-w-[160px] justify-center">
+                  <Calendar size={15} className="text-red-500 shrink-0" />
+                  <span className="text-sm font-semibold text-red-700">{MONTHS_PT[selMonthNum - 1]} {selYear}</span>
+                </div>
+                <button onClick={() => shiftMonth(1)} className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500" title="Próximo mês">
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+              <div className="text-right shrink-0 pl-2 border-l border-gray-200">
+                <p className="text-xs text-gray-500">Total do mês</p>
+                <p className="text-lg sm:text-xl font-bold text-red-600">{fmt(totalMonth)}</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -252,7 +362,7 @@ export default function ChartsPage({ profile, categories, expenses }: {
           </div>
         </div>
 
-        {/* Monthly trend — 9 months centered on trendCenter */}
+        {/* Monthly trend */}
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-gray-800">Evolução Mensal</h2>

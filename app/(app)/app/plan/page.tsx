@@ -18,5 +18,10 @@ export default async function AppPlanPage() {
 
   if (!profile) redirect('/api/auth/signout')
 
-  return <PlanPage profile={profile} />
+  const { data: members } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('account_id', profile.account_id)
+
+  return <PlanPage profile={profile} memberCount={members?.length ?? 0} />
 }

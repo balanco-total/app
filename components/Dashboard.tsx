@@ -380,7 +380,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center">
 
-            <Logo height={40} width={130} />
+            <Link href="/app"><Logo height={40} width={130} /></Link>
             <div className="flex items-center gap-3">
               <Link
                 href="/app/charts"

@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { ArrowLeft, UserPlus, Copy, Check, Clock, Users, Trash2, UserX, UserCheck } from 'lucide-react'
+import { UserPlus, Copy, Check, Clock, Users, Trash2, UserX, UserCheck, LogOut, User as UserIcon, CreditCard, PieChart } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
 import Logo from './Logo'
+import BillingBanner from './BillingBanner'
 
 type Profile = {
   id: string
@@ -15,6 +17,7 @@ type Profile = {
   created_at: string
   is_disabled: boolean
 }
+type Account = { id: string; trial_ends_at: string; subscription_status: string } | null
 type Invite = {
   id: string
   token: string
@@ -25,8 +28,40 @@ type Invite = {
 }
 type DeleteTarget = { member: Profile; expenseCount: number }
 
-export default function UsersPage({ profile }: { profile: Profile }) {
+const AVATAR_COLORS = ['#3b82f6','#22c55e','#a855f7','#f97316','#ef4444','#14b8a6','#6366f1','#ec4899']
+
+function getInitials(name: string) {
+  return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
+}
+
+function getAvatarColor(name: string) {
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h)
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]
+}
+
+export default function UsersPage({ profile, account }: { profile: Profile; account: Account }) {
   const supabase = createClient()
+  const router = useRouter()
+
+  const [showAvatarMenu, setShowAvatarMenu] = useState(false)
+  const avatarRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
+        setShowAvatarMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
 
   const [members, setMembers] = useState<Profile[]>([])
   const [invites, setInvites] = useState<Invite[]>([])
@@ -190,26 +225,102 @@ export default function UsersPage({ profile }: { profile: Profile }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 p-4">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-7xl mx-auto">
 
-        {/* Header */}
+        {/* Header — identical to Dashboard */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center">
+            <Link href="/app"><Logo height={40} width={130} /></Link>
             <div className="flex items-center gap-3">
-              <Link href="/app" className="text-gray-500 hover:text-gray-700 transition">
-                <ArrowLeft size={24} />
+              <Link
+                href="/app/charts"
+                className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+                title="Ver gráficos"
+              >
+                <PieChart size={20} className="text-gray-600" />
+                <span className="text-gray-700 font-medium">Gráficos</span>
               </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800">Usuários</h1>
-                <p className="text-gray-500 text-sm">{members.length} membro(s) na conta</p>
+              <Link
+                href="/app"
+                className="hidden sm:flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+                title="Voltar ao dashboard"
+              >
+                <Users size={20} className="text-gray-600" />
+                <span className="text-gray-700 font-medium">{members.length} usuário(s)</span>
+              </Link>
+
+              {/* Avatar dropdown */}
+              <div className="relative" ref={avatarRef}>
+                <button
+                  onClick={() => setShowAvatarMenu(v => !v)}
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow hover:opacity-90 transition"
+                  style={{ backgroundColor: getAvatarColor(profile.name) }}
+                  title={profile.name}
+                >
+                  {getInitials(profile.name)}
+                </button>
+                {showAvatarMenu && (
+                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                    <Link
+                      href="/app/profile"
+                      onClick={() => setShowAvatarMenu(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
+                    >
+                      <UserIcon size={16} className="text-gray-400" />
+                      {profile.name}
+                    </Link>
+                    <Link
+                      href="/app/plan"
+                      onClick={() => setShowAvatarMenu(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
+                    >
+                      <CreditCard size={16} className="text-gray-400" />
+                      Meu plano
+                    </Link>
+                    <Link
+                      href="/app"
+                      onClick={() => setShowAvatarMenu(false)}
+                      className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
+                    >
+                      <Users size={16} className="text-gray-400" />
+                      {members.length} usuário(s)
+                    </Link>
+                    <hr className="border-gray-100" />
+                    <button
+                      onClick={handleSignOut}
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-red-600 hover:bg-red-50 transition text-sm"
+                    >
+                      <LogOut size={16} />
+                      Sair
+                    </button>
+                  </div>
+                )}
               </div>
+            </div>
+          </div>
+        </div>
+
+        {account && (
+          <BillingBanner
+            subscriptionStatus={account.subscription_status}
+            trialEndsAt={account.trial_ends_at}
+            isOwner={profile.role === 'owner'}
+          />
+        )}
+
+        {/* Page title + invite button */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-gray-600 mt-0.5 text-sm sm:text-base">{members.length} membro(s) na conta</p>
             </div>
             <button
               onClick={openInviteModal}
-              className="flex items-center gap-2 bg-[#1B4332] text-white px-4 py-2 rounded-lg hover:bg-[#163a2b] transition"
+              className="flex items-center gap-2 bg-[#1B4332] text-white px-4 py-2 rounded-lg hover:bg-[#163a2b] transition shrink-0"
             >
               <UserPlus size={18} />
-              Convidar
+              <span className="hidden sm:inline">Convidar</span>
+              <span className="sm:hidden">Convidar</span>
             </button>
           </div>
         </div>
@@ -224,7 +335,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
             {members.map(m => {
               const isSelf = m.id === profile.id
               const isOwner = m.role === 'owner'
-              const loading = actionLoading === m.id
+              const isLoading = actionLoading === m.id
 
               return (
                 <div
@@ -260,7 +371,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
                       <>
                         <button
                           onClick={() => handleToggleDisable(m)}
-                          disabled={loading}
+                          disabled={isLoading}
                           title={m.is_disabled ? 'Habilitar membro' : 'Desabilitar membro'}
                           className={`p-2 rounded-lg transition disabled:opacity-40 ${
                             m.is_disabled
@@ -272,7 +383,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
                         </button>
                         <button
                           onClick={() => openDeleteModal(m)}
-                          disabled={loading}
+                          disabled={isLoading}
                           title="Excluir membro"
                           className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition disabled:opacity-40"
                         >
