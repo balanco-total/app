@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
-import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRight, ChevronDown, Repeat, PieChart, User as UserIcon } from 'lucide-react'
+import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRight, ChevronDown, Repeat, PieChart, User as UserIcon, Circle, CheckCircle2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
@@ -18,6 +18,7 @@ type Expense = {
   amount: number
   category_id: string | null
   date: string
+  paid_at: string | null
   profiles: { name: string } | null
 }
 
@@ -127,6 +128,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   const [newCategoryName, setNewCategoryName] = useState('')
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
   const [pendingCategoryChange, setPendingCategoryChange] = useState<{ expenseId: string; newCategoryId: string | null } | null>(null)
+  const [paid, setPaid] = useState(false)
 
   const { toasts, toast, dismiss } = useToast()
   const { confirmState, showConfirm, handleConfirm, handleCancel } = useConfirm()
@@ -208,6 +210,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
     }
     if (internalDate !== todayInternal) body.date = internalDate
     if (qty > 1) body.quantity = qty
+    if (paid) body.paid = true
 
     const res = await fetch('/api/expenses', {
       method: 'POST',
@@ -229,6 +232,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
     setSelectedCategory('')
     setExpenseDate(toLocalDateDisplay(new Date()))
     setQuantity('1')
+    setPaid(false)
   }
 
   const deleteExpense = (expenseId: string) => {
@@ -240,6 +244,24 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
         const { error } = await supabase.from('expenses').delete().eq('id', expenseId)
         if (error) { toast.error('Erro ao excluir despesa.'); return }
         setExpenses(prev => prev.filter(e => e.id !== expenseId))
+      },
+    })
+  }
+
+  const togglePaid = (exp: Expense) => {
+    const willPay = !exp.paid_at
+    showConfirm({
+      title: willPay ? 'Marcar como pago?' : 'Desmarcar pagamento?',
+      body: exp.description,
+      confirmLabel: willPay ? 'Marcar pago' : 'Desmarcar',
+      onConfirm: async () => {
+        const newPaidAt = willPay ? new Date().toISOString() : null
+        const { error } = await supabase
+          .from('expenses')
+          .update({ paid_at: newPaidAt })
+          .eq('id', exp.id)
+        if (error) { toast.error('Erro ao atualizar pagamento.'); return }
+        setExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, paid_at: newPaidAt } : e))
       },
     })
   }
@@ -493,11 +515,12 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                     className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`}
                   />
                   <span>Opções avançadas</span>
-                  {!showAdvanced && (parseDateDisplay(expenseDate) || quantity !== '1') && (
+                  {!showAdvanced && (parseDateDisplay(expenseDate) || quantity !== '1' || paid) && (
                     <span className="ml-auto flex items-center gap-1 text-xs text-red-500 font-medium">
                       {quantity !== '1' && <Repeat size={11} />}
                       {quantity !== '1' ? `${quantity}×` : ''}
                       {parseDateDisplay(expenseDate) ? ` ${expenseDate}` : ''}
+                      {paid && <CheckCircle2 size={11} className="text-green-500" />}
                     </span>
                   )}
                 </button>
@@ -579,6 +602,20 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                           </div>
                         ) : null}
                       </div>
+                      <div className="flex items-center justify-between py-0.5">
+                        <label className="text-sm font-medium text-gray-700">Pago</label>
+                        <button
+                          type="button"
+                          onClick={() => setPaid(v => !v)}
+                          className={`flex items-center gap-1.5 text-sm font-medium transition ${paid ? 'text-green-600' : 'text-gray-400'}`}
+                        >
+                          {paid ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                          <span>{paid ? 'Sim' : 'Não'}</span>
+                        </button>
+                      </div>
+                      {paid && qty > 1 && (
+                        <p className="text-xs text-amber-500">Parcelas futuras serão salvas como não pagas.</p>
+                      )}
                     </div>
                   )
                 })()}
@@ -715,13 +752,22 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                     </span>
                   </div>
                   {isOwn && (
-                    <button
-                      onClick={() => deleteExpense(exp.id)}
-                      title="Excluir lançamento"
-                      className="ml-4 text-red-500 hover:text-red-700 transition"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    <div className="ml-4 flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => togglePaid(exp)}
+                        title={exp.paid_at ? 'Desmarcar pagamento' : 'Marcar como pago'}
+                        className={`transition ${exp.paid_at ? 'text-green-500 hover:text-green-700' : 'text-gray-300 hover:text-gray-500'}`}
+                      >
+                        {exp.paid_at ? <CheckCircle2 size={18} /> : <Circle size={18} />}
+                      </button>
+                      <button
+                        onClick={() => deleteExpense(exp.id)}
+                        title="Excluir lançamento"
+                        className="text-red-500 hover:text-red-700 transition"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   )}
                 </div>
               )

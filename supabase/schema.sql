@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS public.expenses (
   amount      numeric(12, 2) NOT NULL CHECK (amount > 0),
   category_id uuid           REFERENCES public.categories(id) ON DELETE SET NULL,
   date        timestamptz    NOT NULL DEFAULT now(),
+  paid_at     timestamptz,
   created_at  timestamptz    NOT NULL DEFAULT now()
 );
 
@@ -86,6 +87,10 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ===================== MIGRATIONS =====================
+-- Run when upgrading an existing database (idempotent):
+-- ALTER TABLE public.expenses ADD COLUMN IF NOT EXISTS paid_at timestamptz;
 
 -- ===================== ROW LEVEL SECURITY =====================
 

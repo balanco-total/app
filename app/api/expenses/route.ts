@@ -16,7 +16,8 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'Requisição inválida.' }, { status: 400 })
 
-  const { description, amount, category_id, date, quantity: rawQty } = body as Record<string, unknown>
+  const { description, amount, category_id, date, quantity: rawQty, paid: paidRaw } = body as Record<string, unknown>
+  const wantPaid = !!paidRaw
 
   if (!description || String(description).trim().length === 0)
     return NextResponse.json({ error: 'Descrição é obrigatória.' }, { status: 400 })
@@ -94,6 +95,7 @@ export async function POST(request: Request) {
   if (!checkRateLimit(`expenses:${user.id}`, 60, 60 * 1000))
     return NextResponse.json({ error: 'Muitas requisições. Tente novamente em 1 minuto.' }, { status: 429 })
 
+  const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
   const rows = installmentISOs.map(iso => ({
     account_id: profile.account_id,
     user_id: profile.id,
@@ -101,6 +103,7 @@ export async function POST(request: Request) {
     amount,
     category_id,
     date: iso,
+    paid_at: wantPaid && iso.slice(0, 7) <= currentYearMonth ? now.toISOString() : null,
   }))
 
   const { data, error } = await supabase
