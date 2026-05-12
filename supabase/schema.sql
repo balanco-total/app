@@ -73,6 +73,12 @@ BEGIN
 END;
 $$;
 
+-- ===================== INDEXES =====================
+
+-- Prevents duplicate category names (case-insensitive) within the same account
+CREATE UNIQUE INDEX IF NOT EXISTS categories_account_name_unique
+  ON public.categories (account_id, lower(name));
+
 -- ===================== TRIGGERS =====================
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
