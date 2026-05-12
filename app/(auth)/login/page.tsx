@@ -192,6 +192,11 @@ function LoginForm() {
                 Cadastre-se
               </Link>
             </p>
+            <p className="mt-3 text-center">
+              <Link href="/landing" className="text-xs text-gray-400 hover:text-gray-600 hover:underline transition">
+                Conheça o BalançoTotal
+              </Link>
+            </p>
           </>
         )}
       </div>

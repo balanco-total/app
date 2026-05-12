@@ -32,6 +32,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
     pathname.startsWith('/invite') ||
+    pathname.startsWith('/landing') ||
     pathname.startsWith('/api/')
 
   // Routes where an already-authenticated user should be sent to the dashboard instead
