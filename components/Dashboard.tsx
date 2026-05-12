@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
-import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRight, PieChart } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -222,6 +222,14 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
               <p className="text-gray-600 mt-1">Olá, {profile.name}!</p>
             </div>
             <div className="flex gap-3">
+              <Link
+                href="/charts"
+                className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+                title="Ver gráficos"
+              >
+                <PieChart size={20} className="text-gray-600" />
+                <span className="text-gray-700 font-medium">Gráficos</span>
+              </Link>
               {profile.role === 'owner' ? (
                 <Link
                   href="/users"
