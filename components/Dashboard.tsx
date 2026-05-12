@@ -368,6 +368,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   const categorySummary = getCategorySummary()
   const monthlyExpenses = getMonthlyExpenses()
   const totalMonth = monthlyExpenses.reduce((sum, e) => sum + e.amount, 0)
+  const totalUnpaid = monthlyExpenses.filter(e => !e.paid_at).reduce((sum, e) => sum + e.amount, 0)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 p-4">
@@ -660,11 +661,21 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                 </button>
               </div>
             </div>
-            <div className="bg-red-50 rounded-lg p-4 mb-4">
-              <p className="text-sm text-gray-600">Total do mês</p>
-              <p className="text-3xl font-bold text-red-600">
-                R$ {totalMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
+            <div className="bg-red-50 rounded-lg p-4 mb-4 flex justify-between items-start gap-4">
+              <div>
+                <p className="text-sm text-gray-600">Total do mês</p>
+                <p className="text-3xl font-bold text-red-600">
+                  R$ {totalMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
+              {totalUnpaid > 0 && (
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">Não pagos</p>
+                  <p className="text-xl font-bold text-orange-500">
+                    R$ {totalUnpaid.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+              )}
             </div>
             <div className="space-y-3">
               {categorySummary.filter(cat => cat.total > 0).length === 0 && (
