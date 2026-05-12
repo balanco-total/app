@@ -30,6 +30,8 @@ CREATE POLICY "invites_delete_own_account" ON public.invites
 -- ===================== RPCs =====================
 
 -- Fetch an invite by token (SECURITY DEFINER — callable without a session)
+DROP FUNCTION IF EXISTS public.get_invite_by_token(uuid);
+
 CREATE OR REPLACE FUNCTION public.get_invite_by_token(p_token uuid)
 RETURNS TABLE (email text, owner_email text, is_valid boolean)
 LANGUAGE plpgsql STABLE SECURITY DEFINER
