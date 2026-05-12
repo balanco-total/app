@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { isValidFieldText } from '@/utils/validation'
 
 const MAX_DESCRIPTION = 60
 
@@ -14,6 +15,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Descrição é obrigatória.' }, { status: 400 })
   if (String(description).trim().length > MAX_DESCRIPTION)
     return NextResponse.json({ error: `Descrição deve ter no máximo ${MAX_DESCRIPTION} caracteres.` }, { status: 400 })
+  if (!isValidFieldText(String(description).trim()))
+    return NextResponse.json({ error: 'Descrição contém caracteres inválidos.' }, { status: 400 })
   if (typeof amount !== 'number' || amount <= 0)
     return NextResponse.json({ error: 'Valor deve ser maior que zero.' }, { status: 400 })
   if (!category_id)

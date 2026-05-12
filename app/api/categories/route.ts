@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { isValidFieldText } from '@/utils/validation'
 
 const MIN_NAME = 3
 const MAX_NAME = 60
@@ -18,6 +19,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Nome deve ter no mínimo ${MIN_NAME} caracteres.` }, { status: 400 })
   if (trimmed.length > MAX_NAME)
     return NextResponse.json({ error: `Nome deve ter no máximo ${MAX_NAME} caracteres.` }, { status: 400 })
+  if (!isValidFieldText(trimmed))
+    return NextResponse.json({ error: 'Nome contém caracteres inválidos.' }, { status: 400 })
 
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
