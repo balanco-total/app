@@ -170,7 +170,7 @@ export default function UsersPage({ profile }: { profile: Profile }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Carregando...</div>
+        <div className="text-xl text-gray-600">BalançoTotal...</div>
       </div>
     )
   }

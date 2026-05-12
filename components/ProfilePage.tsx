@@ -2,13 +2,159 @@
 
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { ArrowLeft, User, Lock, Download, Trash2, Check, Loader2 } from 'lucide-react'
+import { ArrowLeft, User, Lock, Download, Upload, FileText, AlertCircle, X, Trash2, Check, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 type Profile = { id: string; name: string; account_id: string; role: string }
 
 const FIELD_PATTERN = /[^a-zA-Z0-9\-\/\. À-ÿ]/g
+
+type ParsedRow = {
+  description: string
+  amount: number
+  category_name: string
+  date: string
+  raw_date: string
+}
+
+function stripAccents(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '')
+}
+
+function parseAmount(raw: string): number | null {
+  const s = raw.replace(/[R$+\s]/g, '').replace(/^-/, '').trim()
+  const hasDot = s.includes('.')
+  const hasComma = s.includes(',')
+  let value: number
+  if (hasDot && hasComma) {
+    value = parseFloat(s.replace(/\./g, '').replace(',', '.'))
+  } else if (hasComma) {
+    value = parseFloat(s.replace(',', '.'))
+  } else {
+    value = parseFloat(s)
+  }
+  if (!isFinite(value) || value <= 0) return null
+  return Math.round(Math.abs(value) * 100) / 100
+}
+
+function parseDateStr(raw: string): { iso: string; display: string } | null {
+  const br = raw.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+  if (br) {
+    const d = parseInt(br[1]), m = parseInt(br[2]), y = parseInt(br[3])
+    const date = new Date(y, m - 1, d)
+    if (date.getDate() !== d || date.getMonth() !== m - 1) return null
+    const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    return { iso, display: `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}` }
+  }
+  const isoM = raw.trim().match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (isoM) {
+    const [, y, m, d] = isoM
+    const date = new Date(parseInt(y), parseInt(m) - 1, parseInt(d))
+    if (date.getDate() !== parseInt(d)) return null
+    return { iso: `${y}-${m}-${d}`, display: `${d}/${m}/${y}` }
+  }
+  const ofxM = raw.trim().match(/^(\d{4})(\d{2})(\d{2})/)
+  if (ofxM) {
+    const [, y, m, d] = ofxM
+    const date = new Date(parseInt(y), parseInt(m) - 1, parseInt(d))
+    if (date.getDate() !== parseInt(d)) return null
+    return { iso: `${y}-${m}-${d}`, display: `${d}/${m}/${y}` }
+  }
+  return null
+}
+
+function parseCSVLine(line: string, delim: string): string[] {
+  const cells: string[] = []
+  let i = 0
+  while (i < line.length) {
+    if (line[i] === '"') {
+      let j = i + 1, field = ''
+      while (j < line.length) {
+        if (line[j] === '"' && line[j + 1] === '"') { field += '"'; j += 2 }
+        else if (line[j] === '"') { j++; break }
+        else { field += line[j++] }
+      }
+      cells.push(field)
+      if (line[j] === delim) j++
+      i = j
+    } else {
+      const end = line.indexOf(delim, i)
+      if (end === -1) { cells.push(line.slice(i)); break }
+      cells.push(line.slice(i, end))
+      i = end + 1
+    }
+  }
+  return cells
+}
+
+function parseCSV(text: string): ParsedRow[] {
+  const cleaned = text.replace(/^﻿/, '')
+  const lines = cleaned.split(/\r?\n/).filter(l => l.trim().length > 0)
+  if (lines.length < 2) return []
+
+  const delim = (lines[0].match(/;/g) ?? []).length >= (lines[0].match(/,/g) ?? []).length ? ';' : ','
+  const headers = parseCSVLine(lines[0], delim).map(h => stripAccents(h.toLowerCase().trim()))
+
+  const findCol = (candidates: string[]) =>
+    candidates.reduce<number>((found, c) => found >= 0 ? found : headers.indexOf(c), -1)
+
+  const dateIdx = findCol(['data', 'date', 'data lancamento', 'data do lancamento', 'dt', 'data transacao', 'data pagamento'])
+  const amtIdx = findCol(['valor', 'amount', 'value', 'vlr', 'debito', 'credito', 'debit', 'credit', 'montante'])
+  const descIdx = findCol(['descricao', 'description', 'memo', 'historico', 'lancamento', 'complemento', 'detalhe', 'movimento'])
+  const catIdx = findCol(['categoria', 'category', 'cat'])
+
+  if (dateIdx < 0 || amtIdx < 0 || descIdx < 0) return []
+
+  const rows: ParsedRow[] = []
+  for (let i = 1; i < lines.length; i++) {
+    const cells = parseCSVLine(lines[i], delim)
+    const rawDate = cells[dateIdx]?.trim() ?? ''
+    const rawAmt = cells[amtIdx]?.trim() ?? ''
+    const desc = cells[descIdx]?.trim() ?? ''
+    const cat = catIdx >= 0 ? cells[catIdx]?.trim() ?? '' : ''
+
+    const parsedDate = parseDateStr(rawDate)
+    const amount = parseAmount(rawAmt)
+    if (!parsedDate || !amount || !desc) continue
+
+    rows.push({ description: desc, amount, category_name: cat, date: parsedDate.iso, raw_date: parsedDate.display })
+  }
+  return rows
+}
+
+function extractOFXTag(block: string, tag: string): string {
+  const xml = block.match(new RegExp(`<${tag}[^>]*>(.*?)<\\/${tag}>`, 'is'))
+  if (xml) return xml[1].trim()
+  const sgml = block.match(new RegExp(`<${tag}>([^<\\r\\n]+)`, 'i'))
+  return sgml ? sgml[1].trim() : ''
+}
+
+function parseOFX(text: string): ParsedRow[] {
+  const rows: ParsedRow[] = []
+  const parts = text.split(/<STMTTRN>/i).slice(1)
+  for (const part of parts) {
+    const end = part.search(/<\/STMTTRN>|<\/BANKTRANLIST>/i)
+    const block = end >= 0 ? part.slice(0, end) : part
+
+    const dtPosted = extractOFXTag(block, 'DTPOSTED')
+    const trnAmt = extractOFXTag(block, 'TRNAMT')
+    const memo = extractOFXTag(block, 'MEMO') || extractOFXTag(block, 'NAME')
+
+    if (!dtPosted || !trnAmt || !memo) continue
+
+    const parsedDate = parseDateStr(dtPosted)
+    if (!parsedDate) continue
+    const amount = parseAmount(trnAmt)
+    if (!amount) continue
+
+    const description = memo.replace(/[\x00-\x1F\x7F]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60)
+    if (!description) continue
+
+    rows.push({ description, amount, category_name: '', date: parsedDate.iso, raw_date: parsedDate.display })
+  }
+  return rows
+}
 
 export default function ProfilePage({ profile, email }: { profile: Profile; email: string }) {
   const supabase = createClient()
@@ -34,6 +180,13 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
   const [deleteAccountConfirm, setDeleteAccountConfirm] = useState('')
   const [deleteAccountLoading, setDeleteAccountLoading] = useState(false)
   const [deleteAccountMsg, setDeleteAccountMsg] = useState('')
+
+  const [isDragging, setIsDragging] = useState(false)
+  const [importFileName, setImportFileName] = useState('')
+  const [importRows, setImportRows] = useState<ParsedRow[]>([])
+  const [importLoading, setImportLoading] = useState(false)
+  const [importError, setImportError] = useState('')
+  const [importResult, setImportResult] = useState<{ count: number } | null>(null)
 
   const saveName = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -133,6 +286,72 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
     setCsvLoading(false)
+  }
+
+  const resetImport = () => {
+    setImportRows([])
+    setImportFileName('')
+    setImportError('')
+    setImportResult(null)
+  }
+
+  const processFile = (file: File) => {
+    setImportError('')
+    const ext = file.name.split('.').pop()?.toLowerCase()
+    if (ext !== 'csv' && ext !== 'ofx') {
+      setImportError('Formato não suportado. Use .csv ou .ofx.')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const buffer = e.target?.result as ArrayBuffer
+      let text: string
+      if (ext === 'ofx') {
+        try { text = new TextDecoder('windows-1252').decode(buffer) }
+        catch { text = new TextDecoder('utf-8').decode(buffer) }
+      } else {
+        text = new TextDecoder('utf-8').decode(buffer)
+      }
+      const rows = ext === 'csv' ? parseCSV(text) : parseOFX(text)
+      if (rows.length === 0) {
+        setImportError('Nenhum lançamento encontrado. Verifique o formato do arquivo.')
+        return
+      }
+      setImportFileName(file.name)
+      setImportRows(rows)
+    }
+    reader.readAsArrayBuffer(file)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (file) processFile(file)
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) processFile(file)
+    e.target.value = ''
+  }
+
+  const handleImport = async () => {
+    setImportLoading(true)
+    setImportError('')
+    const res = await fetch('/api/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rows: importRows }),
+    })
+    const json = await res.json()
+    if (!res.ok) {
+      setImportError(json.error ?? 'Erro ao importar.')
+      setImportLoading(false)
+      return
+    }
+    setImportResult({ count: json.count })
+    setImportLoading(false)
   }
 
   const confirmDeleteAccount = async () => {
@@ -295,6 +514,133 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
             {csvLoading ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
             {csvLoading ? 'Gerando CSV...' : 'Baixar CSV'}
           </button>
+        </div>
+
+        {/* Import */}
+        <div className="bg-white rounded-2xl shadow-lg p-6">
+          <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4">
+            <Upload size={20} className="text-blue-600" />
+            Importar lançamentos
+          </h2>
+
+          {importResult ? (
+            <div className="flex items-start gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
+              <Check size={20} className="text-green-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-green-700">{importResult.count} lançamento(s) importado(s) com sucesso.</p>
+                <button onClick={resetImport} className="text-sm text-green-600 hover:underline mt-1">
+                  Importar outro arquivo
+                </button>
+              </div>
+            </div>
+          ) : importRows.length > 0 ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">{importRows.length}</span> lançamentos encontrados em{' '}
+                  <span className="font-medium text-gray-700">{importFileName}</span>
+                </p>
+                <button onClick={resetImport} className="text-gray-400 hover:text-gray-600 transition">
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="overflow-x-auto rounded-lg border border-gray-100">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Data</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Descrição</th>
+                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-500">Valor</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Categoria</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {importRows.slice(0, 10).map((row, i) => (
+                      <tr key={i}>
+                        <td className="px-3 py-2 text-gray-500 whitespace-nowrap text-xs">{row.raw_date}</td>
+                        <td className="px-3 py-2 text-gray-800 max-w-[180px] truncate">{row.description}</td>
+                        <td className="px-3 py-2 text-gray-800 text-right whitespace-nowrap">
+                          {row.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-3 py-2 max-w-[120px] truncate">
+                          {row.category_name
+                            ? <span className="text-gray-600">{row.category_name}</span>
+                            : <span className="text-gray-300 italic text-xs">sem categoria</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {importRows.length > 10 && (
+                  <p className="text-xs text-gray-400 text-center py-2 border-t border-gray-50">
+                    e mais {importRows.length - 10} lançamentos
+                  </p>
+                )}
+              </div>
+
+              <p className="text-xs text-gray-400">
+                Categorias serão vinculadas pelo nome. As que não tiverem correspondência serão atribuídas à categoria <strong className="text-gray-500">Outros</strong> (criada automaticamente se não existir).
+              </p>
+
+              {importError && (
+                <p className="text-sm text-red-600 flex items-center gap-1.5">
+                  <AlertCircle size={14} className="shrink-0" />
+                  {importError}
+                </p>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleImport}
+                  disabled={importLoading}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 font-medium"
+                >
+                  {importLoading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+                  {importLoading ? 'Importando...' : `Importar ${importRows.length} lançamentos`}
+                </button>
+                <button
+                  onClick={resetImport}
+                  disabled={importLoading}
+                  className="px-5 py-2.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition font-medium"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p className="text-sm text-gray-500 mb-4">
+                Suporta arquivos <strong>CSV</strong> (exportados pelo BalançoTotal ou de outros sistemas) e{' '}
+                <strong>OFX</strong> (extratos bancários). Categorias sem correspondência são atribuídas a <strong>Outros</strong>.
+              </p>
+              <label
+                className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-8 cursor-pointer transition
+                  ${isDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}`}
+                onDragEnter={e => { e.preventDefault(); setIsDragging(true) }}
+                onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
+                onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false) }}
+                onDrop={handleDrop}
+              >
+                <FileText size={32} className={isDragging ? 'text-blue-400' : 'text-gray-300'} />
+                <p className="mt-2 font-medium text-gray-600">Arraste um arquivo aqui</p>
+                <p className="text-sm text-gray-400">ou clique para selecionar</p>
+                <p className="text-xs text-gray-300 mt-1">.csv · .ofx</p>
+                <input
+                  type="file"
+                  accept=".csv,.ofx"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </label>
+              {importError && (
+                <p className="text-sm text-red-600 flex items-center gap-1.5 mt-3">
+                  <AlertCircle size={14} className="shrink-0" />
+                  {importError}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Danger zone (owner only) */}

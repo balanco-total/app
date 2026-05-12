@@ -124,6 +124,8 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   const [expenseDate, setExpenseDate] = useState(() => toLocalDateDisplay(new Date()))
   const [quantity, setQuantity] = useState('1')
   const [newCategoryName, setNewCategoryName] = useState('')
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
+  const [pendingCategoryChange, setPendingCategoryChange] = useState<{ expenseId: string; newCategoryId: string | null } | null>(null)
 
   useEffect(() => {
     loadData()
@@ -235,6 +237,14 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
     setExpenses(expenses.filter(e => e.id !== expenseId))
   }
 
+  const updateExpenseCategory = async (expenseId: string, newCategoryId: string | null) => {
+    const original = expenses.find(e => e.id === expenseId)?.category_id ?? null
+    setExpenses(prev => prev.map(e => e.id === expenseId ? { ...e, category_id: newCategoryId } : e))
+    setEditingCategoryId(null)
+    const { error } = await supabase.from('expenses').update({ category_id: newCategoryId }).eq('id', expenseId)
+    if (error) setExpenses(prev => prev.map(e => e.id === expenseId ? { ...e, category_id: original } : e))
+  }
+
   const CATEGORY_COLORS = [
     'bg-orange-500', 'bg-blue-500', 'bg-red-500', 'bg-purple-500',
     'bg-green-500', 'bg-indigo-500', 'bg-pink-500', 'bg-gray-500',
@@ -314,7 +324,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Carregando...</div>
+        <div className="text-xl text-gray-600">BalançoTotal...</div>
       </div>
     )
   }
@@ -643,10 +653,14 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
         {/* Recent Expenses */}
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4">Últimos Lançamentos</h2>
+          {editingCategoryId && (
+            <div className="fixed inset-0 z-10" onClick={() => setEditingCategoryId(null)} />
+          )}
           <div className="space-y-2">
             {expenses.slice(0, 20).map(exp => {
               const category = categories.find(c => c.id === exp.category_id)
               const date = new Date(exp.date)
+              const isOwn = exp.user_id === user.id
               return (
                 <div key={exp.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                   <div className="flex items-center gap-4 flex-1">
@@ -658,14 +672,40 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                         {date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${category?.color ?? 'bg-gray-400'} text-white`}>
-                      {category?.name ?? 'Sem categoria'}
-                    </span>
+                    <div className="relative">
+                      {isOwn ? (
+                        <button
+                          onClick={() => setEditingCategoryId(editingCategoryId === exp.id ? null : exp.id)}
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${category?.color ?? 'bg-gray-400'} text-white flex items-center gap-1 hover:opacity-80 transition`}
+                        >
+                          {category?.name ?? 'Sem categoria'}
+                          <ChevronDown size={10} className="opacity-70" />
+                        </button>
+                      ) : (
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${category?.color ?? 'bg-gray-400'} text-white`}>
+                          {category?.name ?? 'Sem categoria'}
+                        </span>
+                      )}
+                      {editingCategoryId === exp.id && (
+                        <div className="absolute right-0 top-full mt-1 z-20 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-[160px]">
+                          {categories.map(cat => (
+                            <button
+                              key={cat.id}
+                              onClick={() => { setEditingCategoryId(null); setPendingCategoryChange({ expenseId: exp.id, newCategoryId: cat.id }) }}
+                              className={`w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-sm text-left transition ${cat.id === exp.category_id ? 'font-semibold text-gray-900' : 'text-gray-700'}`}
+                            >
+                              <span className={`w-2 h-2 rounded-full ${cat.color} shrink-0`} />
+                              {cat.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     <span className="font-bold text-gray-800 min-w-[100px] text-right">
                       R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
-                  {exp.user_id === user.id && (
+                  {isOwn && (
                     <button
                       onClick={() => deleteExpense(exp.id)}
                       title="Excluir lançamento"
@@ -683,6 +723,43 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
           </div>
         </div>
       </div>
+
+      {pendingCategoryChange && (() => {
+        const exp = expenses.find(e => e.id === pendingCategoryChange.expenseId)
+        const from = categories.find(c => c.id === exp?.category_id)
+        const to = categories.find(c => c.id === pendingCategoryChange.newCategoryId)
+        return (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+              <h3 className="text-lg font-bold text-gray-800 mb-1">Alterar categoria</h3>
+              <p className="text-sm text-gray-500 mb-4 truncate">{exp?.description}</p>
+              <div className="flex items-center gap-3 mb-6">
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${from?.color ?? 'bg-gray-400'} text-white`}>
+                  {from?.name ?? 'Sem categoria'}
+                </span>
+                <ChevronRight size={16} className="text-gray-400 shrink-0" />
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${to?.color ?? 'bg-gray-400'} text-white`}>
+                  {to?.name ?? 'Sem categoria'}
+                </span>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { updateExpenseCategory(pendingCategoryChange.expenseId, pendingCategoryChange.newCategoryId); setPendingCategoryChange(null) }}
+                  className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition"
+                >
+                  Confirmar
+                </button>
+                <button
+                  onClick={() => setPendingCategoryChange(null)}
+                  className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
