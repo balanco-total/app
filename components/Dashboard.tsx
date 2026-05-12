@@ -141,6 +141,12 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
       return
     }
 
+    const exists = categories.some(c => c.name.toLowerCase() === name.toLowerCase())
+    if (exists) {
+      alert(`A categoria "${name}" já existe.`)
+      return
+    }
+
     const color = CATEGORY_COLORS[categories.length % CATEGORY_COLORS.length]
 
     const { data, error } = await supabase
