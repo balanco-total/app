@@ -360,7 +360,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center">
         <Logo />
       </div>
     )
@@ -372,7 +372,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   const totalUnpaid = monthlyExpenses.filter(e => !e.paid_at).reduce((sum, e) => sum + e.amount, 0)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">

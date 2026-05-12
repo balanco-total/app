@@ -136,7 +136,7 @@ export default function ChartsPage({ profile, categories, expenses }: {
   }, [monthlyExpenses])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 p-4">
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}

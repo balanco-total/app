@@ -70,7 +70,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
         <div className="flex justify-center mb-4"><Logo /></div>
 
@@ -113,7 +113,7 @@ function LoginForm() {
                 <button
                   type="submit"
                   disabled={recoveryLoading}
-                  className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
+                  className="w-full bg-[#1B4332] text-white py-3 rounded-lg font-semibold hover:bg-[#163a2b] transition disabled:opacity-50"
                 >
                   {recoveryLoading ? 'Enviando...' : 'Enviar link de recuperação'}
                 </button>
@@ -180,7 +180,7 @@ function LoginForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
+                className="w-full bg-[#1B4332] text-white py-3 rounded-lg font-semibold hover:bg-[#163a2b] transition disabled:opacity-50"
               >
                 {loading ? 'Entrando...' : 'Entrar'}
               </button>

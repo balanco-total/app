@@ -181,14 +181,14 @@ export default function UsersPage({ profile }: { profile: Profile }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center">
         <div className="text-xl text-gray-600">BalançoTotal...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 p-4">
       <div className="max-w-2xl mx-auto">
 
         {/* Header */}

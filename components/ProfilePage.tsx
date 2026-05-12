@@ -398,7 +398,7 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 p-4">
       <div className="max-w-2xl mx-auto space-y-6">
 
         {/* Header */}
@@ -420,7 +420,7 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
         {/* Personal info */}
         <div className="bg-white rounded-2xl shadow-lg p-6 space-y-6">
           <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-            <User size={20} className="text-red-600" />
+            <User size={20} className="text-[#1B4332]" />
             Informações pessoais
           </h2>
 
@@ -433,19 +433,19 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
                   value={name}
                   onChange={e => setName(e.target.value.replace(FIELD_PATTERN, ''))}
                   maxLength={60}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
                 />
                 <button
                   type="submit"
                   disabled={nameSaving || name.trim() === profile.name}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-40 font-medium"
+                  className="px-4 py-2 bg-[#1B4332] text-white rounded-lg hover:bg-[#163a2b] transition disabled:opacity-40 font-medium"
                 >
                   {nameSaving ? <Loader2 size={18} className="animate-spin" /> : 'Salvar'}
                 </button>
               </div>
             </div>
             {nameMsg && (
-              <p className={`text-sm flex items-center gap-1 ${nameMsg.ok ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`text-sm flex items-center gap-1 ${nameMsg.ok ? 'text-green-600' : 'text-[#1B4332]'}`}>
                 {nameMsg.ok && <Check size={14} />}
                 {nameMsg.text}
               </p>
@@ -466,7 +466,7 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
                 value={currentPassword}
                 onChange={e => setCurrentPassword(e.target.value)}
                 maxLength={40}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
                 placeholder="••••••••"
               />
             </div>
@@ -478,20 +478,20 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
                   value={newPassword}
                   onChange={e => setNewPassword(e.target.value)}
                   maxLength={40}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
                   placeholder="••••••••"
                 />
                 <button
                   type="submit"
                   disabled={passwordSaving || !currentPassword || !newPassword}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-40 font-medium"
+                  className="px-4 py-2 bg-[#1B4332] text-white rounded-lg hover:bg-[#163a2b] transition disabled:opacity-40 font-medium"
                 >
                   {passwordSaving ? <Loader2 size={18} className="animate-spin" /> : 'Alterar'}
                 </button>
               </div>
             </div>
             {passwordMsg && (
-              <p className={`text-sm flex items-center gap-1 ${passwordMsg.ok ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`text-sm flex items-center gap-1 ${passwordMsg.ok ? 'text-green-600' : 'text-[#1B4332]'}`}>
                 {passwordMsg.ok && <Check size={14} />}
                 {passwordMsg.text}
               </p>
@@ -502,7 +502,7 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
         {/* Data export */}
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4">
-            <Download size={20} className="text-red-600" />
+            <Download size={20} className="text-[#1B4332]" />
             Exportar dados
           </h2>
           <p className="text-sm text-gray-500 mb-4">
@@ -512,7 +512,7 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
           <button
             onClick={downloadCSV}
             disabled={csvLoading}
-            className="flex items-center gap-2 bg-red-600 text-white px-5 py-2.5 rounded-lg hover:bg-red-700 transition disabled:opacity-50 font-medium"
+            className="flex items-center gap-2 bg-[#1B4332] text-white px-5 py-2.5 rounded-lg hover:bg-[#163a2b] transition disabled:opacity-50 font-medium"
           >
             {csvLoading ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
             {csvLoading ? 'Gerando CSV...' : 'Baixar CSV'}
@@ -522,7 +522,7 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
         {/* Import */}
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4">
-            <Upload size={20} className="text-red-600" />
+            <Upload size={20} className="text-[#1B4332]" />
             Importar lançamentos
           </h2>
 
@@ -587,7 +587,7 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
               </p>
 
               {importError && (
-                <p className="text-sm text-red-600 flex items-center gap-1.5">
+                <p className="text-sm text-[#1B4332]/80 flex items-center gap-1.5">
                   <AlertCircle size={14} className="shrink-0" />
                   {importError}
                 </p>
@@ -597,7 +597,7 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
                 <button
                   onClick={handleImport}
                   disabled={importLoading}
-                  className="flex items-center gap-2 bg-red-600 text-white px-5 py-2.5 rounded-lg hover:bg-red-700 transition disabled:opacity-50 font-medium"
+                  className="flex items-center gap-2 bg-[#1B4332] text-white px-5 py-2.5 rounded-lg hover:bg-[#163a2b] transition disabled:opacity-50 font-medium"
                 >
                   {importLoading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
                   {importLoading ? 'Importando...' : `Importar ${importRows.length} lançamentos`}
@@ -619,13 +619,13 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
               </p>
               <label
                 className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-8 cursor-pointer transition
-                  ${isDragging ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-red-300 hover:bg-gray-50'}`}
+                  ${isDragging ? 'border-[#1B4332] bg-green-50' : 'border-gray-200 hover:border-[#1B4332]/40 hover:bg-gray-50'}`}
                 onDragEnter={e => { e.preventDefault(); setIsDragging(true) }}
                 onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
                 onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false) }}
                 onDrop={handleDrop}
               >
-                <FileText size={32} className={isDragging ? 'text-red-400' : 'text-gray-300'} />
+                <FileText size={32} className={isDragging ? 'text-[#1B4332]' : 'text-gray-300'} />
                 <p className="mt-2 font-medium text-gray-600">Arraste um arquivo aqui</p>
                 <p className="text-sm text-gray-400">ou clique para selecionar</p>
                 <p className="text-xs text-gray-300 mt-1">.csv · .ofx</p>
