@@ -3,6 +3,8 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import ProfilePage from '@/components/ProfilePage'
 
+export const dynamic = 'force-dynamic'
+
 export default async function Page() {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)

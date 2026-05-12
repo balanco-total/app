@@ -51,6 +51,7 @@ export default function ProfilePage({ profile, email }: { profile: Profile; emai
       setNameMsg({ ok: false, text: json.error ?? 'Erro ao salvar.' })
     } else {
       setNameMsg({ ok: true, text: 'Nome atualizado com sucesso.' })
+      router.refresh()
     }
     setNameSaving(false)
   }
