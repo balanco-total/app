@@ -33,6 +33,8 @@ function parseMasked(value: string): number {
   return parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0
 }
 
+const FIELD_PATTERN = /[^a-zA-Z0-9\-\/\. ]/g
+
 const DEFAULT_CATEGORIES = [
   { name: 'Alimentação', color: 'bg-orange-500' },
   { name: 'Transporte', color: 'bg-blue-500' },
@@ -134,6 +136,10 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
   const addCategory = async () => {
     const name = newCategoryName.trim()
     if (!name) return
+    if (name.length < 3) {
+      alert('O nome da categoria deve ter pelo menos 3 caracteres.')
+      return
+    }
 
     const color = CATEGORY_COLORS[categories.length % CATEGORY_COLORS.length]
 
@@ -245,7 +251,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                   type="text"
                   maxLength={60}
                   value={description}
-                  onChange={e => setDescription(e.target.value)}
+                  onChange={e => setDescription(e.target.value.replace(FIELD_PATTERN, ''))}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Ex: Supermercado"
                 />
@@ -293,7 +299,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                     <input
                       type="text"
                       value={newCategoryName}
-                      onChange={e => setNewCategoryName(e.target.value)}
+                      onChange={e => setNewCategoryName(e.target.value.replace(FIELD_PATTERN, ''))}
                       onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCategory() } }}
                       placeholder="Nova categoria"
                       className="bg-transparent outline-none w-32 text-gray-500 placeholder-gray-400 text-sm"
