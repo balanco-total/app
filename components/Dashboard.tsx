@@ -638,9 +638,9 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
 
           {/* Category Summary */}
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
               <h2 className="text-xl font-bold text-gray-800">Resumo por categoria</h2>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 self-start sm:self-auto">
                 <button
                   onClick={() => shiftMonth(-1)}
                   className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500 hover:text-gray-700"
@@ -648,7 +648,7 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                 >
                   <ChevronLeft size={18} />
                 </button>
-                <div className="flex items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg min-w-[172px] justify-center">
+                <div className="flex items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg min-w-[160px] justify-center">
                   <Calendar size={15} className="text-red-500 shrink-0" />
                   <span className="text-sm font-semibold text-red-700">
                     {MONTHS_PT[selMonthNum - 1]} {selYear}
@@ -692,9 +692,9 @@ export default function Dashboard({ user, profile }: { user: User; profile: Prof
                         <div className={`w-3 h-3 rounded-full ${cat.color}`}></div>
                         <span className="font-medium text-gray-700">{cat.name}</span>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 shrink-0">
                         <span className="text-sm font-medium text-gray-500">{pct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</span>
-                        <span className="font-bold text-gray-800 min-w-[100px] text-right">
+                        <span className="font-bold text-gray-800 text-right">
                           R$ {cat.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
