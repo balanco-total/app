@@ -12,12 +12,13 @@ import {
   TrendingUp,
   Shield,
   Smartphone,
+  X,
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'BalançoTotal — Controle financeiro para você e seu time',
+  title: 'BalançoTotal — Controle de despesas pessoais',
   description:
-    'Registre pagamentos e recebimentos, acompanhe por gráficos e importe extratos bancários. Simples, rápido e colaborativo.',
+    'Anote suas despesas, acompanhe por categoria e importe o extrato do seu banco. Para uso pessoal e familiar — não é um sistema contábil.',
 }
 
 const features = [
@@ -29,9 +30,9 @@ const features = [
   },
   {
     icon: Users,
-    title: 'Multi-usuário',
+    title: 'Compartilhe com a família',
     description:
-      'Convide sua equipe ou família. O dono da conta gerencia tudo; os membros lançam apenas os próprios registros.',
+      'Convide cônjuge, parceiro ou quem mora com você. Cada um lança os próprios gastos e você tem visão unificada.',
   },
   {
     icon: BarChart3,
@@ -73,7 +74,7 @@ const steps = [
   {
     number: '3',
     title: 'Acompanhe os resultados',
-    description: 'Monitore o saldo, analise por categoria e compartilhe a visão com toda a sua equipe.',
+    description: 'Monitore o saldo, veja para onde o dinheiro está indo e tome decisões melhores no dia a dia.',
   },
 ]
 
@@ -121,13 +122,13 @@ export default function LandingPage() {
             7 dias grátis · Sem cartão de crédito
           </span>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 leading-tight mb-6">
-            Controle financeiro{' '}
-            <span className="text-[#1B4332]">simples</span>{' '}
-            para você e seu time
+            Anote suas despesas e{' '}
+            <span className="text-[#1B4332]">saiba para onde</span>{' '}
+            o dinheiro vai
           </h1>
           <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Registre pagamentos e recebimentos, acompanhe por gráficos e importe extratos bancários.
-            Compartilhe a conta com sua equipe e tenha visão completa do financeiro.
+            BalançoTotal é uma ferramenta de controle de despesas para uso pessoal e familiar.
+            Simples, sem complicação — não é um sistema contábil nem um ERP.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
@@ -162,10 +163,10 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4">
-              Tudo que você precisa em um só lugar
+              O que você encontra aqui
             </h2>
             <p className="text-gray-500 text-lg max-w-xl mx-auto">
-              Do lançamento manual à importação do extrato bancário, o BalançoTotal cobre todo o ciclo financeiro.
+              Do lançamento manual à importação do extrato do banco — tudo focado em controle pessoal de gastos.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -181,6 +182,57 @@ export default function LandingPage() {
                 <p className="text-sm text-gray-500 leading-relaxed">{description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Para quem é */}
+      <section className="py-16 px-4 sm:px-6 bg-amber-50">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-10 text-center">
+            Para quem é o BalançoTotal?
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-2xl p-6 border border-emerald-100">
+              <p className="text-xs font-bold text-emerald-700 uppercase tracking-widest mb-4">Serve para você se…</p>
+              <ul className="space-y-3">
+                {[
+                  'Quer anotar seus gastos do mês e saber o saldo',
+                  'Precisa acompanhar despesas parceladas',
+                  'Quer importar o extrato do banco sem trabalho manual',
+                  'Divide as contas com cônjuge ou família',
+                  'Quer ver seus gastos organizados por categoria',
+                  'É autônomo e quer controlar o fluxo pessoal',
+                ].map(item => (
+                  <li key={item} className="flex items-start gap-3 text-sm text-gray-700">
+                    <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-[#1B4332]" />
+                    </div>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-red-100">
+              <p className="text-xs font-bold text-red-600 uppercase tracking-widest mb-4">Não serve se você precisa de…</p>
+              <ul className="space-y-3">
+                {[
+                  'Sistema contábil ou ERP empresarial',
+                  'Emissão de notas fiscais (NF-e/NFS-e)',
+                  'Gestão de estoque ou ordens de serviço',
+                  'Relatórios contábeis e DRE',
+                  'Integração com sistemas fiscais',
+                  'Múltiplas empresas ou CNPJs',
+                ].map(item => (
+                  <li key={item} className="flex items-start gap-3 text-sm text-gray-500">
+                    <div className="w-5 h-5 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <X className="w-3 h-3 text-red-400" />
+                    </div>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </section>
