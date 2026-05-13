@@ -73,7 +73,7 @@ function InviteForm() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <Logo />
       </div>
     )
@@ -81,7 +81,7 @@ function InviteForm() {
 
   if (!isValid) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-3">Convite inválido</h1>
           <p className="text-gray-500 mb-6">
@@ -96,7 +96,7 @@ function InviteForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
         <div className="flex justify-center mb-4"><Logo /></div>
         <p className="text-gray-500 text-center mb-1">Você foi convidado!</p>

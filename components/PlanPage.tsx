@@ -128,7 +128,7 @@ export default function PlanPage({ profile, memberCount }: { profile: Profile; m
   const StatusIcon = statusInfo?.icon
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 p-4">
+    <div className="min-h-screen bg-white p-4">
       <div className="max-w-7xl mx-auto">
 
         {/* Header — identical to Dashboard */}

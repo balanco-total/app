@@ -11,7 +11,7 @@ export default async function BillingSuccessPage() {
   if (!user) redirect('/login')
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
         <CheckCircle2 size={56} className="text-emerald-500 mx-auto mb-4" />
         <h1 className="text-2xl font-bold text-gray-800 mb-2">Assinatura confirmada!</h1>
