@@ -309,7 +309,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
   }
 
   const openEditModal = (exp: Expense) => {
-    const parts = exp.date.split('-')
+    const parts = exp.date.slice(0, 10).split('-')
     setEditingExpense({
       expense: exp,
       description: exp.description,
