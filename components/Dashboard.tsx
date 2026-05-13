@@ -769,6 +769,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
             {(filterCategoryId ? expenses.filter(e => e.category_id === filterCategoryId) : expenses).slice(0, 20).map(exp => {
               const category = categories.find(c => c.id === exp.category_id)
               const date = new Date(exp.date)
+              const createdAt = new Date(exp.created_at)
               const isOwn = exp.user_id === user.id
               return (
                 <div key={exp.id}>
@@ -777,15 +778,15 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <div className={`w-2 h-2 rounded-full shrink-0 mt-1.5 ${category?.color ?? 'bg-gray-400'}`} />
-                        <p className="font-medium text-gray-800 leading-snug">{exp.description}</p>
+                        <p className="font-medium text-gray-800 leading-snug">{exp.description} • {date.toLocaleDateString('pt-BR')}</p>
                       </div>
                       <p className="font-bold text-gray-800 shrink-0 ml-2">
                         R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1 ml-4">
-                      {exp.profiles?.name} • {date.toLocaleDateString('pt-BR')} às{' '}
-                      {date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    <p className="text-xxs text-gray-500 mt-1 ml-4">
+                      {exp.profiles?.name} • {createdAt.toLocaleDateString('pt-BR')} às{' '}
+                      {createdAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                     <div className="flex items-center justify-between mt-2.5 ml-4">
                       <div className="relative">
@@ -843,10 +844,10 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                     <div className="flex items-center gap-4 flex-1">
                       <div className={`w-2 h-2 rounded-full ${category?.color ?? 'bg-gray-400'}`} />
                       <div className="flex-1">
-                        <p className="font-medium text-gray-800">{exp.description}</p>
-                        <p className="text-sm text-gray-500">
-                          {exp.profiles?.name} • {date.toLocaleDateString('pt-BR')} às{' '}
-                          {date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        <p className="font-medium text-gray-800">{exp.description} • {date.toLocaleDateString('pt-BR')}</p>
+                        <p className="text-xs text-gray-500">
+                          {exp.profiles?.name} • {createdAt.toLocaleDateString('pt-BR')} às{' '}
+                          {createdAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
                       <div className="relative">
