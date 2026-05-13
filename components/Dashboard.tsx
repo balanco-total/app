@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRight, ChevronDown, Repeat, PieChart, User as UserIcon, Circle, CheckCircle2, CreditCard, Landmark } from 'lucide-react'
@@ -150,13 +150,35 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
   const [financialAccounts, setFinancialAccounts] = useState<FinancialAccount[]>([])
   const [selectedFinancialAccount, setSelectedFinancialAccount] = useState<string>('')
   const [filterAccountId, setFilterAccountId] = useState<string>('')
+  const [monthlyData, setMonthlyData] = useState<{ category_id: string | null; amount: number; paid_at: string | null }[]>([])
 
   const { toasts, toast, dismiss } = useToast()
   const { confirmState, showConfirm, handleConfirm, handleCancel } = useConfirm()
 
+  const hasLoadedRef = useRef(false)
+
+  const fetchMonthlySummary = useCallback(async (month: string) => {
+    const [y, m] = month.split('-').map(Number)
+    const nextMonth = m === 12
+      ? `${y + 1}-01-01`
+      : `${y}-${String(m + 1).padStart(2, '0')}-01`
+    const { data } = await supabase
+      .from('expenses')
+      .select('category_id, amount, paid_at')
+      .eq('account_id', profile.account_id)
+      .gte('date', `${month}-01`)
+      .lt('date', nextMonth)
+    setMonthlyData(data ?? [])
+  }, [profile.account_id])
+
   useEffect(() => {
     loadData()
   }, [])
+
+  useEffect(() => {
+    if (!hasLoadedRef.current) return
+    fetchMonthlySummary(selectedMonth)
+  }, [selectedMonth])
 
   const loadData = async () => {
     const [membersRes, categoriesRes, expensesRes, finAccountsRes] = await Promise.all([
@@ -192,6 +214,8 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
     }
     setCategories(cats)
 
+    await fetchMonthlySummary(selectedMonth)
+    hasLoadedRef.current = true
     setLoading(false)
   }
 
@@ -264,6 +288,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
 
     const created: Expense[] = Array.isArray(json) ? json : [json]
     setExpenses([...created, ...expenses])
+    fetchMonthlySummary(selectedMonth)
     setDescription('')
     setAmount('')
     setSelectedCategory('')
@@ -283,6 +308,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
         const { error } = await supabase.from('expenses').delete().eq('id', expenseId)
         if (error) { toast.error('Erro ao excluir despesa.'); return }
         setExpenses(prev => prev.filter(e => e.id !== expenseId))
+        fetchMonthlySummary(selectedMonth)
       },
     })
   }
@@ -303,6 +329,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
           const { error } = await supabase.from('expenses').update({ paid_at: null }).eq('id', exp.id)
           if (error) { toast.error('Erro ao atualizar pagamento.'); return }
           setExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, paid_at: null } : e))
+          fetchMonthlySummary(selectedMonth)
         },
       })
     }
@@ -375,7 +402,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
       financial_account_id: updates.financial_account_id as string | null,
       paid_at: 'paid_at' in updates ? (updates.paid_at as string | null) : e.paid_at,
     } : e))
-
+    fetchMonthlySummary(selectedMonth)
     setEditingExpense(null)
   }
 
@@ -387,6 +414,8 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
     if (error) {
       setExpenses(prev => prev.map(e => e.id === expenseId ? { ...e, category_id: original } : e))
       toast.error('Erro ao atualizar categoria.')
+    } else {
+      fetchMonthlySummary(selectedMonth)
     }
   }
 
@@ -456,16 +485,11 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
     setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
   }
 
-  const getMonthlyExpenses = () =>
-    expenses.filter(e => new Date(e.date).toISOString().slice(0, 7) === selectedMonth)
-
-  const getCategorySummary = () => {
-    const monthly = getMonthlyExpenses()
-    return categories.map(cat => ({
+  const getCategorySummary = () =>
+    categories.map(cat => ({
       ...cat,
-      total: monthly.filter(e => e.category_id === cat.id).reduce((sum, e) => sum + e.amount, 0),
+      total: monthlyData.filter(e => e.category_id === cat.id).reduce((sum, e) => sum + e.amount, 0),
     }))
-  }
 
   if (loading) {
     return (
@@ -476,9 +500,8 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
   }
 
   const categorySummary = getCategorySummary()
-  const monthlyExpenses = getMonthlyExpenses()
-  const totalMonth = monthlyExpenses.reduce((sum, e) => sum + e.amount, 0)
-  const totalUnpaid = monthlyExpenses.filter(e => !e.paid_at).reduce((sum, e) => sum + e.amount, 0)
+  const totalMonth = monthlyData.reduce((sum, e) => sum + e.amount, 0)
+  const totalUnpaid = monthlyData.filter(e => !e.paid_at).reduce((sum, e) => sum + e.amount, 0)
 
   return (
     <div className="min-h-screen bg-white p-4">
@@ -1201,6 +1224,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                         ...(accountChanged ? { financial_account_id: financialAccountId || null } : {}),
                       } : e
                     ))
+                    fetchMonthlySummary(selectedMonth)
                     setPendingPaidToggle(null)
                   }}
                   className="flex-1 bg-red-600 text-white py-2.5 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
