@@ -22,6 +22,7 @@ type Expense = {
   category_id: string | null
   date: string
   paid_at: string | null
+  created_at: string
   profiles: { name: string } | null
 }
 
@@ -130,6 +131,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
   const [quantity, setQuantity] = useState('1')
   const [newCategoryName, setNewCategoryName] = useState('')
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
+  const [filterCategoryId, setFilterCategoryId] = useState<string>('')
   const [pendingCategoryChange, setPendingCategoryChange] = useState<{ expenseId: string; newCategoryId: string | null } | null>(null)
   const [pendingPaidToggle, setPendingPaidToggle] = useState<{ expense: Expense; amountDisplay: string } | null>(null)
   const [paid, setPaid] = useState(false)
@@ -145,7 +147,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
     const [membersRes, categoriesRes, expensesRes] = await Promise.all([
       supabase.from('profiles').select('id, name, account_id, role').eq('account_id', profile.account_id),
       supabase.from('categories').select('*').eq('account_id', profile.account_id).order('name'),
-      supabase.from('expenses').select('*, profiles(name)').eq('account_id', profile.account_id).order('date', { ascending: false }).limit(100),
+      supabase.from('expenses').select('*, profiles(name)').eq('account_id', profile.account_id).order('created_at', { ascending: false }).limit(100),
     ])
 
     setMembers(membersRes.data ?? [])
@@ -747,12 +749,24 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
 
         {/* Recent Expenses */}
         <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Últimos lançamentos</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <h2 className="text-xl font-bold text-gray-800">Últimos lançamentos</h2>
+            <select
+              value={filterCategoryId}
+              onChange={e => setFilterCategoryId(e.target.value)}
+              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-gray-300 sm:w-48"
+            >
+              <option value="">Todas as categorias</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
           {editingCategoryId && (
             <div className="fixed inset-0 z-10" onClick={() => setEditingCategoryId(null)} />
           )}
           <div className="space-y-2">
-            {expenses.slice(0, 20).map(exp => {
+            {(filterCategoryId ? expenses.filter(e => e.category_id === filterCategoryId) : expenses).slice(0, 20).map(exp => {
               const category = categories.find(c => c.id === exp.category_id)
               const date = new Date(exp.date)
               const isOwn = exp.user_id === user.id
@@ -892,6 +906,9 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
             })}
             {expenses.length === 0 && (
               <p className="text-center text-gray-500 py-8">Nenhuma despesa cadastrada ainda.</p>
+            )}
+            {expenses.length > 0 && filterCategoryId && expenses.filter(e => e.category_id === filterCategoryId).length === 0 && (
+              <p className="text-center text-gray-500 py-8">Nenhum lançamento nesta categoria.</p>
             )}
           </div>
         </div>
