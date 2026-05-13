@@ -117,7 +117,7 @@ export async function POST(request: Request) {
       if (!txRes.ok) continue // skip failed accounts without aborting entire sync
       const { results } = await txRes.json()
       for (const tx of (results ?? []) as PluggyTransaction[]) {
-        if (tx.type === 'DEBIT' && tx.amount > 0) {
+        if (tx.type === 'DEBIT' && tx.amount !== 0) {
           allTransactions.push(tx)
         }
       }
@@ -181,7 +181,7 @@ export async function POST(request: Request) {
           .trim()
           .slice(0, 55) || DEFAULT_DESC
 
-        const amount = Math.round(Math.min(tx.amount, MAX_AMOUNT) * 100) / 100
+        const amount = Math.round(Math.min(Math.abs(tx.amount), MAX_AMOUNT) * 100) / 100
         if (amount <= 0) return null
 
         const isoDate = `${tx.date.slice(0, 10)}T12:00:00.000Z`
