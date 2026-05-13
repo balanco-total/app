@@ -15,6 +15,10 @@ type PluggyTransaction = {
   amount: number
   type: 'DEBIT' | 'CREDIT'
   category?: string
+  creditCardMetadata?: {
+    installmentNumber?: number
+    totalInstallments?: number
+  }
 }
 
 function toISODate(d: Date): string {
@@ -166,14 +170,16 @@ export async function POST(request: Request) {
       othersCategoryId = created?.id ?? null
     }
 
+    const DEFAULT_DESC = 'Transação bancária';
+
     // Build expense rows
     const insertRows = newTransactions
       .map(tx => {
-        const desc = (tx.description ?? '')
+        let desc = (tx.description ?? '')
           .replace(/[\x00-\x1F\x7F]/g, ' ')
           .replace(/\s+/g, ' ')
           .trim()
-          .slice(0, 60) || 'Transação bancária'
+          .slice(0, 55) || DEFAULT_DESC
 
         const amount = Math.round(Math.min(tx.amount, MAX_AMOUNT) * 100) / 100
         if (amount <= 0) return null
@@ -181,6 +187,10 @@ export async function POST(request: Request) {
         const isoDate = `${tx.date.slice(0, 10)}T12:00:00.000Z`
         const catKey = (tx.category ?? '').toLowerCase().trim()
         const categoryId = (catKey && catMap.has(catKey)) ? catMap.get(catKey)! : othersCategoryId
+
+        if (tx?.creditCardMetadata?.installmentNumber && tx?.creditCardMetadata?.totalInstallments && desc != DEFAULT_DESC) {
+          desc = `${desc} ${tx.creditCardMetadata.installmentNumber}/${tx.creditCardMetadata.totalInstallments}`;
+        }
 
         return {
           account_id: profile.account_id,
