@@ -1,5 +1,5 @@
-const CACHE_NAME = 'balancototal-v1'
-const STATIC_ASSETS = ['/', '/login', '/signup', '/icon.svg', '/manifest.json']
+const CACHE_NAME = 'balancototal-v2'
+const STATIC_ASSETS = ['/icon.svg', '/manifest.json']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -24,6 +24,14 @@ self.addEventListener('fetch', (event) => {
   // Ignora requisições de API e Supabase
   if (url.pathname.startsWith('/api') || url.hostname.includes('supabase')) return
 
+  // Navegações HTML sempre via rede — o middleware precisa rodar para renovar
+  // o token Supabase e redirecionar corretamente (auth, billing, etc.)
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request))
+    return
+  }
+
+  // Assets estáticos: cache-first
   event.respondWith(
     caches.match(request).then((cached) => cached || fetch(request))
   )
