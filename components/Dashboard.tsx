@@ -214,10 +214,10 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
     if (internalDate !== todayInternal) {
       const [y, m, d] = internalDate.split('-').map(Number)
       const parsed = new Date(y, m - 1, d)
-      const minDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
-      const maxDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate())
+      const minDate = new Date(today.getFullYear() - 10, today.getMonth(), today.getDate())
+      const maxDate = new Date(today.getFullYear() + 10, today.getMonth(), today.getDate())
       if (parsed < minDate || parsed > maxDate) {
-        toast.error('Data fora do intervalo permitido (máx. 1 ano atrás e 1 ano à frente).')
+        toast.error('Data fora do intervalo permitido.')
         return
       }
     }
@@ -337,10 +337,10 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
     const today = new Date()
     const [ey, em, ed] = internalDate.split('-').map(Number)
     const parsedDate = new Date(ey, em - 1, ed)
-    const minDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
-    const maxDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate())
+    const minDate = new Date(today.getFullYear() - 10, today.getMonth(), today.getDate())
+    const maxDate = new Date(today.getFullYear() + 10, today.getMonth(), today.getDate())
     if (parsedDate < minDate || parsedDate > maxDate) {
-      toast.error('Data fora do intervalo permitido (máx. 1 ano atrás e 1 ano à frente).')
+      toast.error('Data fora do intervalo permitido.')
       return
     }
 

@@ -37,8 +37,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Quantidade deve ser entre 1 e 99.' }, { status: 400 })
 
   const now = new Date()
-  const minDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
-  const maxDate = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate())
+  const minDate = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate())
+  const maxDate = new Date(now.getFullYear() + 10, now.getMonth(), now.getDate())
 
   let startYear: number, startMonth: number, startDay: number
   const hasDate = date && typeof date === 'string'
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     if (parsed.getDate() !== startDay || parsed.getMonth() !== startMonth - 1)
       return NextResponse.json({ error: 'Data inválida.' }, { status: 400 })
     if (parsed < minDate || parsed > maxDate)
-      return NextResponse.json({ error: 'Data fora do intervalo permitido (máx. 1 ano atrás e 1 ano à frente).' }, { status: 400 })
+      return NextResponse.json({ error: 'Data fora do intervalo permitido.' }, { status: 400 })
   } else {
     startYear = now.getFullYear()
     startMonth = now.getMonth() + 1
