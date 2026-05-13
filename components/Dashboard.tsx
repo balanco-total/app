@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
-import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRight, ChevronDown, Repeat, PieChart, User as UserIcon, Circle, CheckCircle2, CreditCard } from 'lucide-react'
+import { PlusCircle, Users, Calendar, Trash2, LogOut, X, ChevronLeft, ChevronRight, ChevronDown, Repeat, PieChart, User as UserIcon, Circle, CheckCircle2, CreditCard, Landmark } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
@@ -20,11 +20,14 @@ type Expense = {
   description: string
   amount: number
   category_id: string | null
+  financial_account_id: string | null
   date: string
   paid_at: string | null
   created_at: string
   profiles: { name: string } | null
 }
+
+type FinancialAccount = { id: string; name: string; is_default: boolean }
 
 const MAX_CENTS = 100_000_000 // R$ 1.000.000,00
 
@@ -135,6 +138,9 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
   const [pendingCategoryChange, setPendingCategoryChange] = useState<{ expenseId: string; newCategoryId: string | null } | null>(null)
   const [pendingPaidToggle, setPendingPaidToggle] = useState<{ expense: Expense; amountDisplay: string } | null>(null)
   const [paid, setPaid] = useState(false)
+  const [financialAccounts, setFinancialAccounts] = useState<FinancialAccount[]>([])
+  const [selectedFinancialAccount, setSelectedFinancialAccount] = useState<string>('')
+  const [filterAccountId, setFilterAccountId] = useState<string>('')
 
   const { toasts, toast, dismiss } = useToast()
   const { confirmState, showConfirm, handleConfirm, handleCancel } = useConfirm()
@@ -144,14 +150,28 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
   }, [])
 
   const loadData = async () => {
-    const [membersRes, categoriesRes, expensesRes] = await Promise.all([
+    const [membersRes, categoriesRes, expensesRes, finAccountsRes] = await Promise.all([
       supabase.from('profiles').select('id, name, account_id, role').eq('account_id', profile.account_id),
       supabase.from('categories').select('*').eq('account_id', profile.account_id).order('name'),
       supabase.from('expenses').select('*, profiles(name)').eq('account_id', profile.account_id).order('created_at', { ascending: false }).limit(100),
+      supabase.from('financial_accounts').select('id, name, is_default').eq('account_id', profile.account_id).order('created_at', { ascending: true }),
     ])
 
     setMembers(membersRes.data ?? [])
     setExpenses(expensesRes.data ?? [])
+
+    let accounts = finAccountsRes.data ?? []
+    if (accounts.length === 0) {
+      const { data: seeded } = await supabase
+        .from('financial_accounts')
+        .insert({ account_id: profile.account_id, name: 'Carteira', is_default: true })
+        .select('id, name, is_default')
+        .single()
+      if (seeded) accounts = [seeded]
+    }
+    setFinancialAccounts(accounts)
+    const defaultAcc = accounts.find(a => a.is_default)
+    if (defaultAcc) setSelectedFinancialAccount(defaultAcc.id)
 
     let cats = categoriesRes.data ?? []
     if (cats.length === 0) {
@@ -171,6 +191,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
     const parsedAmount = parseMasked(amount)
     if (parsedAmount <= 0) { toast.error('Valor deve ser maior que zero.'); return }
     if (!selectedCategory) { toast.error('Selecione uma categoria.'); return }
+    if (financialAccounts.length > 0 && !selectedFinancialAccount) { toast.error('Selecione uma conta financeira.'); return }
 
     const today = new Date()
     const todayInternal = toLocalDateStr(today)
@@ -217,6 +238,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
     if (internalDate !== todayInternal) body.date = internalDate
     if (qty > 1) body.quantity = qty
     if (paid) body.paid = true
+    if (selectedFinancialAccount) body.financial_account_id = selectedFinancialAccount
 
     const res = await fetch('/api/expenses', {
       method: 'POST',
@@ -239,6 +261,8 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
     setExpenseDate(toLocalDateDisplay(new Date()))
     setQuantity('1')
     setPaid(false)
+    const defaultAcc = financialAccounts.find(a => a.is_default)
+    setSelectedFinancialAccount(defaultAcc?.id ?? '')
   }
 
   const deleteExpense = (expenseId: string) => {
@@ -392,6 +416,14 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                 <PieChart size={20} className="text-gray-600" />
                 <span className="text-gray-700 font-medium">Gráficos</span>
               </Link>
+              <Link
+                href="/app/accounts"
+                className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+                title="Contas financeiras"
+              >
+                <Landmark size={20} className="text-gray-600" />
+                <span className="text-gray-700 font-medium hidden sm:inline">Contas</span>
+              </Link>
               {profile.role === 'owner' ? (
                 <Link
                   href="/app/users"
@@ -434,6 +466,14 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                     >
                       <CreditCard size={16} className="text-gray-400" />
                       Meu plano
+                    </Link>
+                    <Link
+                      href="/app/accounts"
+                      onClick={() => setShowAvatarMenu(false)}
+                      className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
+                    >
+                      <Landmark size={16} className="text-gray-400" />
+                      Contas
                     </Link>
                     {profile.role === 'owner' ? (
                       <Link
@@ -556,12 +596,13 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                     className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`}
                   />
                   <span>Opções avançadas</span>
-                  {!showAdvanced && (parseDateDisplay(expenseDate) || quantity !== '1' || paid) && (
+                  {!showAdvanced && (parseDateDisplay(expenseDate) || quantity !== '1' || paid || selectedFinancialAccount) && (
                     <span className="ml-auto flex items-center gap-1 text-xs text-red-500 font-medium">
                       {quantity !== '1' && <Repeat size={11} />}
                       {quantity !== '1' ? `${quantity}×` : ''}
                       {parseDateDisplay(expenseDate) ? ` ${expenseDate}` : ''}
                       {paid && <CheckCircle2 size={11} className="text-green-500" />}
+                      {selectedFinancialAccount && <Landmark size={11} className="text-gray-400" />}
                     </span>
                   )}
                 </button>
@@ -657,6 +698,24 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                       {paid && qty > 1 && (
                         <p className="text-xs text-amber-500">Parcelas futuras serão salvas como não pagas.</p>
                       )}
+                      {financialAccounts.length > 0 && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            Conta financeira
+                          </label>
+                          <select
+                            value={selectedFinancialAccount}
+                            onChange={e => setSelectedFinancialAccount(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm text-gray-700"
+                          >
+                            {financialAccounts.map(acc => (
+                              <option key={acc.id} value={acc.id}>
+                                {acc.name}{acc.is_default ? ' (padrão)' : ''}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                     </div>
                   )
                 })()}
@@ -751,23 +810,44 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <h2 className="text-xl font-bold text-gray-800">Últimos lançamentos</h2>
-            <select
-              value={filterCategoryId}
-              onChange={e => setFilterCategoryId(e.target.value)}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-gray-300 sm:w-48"
-            >
-              <option value="">Todas as categorias</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
+            <div className="flex flex-wrap gap-2">
+              {financialAccounts.length > 0 && (
+                <select
+                  value={filterAccountId}
+                  onChange={e => setFilterAccountId(e.target.value)}
+                  className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-gray-300 sm:w-44"
+                >
+                  <option value="">Todas as contas</option>
+                  {financialAccounts.map(acc => (
+                    <option key={acc.id} value={acc.id}>{acc.name}</option>
+                  ))}
+                </select>
+              )}
+              <select
+                value={filterCategoryId}
+                onChange={e => setFilterCategoryId(e.target.value)}
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-gray-300 sm:w-48"
+              >
+                <option value="">Todas as categorias</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
           {editingCategoryId && (
             <div className="fixed inset-0 z-10" onClick={() => setEditingCategoryId(null)} />
           )}
           <div className="space-y-2">
-            {(filterCategoryId ? expenses.filter(e => e.category_id === filterCategoryId) : expenses).slice(0, 20).map(exp => {
+            {expenses
+              .filter(e =>
+                (!filterCategoryId || e.category_id === filterCategoryId) &&
+                (!filterAccountId || e.financial_account_id === filterAccountId)
+              )
+              .slice(0, 20)
+              .map(exp => {
               const category = categories.find(c => c.id === exp.category_id)
+              const financialAccount = financialAccounts.find(a => a.id === exp.financial_account_id)
               const date = new Date(exp.date)
               const createdAt = new Date(exp.created_at)
               const isOwn = exp.user_id === user.id
@@ -848,6 +928,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                         <p className="text-xs text-gray-500">
                           {exp.profiles?.name} • {createdAt.toLocaleDateString('pt-BR')} às{' '}
                           {createdAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          {financialAccount && <> • <span className="font-medium">{financialAccount.name}</span></>}
                         </p>
                       </div>
                       <div className="relative">
@@ -908,8 +989,12 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
             {expenses.length === 0 && (
               <p className="text-center text-gray-500 py-8">Nenhuma despesa cadastrada ainda.</p>
             )}
-            {expenses.length > 0 && filterCategoryId && expenses.filter(e => e.category_id === filterCategoryId).length === 0 && (
-              <p className="text-center text-gray-500 py-8">Nenhum lançamento nesta categoria.</p>
+            {expenses.length > 0 && (filterCategoryId || filterAccountId) &&
+              expenses.filter(e =>
+                (!filterCategoryId || e.category_id === filterCategoryId) &&
+                (!filterAccountId || e.financial_account_id === filterAccountId)
+              ).length === 0 && (
+              <p className="text-center text-gray-500 py-8">Nenhum lançamento com este filtro.</p>
             )}
           </div>
         </div>

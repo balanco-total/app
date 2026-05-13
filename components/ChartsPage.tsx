@@ -5,7 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts'
-import { Calendar, ChevronLeft, ChevronRight, Users, LogOut, User as UserIcon, CreditCard, Home } from 'lucide-react'
+import { Calendar, ChevronLeft, ChevronRight, Users, LogOut, User as UserIcon, CreditCard, Home, Landmark } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -20,9 +20,12 @@ type Expense = {
   user_id: string
   amount: number
   category_id: string | null
+  financial_account_id: string | null
   date: string
   profiles: { name: string } | null
 }
+
+type FinancialAccount = { id: string; name: string }
 
 const COLOR_MAP: Record<string, string> = {
   'bg-orange-500': '#f97316',
@@ -88,12 +91,13 @@ function PieTooltip({ active, payload }: any) {
   )
 }
 
-export default function ChartsPage({ profile, categories, expenses, members, account }: {
+export default function ChartsPage({ profile, categories, expenses, members, account, financialAccounts = [] }: {
   profile: Profile
   categories: Category[]
   expenses: Expense[]
   members: Profile[]
   account: Account
+  financialAccounts?: FinancialAccount[]
 }) {
   const supabase = createClient()
   const router = useRouter()
@@ -172,6 +176,24 @@ export default function ChartsPage({ profile, categories, expenses, members, acc
     return Array.from(map.values()).sort((a, b) => b.total - a.total)
   }, [monthlyExpenses])
 
+  const accountPieData = useMemo(() => {
+    if (financialAccounts.length === 0) return []
+    const data = financialAccounts
+      .map((acc, i) => ({
+        name: acc.name,
+        value: monthlyExpenses.filter(e => e.financial_account_id === acc.id).reduce((s, e) => s + e.amount, 0),
+        fill: FALLBACK_COLORS[i % FALLBACK_COLORS.length],
+      }))
+      .filter(d => d.value > 0)
+      .sort((a, b) => b.value - a.value)
+
+    const unassigned = monthlyExpenses.filter(e => !e.financial_account_id).reduce((s, e) => s + e.amount, 0)
+    if (unassigned > 0) data.push({ name: 'Sem conta', value: unassigned, fill: '#d1d5db' })
+
+    const total = data.reduce((s, d) => s + d.value, 0)
+    return data.map(d => ({ ...d, percent: total > 0 ? d.value / total : 0 }))
+  }, [financialAccounts, monthlyExpenses])
+
   return (
     <div className="min-h-screen bg-white p-4">
       <div className="max-w-7xl mx-auto">
@@ -188,6 +210,14 @@ export default function ChartsPage({ profile, categories, expenses, members, acc
               >
                 <Home size={20} className="text-gray-600" />
                 <span className="text-gray-700 font-medium">Dashboard</span>
+              </Link>
+              <Link
+                href="/app/accounts"
+                className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+                title="Contas financeiras"
+              >
+                <Landmark size={20} className="text-gray-600" />
+                <span className="text-gray-700 font-medium hidden sm:inline">Contas</span>
               </Link>
               {profile.role === 'owner' ? (
                 <Link
@@ -361,6 +391,41 @@ export default function ChartsPage({ profile, categories, expenses, members, acc
             )}
           </div>
         </div>
+
+        {/* Account Pie */}
+        {financialAccounts.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Lançamentos por conta</h2>
+            {accountPieData.length === 0 ? (
+              <div className="flex items-center justify-center h-72 text-gray-400 text-sm">
+                Nenhuma despesa neste mês.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={320}>
+                <PieChart>
+                  <Pie
+                    data={accountPieData}
+                    cx="50%"
+                    cy="45%"
+                    outerRadius={110}
+                    innerRadius={50}
+                    dataKey="value"
+                    label={({ percent }: { percent?: number }) =>
+                      (percent ?? 0) >= 0.05 ? `${((percent ?? 0) * 100).toFixed(0)}%` : ''
+                    }
+                    labelLine={false}
+                  >
+                    {accountPieData.map((entry, i) => (
+                      <Cell key={i} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<PieTooltip />} />
+                  <Legend formatter={(value) => <span className="text-xs text-gray-700">{value}</span>} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        )}
 
         {/* Monthly trend */}
         <div className="bg-white rounded-2xl shadow-lg p-6">

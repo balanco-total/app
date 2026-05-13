@@ -18,7 +18,7 @@ export default async function Page() {
 
   if (!profile) redirect('/login')
 
-  const [categoriesRes, expensesRes, membersRes, accountRes] = await Promise.all([
+  const [categoriesRes, expensesRes, membersRes, accountRes, financialAccountsRes] = await Promise.all([
     supabase
       .from('categories')
       .select('id, name, color')
@@ -26,7 +26,7 @@ export default async function Page() {
       .order('name'),
     supabase
       .from('expenses')
-      .select('id, user_id, amount, category_id, date, profiles(name)')
+      .select('id, user_id, amount, category_id, financial_account_id, date, profiles(name)')
       .eq('account_id', profile.account_id)
       .order('date', { ascending: false })
       .limit(2000),
@@ -39,6 +39,11 @@ export default async function Page() {
       .select('id, trial_ends_at, subscription_status')
       .eq('id', profile.account_id)
       .single(),
+    supabase
+      .from('financial_accounts')
+      .select('id, name')
+      .eq('account_id', profile.account_id)
+      .order('created_at', { ascending: true }),
   ])
 
   return (
@@ -48,6 +53,7 @@ export default async function Page() {
       expenses={(expensesRes.data ?? []) as any}
       members={membersRes.data ?? []}
       account={accountRes.data ?? null}
+      financialAccounts={financialAccountsRes.data ?? []}
     />
   )
 }
