@@ -701,14 +701,14 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
             <div className="bg-red-50 rounded-lg p-4 mb-4 flex justify-between items-start gap-4">
               <div>
                 <p className="text-sm text-gray-600">Total do mês</p>
-                <p className="text-3xl font-bold text-red-600">
+                <p className="sm:text-3xl text-xl font-bold text-red-600">
                   R$ {totalMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
               {totalUnpaid > 0 && (
                 <div className="text-right">
                   <p className="text-sm text-gray-600">Não pagos</p>
-                  <p className="text-xl font-bold text-orange-500">
+                  <p className="sm:text-xl text-sm font-bold text-orange-500">
                     R$ {totalUnpaid.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
