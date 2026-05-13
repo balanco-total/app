@@ -120,7 +120,6 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const [members, setMembers] = useState<Profile[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
@@ -181,14 +180,12 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
   }, [selectedMonth])
 
   const loadData = async () => {
-    const [membersRes, categoriesRes, expensesRes, finAccountsRes] = await Promise.all([
-      supabase.from('profiles').select('id, name, account_id, role').eq('account_id', profile.account_id),
+    const [categoriesRes, expensesRes, finAccountsRes] = await Promise.all([
       supabase.from('categories').select('*').eq('account_id', profile.account_id).order('name'),
       supabase.from('expenses').select('*, profiles(name)').eq('account_id', profile.account_id).order('created_at', { ascending: false }).limit(50),
       supabase.from('financial_accounts').select('id, name, is_default').eq('account_id', profile.account_id).order('created_at', { ascending: true }),
     ])
 
-    setMembers(membersRes.data ?? [])
     setExpenses(expensesRes.data ?? [])
 
     let accounts = finAccountsRes.data ?? []

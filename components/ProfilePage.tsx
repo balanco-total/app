@@ -192,7 +192,7 @@ function parseOFX(text: string): ParsedRow[] {
   return rows
 }
 
-export default function ProfilePage({ profile, email, memberCount, account }: { profile: Profile; email: string; memberCount: number; account: Account }) {
+export default function ProfilePage({ profile, email, account }: { profile: Profile; email: string; account: Account }) {
   const supabase = createClient()
   const router = useRouter()
 

@@ -91,11 +91,10 @@ function PieTooltip({ active, payload }: any) {
   )
 }
 
-export default function ChartsPage({ profile, categories, expenses, members, account, financialAccounts = [] }: {
+export default function ChartsPage({ profile, categories, expenses, account, financialAccounts = [] }: {
   profile: Profile
   categories: Category[]
   expenses: Expense[]
-  members: Profile[]
   account: Account
   financialAccounts?: FinancialAccount[]
 }) {

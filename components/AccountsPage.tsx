@@ -2,8 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import type { User } from '@supabase/supabase-js'
-import { Landmark, PlusCircle, Pencil, Trash2, LogOut, Users, PieChart, Star, Home, User as UserIcon, CreditCard, ChevronDown, Check } from 'lucide-react'
+import { Landmark, PlusCircle, Pencil, Trash2, LogOut, PieChart, Star, Home, User as UserIcon, CreditCard } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'

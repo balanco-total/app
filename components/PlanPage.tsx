@@ -69,7 +69,7 @@ function subscriptionStatusLabel(status: string) {
   }
 }
 
-export default function PlanPage({ profile, memberCount }: { profile: Profile; memberCount: number }) {
+export default function PlanPage({ profile }: { profile: Profile; }) {
   const supabase = createClient()
   const router = useRouter()
   const isOwner = profile.role === 'owner'
