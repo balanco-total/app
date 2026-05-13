@@ -136,7 +136,7 @@ app/
 
 - Filtro por mês (mês/ano) com navegação anterior/próximo.
 - **Cards de resumo:** total de recebimentos, total de pagamentos e saldo do mês (somente lançamentos pagos).
-- **Resumo por categoria:** lista de categorias com valor total e percentual sobre o total de pagamentos do mês.
+- **Despesa por categoria:** lista de categorias com valor total e percentual sobre o total de pagamentos do mês.
 - **Lançamentos recentes:** últimos 20 lançamentos do mês, com usuário, categoria, valor, data e status.
 - Indicação visual de tipo por cor (vermelho = pagamento, verde = recebimento).
 

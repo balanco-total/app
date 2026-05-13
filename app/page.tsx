@@ -26,7 +26,7 @@ const features = [
     icon: LayoutDashboard,
     title: 'Dashboard em tempo real',
     description:
-      'Veja o saldo do mês, total de recebimentos e pagamentos. Resumo por categoria com percentuais e os últimos lançamentos da conta.',
+      'Veja o saldo do mês, total de recebimentos e pagamentos. Despesa por categoria com percentuais e os últimos lançamentos da conta.',
   },
   {
     icon: BarChart3,

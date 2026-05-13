@@ -97,7 +97,7 @@ export async function POST(request: Request) {
 
   const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
   if (!financial_account_id || typeof financial_account_id !== 'string')
-    return NextResponse.json({ error: 'Conta financeira é obrigatória.' }, { status: 400 })
+    return NextResponse.json({ error: 'Conta é obrigatória.' }, { status: 400 })
 
   const rows = installmentISOs.map(iso => ({
     account_id: profile.account_id,

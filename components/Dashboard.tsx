@@ -221,7 +221,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
     const parsedAmount = parseMasked(amount)
     if (parsedAmount <= 0) { toast.error('Valor deve ser maior que zero.'); return }
     if (!selectedCategory) { toast.error('Selecione uma categoria.'); return }
-    if (financialAccounts.length > 0 && !selectedFinancialAccount) { toast.error('Selecione uma conta financeira.'); return }
+    if (financialAccounts.length > 0 && !selectedFinancialAccount) { toast.error('Selecione uma conta.'); return }
 
     const today = new Date()
     const todayInternal = toLocalDateStr(today)
@@ -369,7 +369,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
     }
 
     if (financialAccounts.length > 0 && !editingExpense.financialAccountId) {
-      toast.error('Selecione uma conta financeira.')
+      toast.error('Selecione uma conta.')
       return
     }
 
@@ -675,6 +675,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                   <div className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm bg-gray-50 border-2 border-dashed border-gray-300">
                     <input
                       type="text"
+                      title='Digite e aperte Enter para cadastrar'
                       value={newCategoryName}
                       onChange={e => setNewCategoryName(e.target.value.replace(FIELD_PATTERN, ''))}
                       onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCategory() } }}
@@ -793,7 +794,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                       {financialAccounts.length > 0 && (
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            Conta financeira
+                            Conta
                           </label>
                           <select
                             value={selectedFinancialAccount}
@@ -817,7 +818,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                 onClick={addExpense}
                 className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition"
               >
-                {parseInt(quantity, 10) > 1 ? `Adicionar ${quantity} parcelas` : 'Adicionar despesa'}
+                {parseInt(quantity, 10) > 1 ? `Adicionar ${quantity} despesas` : 'Adicionar despesa'}
               </button>
             </div>
           </div>
@@ -825,7 +826,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
           {/* Category Summary */}
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Resumo por categoria</h2>
+              <h2 className="text-xl font-bold text-gray-800">Despesa por categoria</h2>
               <div className="flex items-center gap-1 sm:self-auto">
                 <button
                   onClick={() => shiftMonth(-1)}
@@ -1174,7 +1175,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
               </div>
               {financialAccounts.length > 0 && (
                 <div className="mb-5">
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Conta financeira</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Conta</label>
                   <select
                     value={financialAccountId}
                     onChange={e => setPendingPaidToggle(prev => prev ? { ...prev, financialAccountId: e.target.value } : null)}
@@ -1195,7 +1196,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                   onClick={async () => {
                     if (!isValid) return
                     if (financialAccounts.length > 0 && !financialAccountId) {
-                      toast.error('Selecione uma conta financeira.')
+                      toast.error('Selecione uma conta.')
                       return
                     }
                     const now = new Date().toISOString()
@@ -1322,7 +1323,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
 
                 {financialAccounts.length > 0 && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Conta financeira</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Conta</label>
                     <select
                       value={financialAccountId}
                       onChange={e => setEditingExpense(prev => prev ? { ...prev, financialAccountId: e.target.value } : null)}
