@@ -18,7 +18,7 @@ export default async function Page() {
 
   if (!profile) redirect('/login')
 
-  const [categoriesRes, expensesRes, membersRes, accountRes, financialAccountsRes] = await Promise.all([
+  const [categoriesRes, expensesRes, accountRes, financialAccountsRes] = await Promise.all([
     supabase
       .from('categories')
       .select('id, name, color')
@@ -46,12 +46,14 @@ export default async function Page() {
       .order('created_at', { ascending: true }),
   ])
 
+  console.log('financialAccountsRes.data', financialAccountsRes?.data)
+
   return (
     <ChartsPage
       profile={profile}
       categories={categoriesRes.data ?? []}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expenses={(expensesRes.data ?? []) as any}
-      members={membersRes.data ?? []}
       account={accountRes.data ?? null}
       financialAccounts={financialAccountsRes.data ?? []}
     />

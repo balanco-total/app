@@ -5,10 +5,15 @@ import { Users, LogOut, PieChart, User as UserIcon, CreditCard, Landmark } from 
 import Link from 'next/link'
 import Logo from '../Logo'
 import { getInitials, getAvatarColor } from './helpers'
-import type { Profile } from './types'
+
+// Minimal profile shape required by the header — compatible with any page's Profile type
+type HeaderProfile = {
+  name: string
+  role: string
+}
 
 type Props = {
-  profile: Profile
+  profile: HeaderProfile
   onSignOut: () => void
 }
 
