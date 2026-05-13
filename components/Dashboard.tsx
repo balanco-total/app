@@ -183,9 +183,9 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
       const [y, m, d] = internalDate.split('-').map(Number)
       const parsed = new Date(y, m - 1, d)
       const minDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
-      const maxDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 90)
+      const maxDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate())
       if (parsed < minDate || parsed > maxDate) {
-        toast.error('Data fora do intervalo permitido (máximo 1 ano atrás e 90 dias à frente).')
+        toast.error('Data fora do intervalo permitido (máx. 1 ano atrás e 1 ano à frente).')
         return
       }
     }
