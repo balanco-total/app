@@ -136,7 +136,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
   const [filterCategoryId, setFilterCategoryId] = useState<string>('')
   const [pendingCategoryChange, setPendingCategoryChange] = useState<{ expenseId: string; newCategoryId: string | null } | null>(null)
-  const [pendingPaidToggle, setPendingPaidToggle] = useState<{ expense: Expense; amountDisplay: string } | null>(null)
+  const [pendingPaidToggle, setPendingPaidToggle] = useState<{ expense: Expense; amountDisplay: string; financialAccountId: string } | null>(null)
   const [paid, setPaid] = useState(false)
   const [financialAccounts, setFinancialAccounts] = useState<FinancialAccount[]>([])
   const [selectedFinancialAccount, setSelectedFinancialAccount] = useState<string>('')
@@ -283,6 +283,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
       setPendingPaidToggle({
         expense: exp,
         amountDisplay: exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        financialAccountId: exp.financial_account_id ?? '',
       })
     } else {
       showConfirm({
@@ -1038,16 +1039,17 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
       })()}
 
       {pendingPaidToggle && (() => {
-        const { expense: exp, amountDisplay } = pendingPaidToggle
+        const { expense: exp, amountDisplay, financialAccountId } = pendingPaidToggle
         const newAmount = parseMasked(amountDisplay)
         const isValid = newAmount > 0 && newAmount <= 1_000_000
         const amountChanged = isValid && newAmount !== exp.amount
+        const accountChanged = financialAccountId !== (exp.financial_account_id ?? '')
         return (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
               <h3 className="text-lg font-bold text-gray-800 mb-1">Marcar como pago?</h3>
               <p className="text-sm text-gray-500 mb-4 truncate">{exp.description}</p>
-              <div className="mb-5">
+              <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Valor (R$)</label>
                 <input
                   type="text"
@@ -1060,18 +1062,45 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                   <p className="text-xs text-red-500 mt-1">Valor inválido.</p>
                 )}
               </div>
+              {financialAccounts.length > 0 && (
+                <div className="mb-5">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Conta financeira</label>
+                  <select
+                    value={financialAccountId}
+                    onChange={e => setPendingPaidToggle(prev => prev ? { ...prev, financialAccountId: e.target.value } : null)}
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm ${!financialAccountId ? 'border-gray-300 text-gray-400' : 'border-gray-300 text-gray-700'}`}
+                  >
+                    <option value="">Selecione uma conta</option>
+                    {financialAccounts.map(acc => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.name}{acc.is_default ? ' (padrão)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="flex gap-3">
                 <button
                   disabled={!isValid}
                   onClick={async () => {
                     if (!isValid) return
+                    if (financialAccounts.length > 0 && !financialAccountId) {
+                      toast.error('Selecione uma conta financeira.')
+                      return
+                    }
                     const now = new Date().toISOString()
                     const updates: Record<string, unknown> = { paid_at: now }
                     if (amountChanged) updates.amount = newAmount
+                    if (accountChanged) updates.financial_account_id = financialAccountId || null
                     const { error } = await supabase.from('expenses').update(updates).eq('id', exp.id)
                     if (error) { toast.error('Erro ao atualizar lançamento.'); return }
                     setExpenses(prev => prev.map(e =>
-                      e.id === exp.id ? { ...e, paid_at: now, ...(amountChanged ? { amount: newAmount } : {}) } : e
+                      e.id === exp.id ? {
+                        ...e,
+                        paid_at: now,
+                        ...(amountChanged ? { amount: newAmount } : {}),
+                        ...(accountChanged ? { financial_account_id: financialAccountId || null } : {}),
+                      } : e
                     ))
                     setPendingPaidToggle(null)
                   }}
