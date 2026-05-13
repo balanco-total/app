@@ -246,7 +246,7 @@ export default function UsersPage({ profile, account }: { profile: Profile; acco
                 title="Voltar ao dashboard"
               >
                 <Users size={20} className="text-gray-600" />
-                <span className="text-gray-700 font-medium">{members.length} usuário(s)</span>
+                <span className="text-gray-700 font-medium">Usuários</span>
               </Link>
 
               {/* Avatar dropdown */}
@@ -283,7 +283,7 @@ export default function UsersPage({ profile, account }: { profile: Profile; acco
                       className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
                     >
                       <Users size={16} className="text-gray-400" />
-                      {members.length} usuário(s)
+                      Usuários
                     </Link>
                     <hr className="border-gray-100" />
                     <button

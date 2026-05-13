@@ -184,7 +184,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
     const [membersRes, categoriesRes, expensesRes, finAccountsRes] = await Promise.all([
       supabase.from('profiles').select('id, name, account_id, role').eq('account_id', profile.account_id),
       supabase.from('categories').select('*').eq('account_id', profile.account_id).order('name'),
-      supabase.from('expenses').select('*, profiles(name)').eq('account_id', profile.account_id).order('created_at', { ascending: false }).limit(500),
+      supabase.from('expenses').select('*, profiles(name)').eq('account_id', profile.account_id).order('created_at', { ascending: false }).limit(50),
       supabase.from('financial_accounts').select('id, name, is_default').eq('account_id', profile.account_id).order('created_at', { ascending: true }),
     ])
 
@@ -534,12 +534,12 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                   className="hidden sm:flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
                 >
                   <Users size={20} className="text-gray-600" />
-                  <span className="text-gray-700 font-medium">{members.length} usuário(s)</span>
+                  <span className="text-gray-700 font-medium">Usuários</span>
                 </Link>
               ) : (
                 <div className="hidden sm:flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg">
                   <Users size={20} className="text-gray-600" />
-                  <span className="text-gray-700 font-medium">{members.length} usuário(s)</span>
+                  <span className="text-gray-700 font-medium">Usuários</span>
                 </div>
               )}
 
@@ -586,12 +586,12 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                         className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
                       >
                         <Users size={16} className="text-gray-400" />
-                        {members.length} usuário(s)
+                        Usuários
                       </Link>
                     ) : (
                       <div className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-500 text-sm">
                         <Users size={16} className="text-gray-400" />
-                        {members.length} usuário(s)
+                        Usuários
                       </div>
                     )}
                     <hr className="border-gray-100" />
@@ -700,15 +700,6 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                     className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`}
                   />
                   <span>Opções avançadas</span>
-                  {!showAdvanced && (parseDateDisplay(expenseDate) || quantity !== '1' || paid || selectedFinancialAccount) && (
-                    <span className="ml-auto flex items-center gap-1 text-xs text-red-500 font-medium">
-                      {quantity !== '1' && <Repeat size={11} />}
-                      {quantity !== '1' ? `${quantity}×` : ''}
-                      {parseDateDisplay(expenseDate) ? ` ${expenseDate}` : ''}
-                      {paid && <CheckCircle2 size={11} className="text-green-500" />}
-                      {selectedFinancialAccount && <Landmark size={11} className="text-gray-400" />}
-                    </span>
-                  )}
                 </button>
 
                 {showAdvanced && (() => {

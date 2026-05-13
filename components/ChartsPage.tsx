@@ -225,12 +225,12 @@ export default function ChartsPage({ profile, categories, expenses, members, acc
                   className="hidden sm:flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
                 >
                   <Users size={20} className="text-gray-600" />
-                  <span className="text-gray-700 font-medium">{members.length} usuário(s)</span>
+                  <span className="text-gray-700 font-medium">Usuários</span>
                 </Link>
               ) : (
                 <div className="hidden sm:flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg">
                   <Users size={20} className="text-gray-600" />
-                  <span className="text-gray-700 font-medium">{members.length} usuário(s)</span>
+                  <span className="text-gray-700 font-medium">Usuários</span>
                 </div>
               )}
 
@@ -269,12 +269,12 @@ export default function ChartsPage({ profile, categories, expenses, members, acc
                         className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
                       >
                         <Users size={16} className="text-gray-400" />
-                        {members.length} usuário(s)
+                        Usuários
                       </Link>
                     ) : (
                       <div className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-500 text-sm">
                         <Users size={16} className="text-gray-400" />
-                        {members.length} usuário(s)
+                        Usuários
                       </div>
                     )}
                     <hr className="border-gray-100" />
