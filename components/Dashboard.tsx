@@ -162,7 +162,7 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
     const [membersRes, categoriesRes, expensesRes, finAccountsRes] = await Promise.all([
       supabase.from('profiles').select('id, name, account_id, role').eq('account_id', profile.account_id),
       supabase.from('categories').select('*').eq('account_id', profile.account_id).order('name'),
-      supabase.from('expenses').select('*, profiles(name)').eq('account_id', profile.account_id).order('created_at', { ascending: false }).limit(500),
+      supabase.from('expenses').select('*, profiles(name)').eq('account_id', profile.account_id).order('created_at', { ascending: false }).limit(100),
       supabase.from('financial_accounts').select('id, name, is_default').eq('account_id', profile.account_id).order('created_at', { ascending: true }),
     ])
 
@@ -925,7 +925,6 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                 (!filterCategoryId || e.category_id === filterCategoryId) &&
                 (!filterAccountId || e.financial_account_id === filterAccountId)
               )
-              .slice(0, 20)
               .map(exp => {
               const category = categories.find(c => c.id === exp.category_id)
               const financialAccount = financialAccounts.find(a => a.id === exp.financial_account_id)
