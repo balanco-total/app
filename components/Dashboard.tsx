@@ -138,6 +138,15 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
   const [pendingCategoryChange, setPendingCategoryChange] = useState<{ expenseId: string; newCategoryId: string | null } | null>(null)
   const [pendingPaidToggle, setPendingPaidToggle] = useState<{ expense: Expense; amountDisplay: string; financialAccountId: string } | null>(null)
   const [paid, setPaid] = useState(false)
+  const [editingExpense, setEditingExpense] = useState<{
+    expense: Expense
+    description: string
+    amountDisplay: string
+    categoryId: string
+    dateDisplay: string
+    paid: boolean
+    financialAccountId: string
+  } | null>(null)
   const [financialAccounts, setFinancialAccounts] = useState<FinancialAccount[]>([])
   const [selectedFinancialAccount, setSelectedFinancialAccount] = useState<string>('')
   const [filterAccountId, setFilterAccountId] = useState<string>('')
@@ -297,6 +306,77 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
         },
       })
     }
+  }
+
+  const openEditModal = (exp: Expense) => {
+    const parts = exp.date.split('-')
+    setEditingExpense({
+      expense: exp,
+      description: exp.description,
+      amountDisplay: exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      categoryId: exp.category_id ?? '',
+      dateDisplay: `${parts[2]}/${parts[1]}/${parts[0]}`,
+      paid: !!exp.paid_at,
+      financialAccountId: exp.financial_account_id ?? '',
+    })
+  }
+
+  const saveEditedExpense = async () => {
+    if (!editingExpense) return
+    const { expense: exp } = editingExpense
+
+    if (!editingExpense.description.trim()) { toast.error('Descrição é obrigatória.'); return }
+    const parsedAmount = parseMasked(editingExpense.amountDisplay)
+    if (parsedAmount <= 0) { toast.error('Valor deve ser maior que zero.'); return }
+    if (parsedAmount > 1_000_000) { toast.error('Valor excede o limite de R$ 1.000.000,00.'); return }
+    if (!editingExpense.categoryId) { toast.error('Selecione uma categoria.'); return }
+
+    const internalDate = parseDateDisplay(editingExpense.dateDisplay)
+    if (!internalDate) { toast.error('Data inválida. Use o formato DD/MM/AAAA.'); return }
+
+    const today = new Date()
+    const [ey, em, ed] = internalDate.split('-').map(Number)
+    const parsedDate = new Date(ey, em - 1, ed)
+    const minDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
+    const maxDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate())
+    if (parsedDate < minDate || parsedDate > maxDate) {
+      toast.error('Data fora do intervalo permitido (máx. 1 ano atrás e 1 ano à frente).')
+      return
+    }
+
+    if (financialAccounts.length > 0 && !editingExpense.financialAccountId) {
+      toast.error('Selecione uma conta financeira.')
+      return
+    }
+
+    const updates: Record<string, unknown> = {
+      description: editingExpense.description.trim(),
+      amount: parsedAmount,
+      category_id: editingExpense.categoryId || null,
+      date: internalDate,
+      financial_account_id: editingExpense.financialAccountId || null,
+    }
+
+    if (editingExpense.paid && !exp.paid_at) {
+      updates.paid_at = new Date().toISOString()
+    } else if (!editingExpense.paid && exp.paid_at) {
+      updates.paid_at = null
+    }
+
+    const { error } = await supabase.from('expenses').update(updates).eq('id', exp.id)
+    if (error) { toast.error('Erro ao atualizar lançamento.'); return }
+
+    setExpenses(prev => prev.map(e => e.id === exp.id ? {
+      ...e,
+      description: updates.description as string,
+      amount: updates.amount as number,
+      category_id: updates.category_id as string | null,
+      date: updates.date as string,
+      financial_account_id: updates.financial_account_id as string | null,
+      paid_at: 'paid_at' in updates ? (updates.paid_at as string | null) : e.paid_at,
+    } : e))
+
+    setEditingExpense(null)
   }
 
   const updateExpenseCategory = async (expenseId: string, newCategoryId: string | null) => {
@@ -861,9 +941,19 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                         <div className={`w-2 h-2 rounded-full shrink-0 mt-1.5 ${category?.color ?? 'bg-gray-400'}`} />
                         <p className="font-medium text-gray-800 leading-snug">{exp.description} • {date.toLocaleDateString('pt-BR')}</p>
                       </div>
-                      <p className="font-bold text-gray-800 shrink-0 ml-2">
-                        R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
+                      {isOwn ? (
+                        <button
+                          onClick={() => openEditModal(exp)}
+                          title="Editar lançamento"
+                          className="font-bold text-gray-800 shrink-0 ml-2 hover:text-red-600 transition underline underline-offset-2 decoration-dashed decoration-gray-400"
+                        >
+                          R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </button>
+                      ) : (
+                        <p className="font-bold text-gray-800 shrink-0 ml-2">
+                          R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      )}
                     </div>
                     <p className="text-xxs text-gray-500 mt-1 ml-4">
                       {exp.profiles?.name} • {createdAt.toLocaleDateString('pt-BR')} às{' '}
@@ -961,9 +1051,19 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                           </div>
                         )}
                       </div>
-                      <span className="font-bold text-gray-800 min-w-[100px] text-right">
-                        R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
+                      {isOwn ? (
+                        <button
+                          onClick={() => openEditModal(exp)}
+                          title="Editar lançamento"
+                          className="font-bold text-gray-800 min-w-[100px] text-right hover:text-red-600 transition underline underline-offset-2 decoration-dashed decoration-gray-400"
+                        >
+                          R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </button>
+                      ) : (
+                        <span className="font-bold text-gray-800 min-w-[100px] text-right">
+                          R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      )}
                     </div>
                     {isOwn && (
                       <div className="ml-4 flex items-center gap-2 shrink-0">
@@ -1110,6 +1210,133 @@ export default function Dashboard({ user, profile, account }: { user: User; prof
                 </button>
                 <button
                   onClick={() => setPendingPaidToggle(null)}
+                  className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {editingExpense && (() => {
+        const { description, amountDisplay, categoryId, dateDisplay, paid: editPaid, financialAccountId } = editingExpense
+        const parsedAmount = parseMasked(amountDisplay)
+        const amountValid = parsedAmount > 0 && parsedAmount <= 1_000_000
+        const digitsTyped = dateDisplay.replace(/\D/g, '').length
+        const dateValid = parseDateDisplay(dateDisplay) !== ''
+        const showDateError = digitsTyped === 8 && !dateValid
+
+        return (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-800">Editar lançamento</h3>
+                <button onClick={() => setEditingExpense(null)} className="text-gray-400 hover:text-gray-600 transition">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Descrição</label>
+                  <input
+                    type="text"
+                    maxLength={60}
+                    value={description}
+                    onChange={e => setEditingExpense(prev => prev ? { ...prev, description: e.target.value.replace(FIELD_PATTERN, '') } : null)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Valor (R$)</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={amountDisplay}
+                    onChange={e => setEditingExpense(prev => prev ? { ...prev, amountDisplay: applyMask(e.target.value) } : null)}
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm ${!amountValid && amountDisplay ? 'border-red-400' : 'border-gray-300'}`}
+                  />
+                  {!amountValid && amountDisplay && (
+                    <p className="text-xs text-red-500 mt-1">Valor inválido.</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Categoria</label>
+                  <select
+                    value={categoryId}
+                    onChange={e => setEditingExpense(prev => prev ? { ...prev, categoryId: e.target.value } : null)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm text-gray-700"
+                  >
+                    <option value="">Sem categoria</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Data</label>
+                  <div className="relative">
+                    <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={dateDisplay}
+                      onChange={e => setEditingExpense(prev => prev ? { ...prev, dateDisplay: applyDateMask(e.target.value) } : null)}
+                      placeholder="DD/MM/AAAA"
+                      maxLength={10}
+                      className={`w-full pl-9 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm ${showDateError ? 'border-red-400' : 'border-gray-300'}`}
+                    />
+                  </div>
+                  {showDateError && (
+                    <p className="text-xs text-red-500 mt-1">Data inválida.</p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between py-0.5">
+                  <label className="text-sm font-medium text-gray-700">Pago</label>
+                  <button
+                    type="button"
+                    onClick={() => setEditingExpense(prev => prev ? { ...prev, paid: !prev.paid } : null)}
+                    className={`flex items-center gap-1.5 text-sm font-medium transition ${editPaid ? 'text-green-600' : 'text-gray-400'}`}
+                  >
+                    {editPaid ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                    <span>{editPaid ? 'Sim' : 'Não'}</span>
+                  </button>
+                </div>
+
+                {financialAccounts.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Conta financeira</label>
+                    <select
+                      value={financialAccountId}
+                      onChange={e => setEditingExpense(prev => prev ? { ...prev, financialAccountId: e.target.value } : null)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm text-gray-700"
+                    >
+                      <option value="">Selecione uma conta</option>
+                      {financialAccounts.map(acc => (
+                        <option key={acc.id} value={acc.id}>
+                          {acc.name}{acc.is_default ? ' (padrão)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={saveEditedExpense}
+                  className="flex-1 bg-red-600 text-white py-2.5 rounded-lg font-semibold hover:bg-red-700 transition"
+                >
+                  Salvar
+                </button>
+                <button
+                  onClick={() => setEditingExpense(null)}
                   className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition"
                 >
                   Cancelar
