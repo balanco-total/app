@@ -149,6 +149,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ imported: 0, connection: conn })
     }
 
+    // Resolve or create financial account matching the connector name
+    let financialAccountId: string | null = null
+    if (connectorName) {
+      const { data: existingFinAcct } = await admin
+        .from('financial_accounts')
+        .select('id')
+        .eq('account_id', profile.account_id)
+        .ilike('name', connectorName)
+        .maybeSingle()
+
+      if (existingFinAcct) {
+        financialAccountId = existingFinAcct.id
+      } else {
+        const { data: created } = await admin
+          .from('financial_accounts')
+          .insert({ account_id: profile.account_id, name: connectorName })
+          .select('id')
+          .single()
+        financialAccountId = created?.id ?? null
+      }
+    }
+
     // Build category lookup map
     const { data: categories } = await admin
       .from('categories')
@@ -201,6 +223,7 @@ export async function POST(request: Request) {
           date: isoDate,
           paid_at: isoDate,
           pluggy_transaction_id: tx.id,
+          ...(financialAccountId ? { financial_account_id: financialAccountId } : {}),
         }
       })
       .filter((r): r is NonNullable<typeof r> => r !== null)
