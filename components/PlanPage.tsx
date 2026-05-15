@@ -222,7 +222,7 @@ export default function PlanPage({ profile }: { profile: Profile; }) {
           <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-4">
             <h1 className="text-lg sm:text-xl font-bold text-gray-800 mb-5 flex items-center gap-2">
               <CreditCard size={20} className="text-emerald-600 shrink-0" />
-              Meu Plano
+              Meu plano
             </h1>
 
             {loadError && (

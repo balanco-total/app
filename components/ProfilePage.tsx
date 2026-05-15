@@ -770,7 +770,7 @@ export default function ProfilePage({ profile, email, account }: { profile: Prof
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4">
             <Building2 size={20} className="text-[#1B4332]" />
-            Contas Bancárias
+            Contas bancárias
           </h2>
 
           {connectionsLoading ? (
