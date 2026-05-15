@@ -20,24 +20,17 @@ export default async function Page() {
 
   if (!profile) redirect('/login')
 
-  const [membersRes, accountRes] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('id')
-      .eq('account_id', profile.account_id),
-    supabase
-      .from('accounts')
-      .select('id, trial_ends_at, subscription_status')
-      .eq('id', profile.account_id)
-      .single(),
-  ])
+  const { data: account } = await supabase
+    .from('accounts')
+    .select('id, trial_ends_at, subscription_status')
+    .eq('id', profile.account_id)
+    .single()
 
   return (
     <ProfilePage
       profile={profile}
       email={user.email ?? ''}
-      memberCount={membersRes.data?.length ?? 0}
-      account={accountRes.data ?? null}
+      account={account ?? null}
     />
   )
 }

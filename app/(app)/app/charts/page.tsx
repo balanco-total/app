@@ -31,10 +31,6 @@ export default async function Page() {
       .order('date', { ascending: false })
       .limit(2000),
     supabase
-      .from('profiles')
-      .select('id, name, account_id, role')
-      .eq('account_id', profile.account_id),
-    supabase
       .from('accounts')
       .select('id, trial_ends_at, subscription_status')
       .eq('id', profile.account_id)
@@ -45,8 +41,6 @@ export default async function Page() {
       .eq('account_id', profile.account_id)
       .order('created_at', { ascending: true }),
   ])
-
-  console.log('financialAccountsRes.data', financialAccountsRes?.data)
 
   return (
     <ChartsPage
