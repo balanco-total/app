@@ -1,84 +1,17 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, Legend,
-} from 'recharts'
-import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import BillingBanner from './BillingBanner'
 import DashboardHeader from './dashboard/DashboardHeader'
-
-type Profile = { id: string; name: string; account_id: string; role: string }
-type Account = { id: string; trial_ends_at: string; subscription_status: string } | null
-type Category = { id: string; name: string; color: string }
-type Expense = {
-  id: string
-  user_id: string
-  amount: number
-  category_id: string | null
-  financial_account_id: string | null
-  date: string
-  profiles: { name: string } | null
-}
-
-type FinancialAccount = { id: string; name: string }
-
-const COLOR_MAP: Record<string, string> = {
-  'bg-orange-500': '#f97316',
-  'bg-blue-500':  '#3b82f6',
-  'bg-red-500':   '#ef4444',
-  'bg-purple-500': '#a855f7',
-  'bg-green-500':  '#22c55e',
-  'bg-indigo-500': '#6366f1',
-  'bg-pink-500':   '#ec4899',
-  'bg-gray-500':   '#6b7280',
-  'bg-yellow-500': '#eab308',
-  'bg-teal-500':   '#14b8a6',
-  'bg-cyan-500':   '#06b6d4',
-  'bg-rose-500':   '#f43f5e',
-}
-
-const FALLBACK_COLORS = [
-  '#3b82f6','#f97316','#22c55e','#a855f7','#ef4444',
-  '#6366f1','#ec4899','#14b8a6','#eab308','#06b6d4',
-]
-
-const MONTHS_PT = [
-  'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
-  'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro',
-]
-
-const fmt = (v: number) =>
-  `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-
-const fmtAxis = (v: number) =>
-  v >= 1000 ? `R$ ${(v / 1000).toFixed(0)}k` : `R$ ${v.toFixed(0)}`
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function BarTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm">
-      <p className="font-semibold text-gray-700 mb-1">{label}</p>
-      <p className="text-red-600 font-bold">{fmt(payload[0].value)}</p>
-    </div>
-  )
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function PieTooltip({ active, payload }: any) {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm">
-      <p className="font-semibold text-gray-700">{payload[0].name}</p>
-      <p className="font-bold" style={{ color: payload[0].payload.fill }}>{fmt(payload[0].value)}</p>
-      <p className="text-gray-500">{(payload[0].payload.percent * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</p>
-    </div>
-  )
-}
+import MonthSelector from './charts/MonthSelector'
+import CategoryPieChart from './charts/CategoryPieChart'
+import UserBarChart from './charts/UserBarChart'
+import AccountPieChart from './charts/AccountPieChart'
+import MonthlyTrendChart from './charts/MonthlyTrendChart'
+import { COLOR_MAP, FALLBACK_COLORS, MONTHS_PT } from './charts/helpers'
+import type { Profile, Account, Category, Expense, FinancialAccount } from './charts/types'
 
 export default function ChartsPage({ profile, categories, expenses, account, financialAccounts = [] }: {
   profile: Profile
@@ -98,15 +31,20 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
 
   const now = new Date()
   const nowKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-
   const [selectedMonth, setSelectedMonth] = useState(nowKey)
-
   const [selYear, selMonthNum] = selectedMonth.split('-').map(Number)
 
   const shiftMonth = (delta: number) => {
     const d = new Date(selYear, selMonthNum - 1 + delta)
     setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
   }
+
+  const monthlyExpenses = useMemo(
+    () => expenses.filter(e => e.date.slice(0, 7) === selectedMonth),
+    [expenses, selectedMonth]
+  )
+
+  const totalMonth = monthlyExpenses.reduce((s, e) => s + e.amount, 0)
 
   const monthlyTrend = useMemo(() => {
     return Array.from({ length: 9 }, (_, i) => {
@@ -120,13 +58,6 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
     })
   }, [expenses, nowKey, selMonthNum, selYear])
 
-  const monthlyExpenses = useMemo(
-    () => expenses.filter(e => e.date.slice(0, 7) === selectedMonth),
-    [expenses, selectedMonth]
-  )
-
-  const totalMonth = monthlyExpenses.reduce((s, e) => s + e.amount, 0)
-
   const categoryPieData = useMemo(() => {
     const data = categories
       .map((cat, i) => ({
@@ -136,7 +67,6 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
       }))
       .filter(d => d.value > 0)
       .sort((a, b) => b.value - a.value)
-
     const total = data.reduce((s, d) => s + d.value, 0)
     return data.map(d => ({ ...d, percent: total > 0 ? d.value / total : 0 }))
   }, [categories, monthlyExpenses])
@@ -161,10 +91,8 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
       }))
       .filter(d => d.value > 0)
       .sort((a, b) => b.value - a.value)
-
     const unassigned = monthlyExpenses.filter(e => !e.financial_account_id).reduce((s, e) => s + e.amount, 0)
     if (unassigned > 0) data.push({ name: 'Sem conta', value: unassigned, fill: '#d1d5db' })
-
     const total = data.reduce((s, d) => s + d.value, 0)
     return data.map(d => ({ ...d, percent: total > 0 ? d.value / total : 0 }))
   }, [financialAccounts, monthlyExpenses])
@@ -172,9 +100,7 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
   return (
     <div className="min-h-screen bg-white p-4">
       <div className="max-w-7xl mx-auto">
-
         <DashboardHeader profile={profile} onSignOut={handleSignOut} />
-
         {account && (
           <BillingBanner
             subscriptionStatus={account.subscription_status}
@@ -182,154 +108,15 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
             isOwner={profile.role === 'owner'}
           />
         )}
-
-        {/* Month filter + total */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex-1 min-w-0">
-              <p className="hidden sm:block text-gray-600 mt-0.5 text-sm sm:text-base">Análise visual das suas despesas</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1">
-                <button onClick={() => shiftMonth(-1)} className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500" title="Mês anterior">
-                  <ChevronLeft size={18} />
-                </button>
-                <div className="flex items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg min-w-[160px] justify-center">
-                  <Calendar size={15} className="text-red-500 shrink-0" />
-                  <span className="text-sm font-semibold text-red-700">{MONTHS_PT[selMonthNum - 1]} {selYear}</span>
-                </div>
-                <button onClick={() => shiftMonth(1)} className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500" title="Próximo mês">
-                  <ChevronRight size={18} />
-                </button>
-              </div>
-              <div className="text-right shrink-0 pl-2 border-l border-gray-200">
-                <p className="text-xs text-gray-500">Total do mês</p>
-                <p className="text-lg sm:text-xl font-bold text-red-600">{fmt(totalMonth)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Pie + User bar row */}
+        <MonthSelector selectedMonth={selectedMonth} onShift={shiftMonth} totalMonth={totalMonth} />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-
-          {/* Category Pie */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Despesas por categoria</h2>
-            {categoryPieData.length === 0 ? (
-              <div className="flex items-center justify-center h-72 text-gray-400 text-sm">
-                Nenhuma despesa neste mês.
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={320}>
-                <PieChart>
-                  <Pie
-                    data={categoryPieData}
-                    cx="50%"
-                    cy="45%"
-                    outerRadius={110}
-                    innerRadius={50}
-                    dataKey="value"
-                    label={({ percent }: { percent?: number }) =>
-                      (percent ?? 0) >= 0.05 ? `${((percent ?? 0) * 100).toFixed(0)}%` : ''
-                    }
-                    labelLine={false}
-                  >
-                    {categoryPieData.map((entry, i) => (
-                      <Cell key={i} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<PieTooltip />} />
-                  <Legend
-                    formatter={(value) => (
-                      <span className="text-xs text-gray-700">{value}</span>
-                    )}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-
-          {/* User Bar */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Lançamentos por úsuário</h2>
-            {userBarData.length === 0 ? (
-              <div className="flex items-center justify-center h-72 text-gray-400 text-sm">
-                Nenhuma despesa neste mês.
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={userBarData} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#6b7280' }} />
-                  <YAxis tickFormatter={fmtAxis} tick={{ fontSize: 11, fill: '#6b7280' }} width={60} />
-                  <Tooltip content={<BarTooltip />} cursor={false} />
-                  <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={80}>
-                    {userBarData.map((_, i) => (
-                      <Cell key={i} fill={FALLBACK_COLORS[i % FALLBACK_COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
+          <CategoryPieChart data={categoryPieData} />
+          <UserBarChart data={userBarData} />
         </div>
-
-        {/* Account Pie */}
         {financialAccounts.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Lançamentos por conta</h2>
-            {accountPieData.length === 0 ? (
-              <div className="flex items-center justify-center h-72 text-gray-400 text-sm">
-                Nenhuma despesa neste mês.
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={320}>
-                <PieChart>
-                  <Pie
-                    data={accountPieData}
-                    cx="50%"
-                    cy="45%"
-                    outerRadius={110}
-                    innerRadius={50}
-                    dataKey="value"
-                    label={({ percent }: { percent?: number }) =>
-                      (percent ?? 0) >= 0.05 ? `${((percent ?? 0) * 100).toFixed(0)}%` : ''
-                    }
-                    labelLine={false}
-                  >
-                    {accountPieData.map((entry, i) => (
-                      <Cell key={i} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<PieTooltip />} />
-                  <Legend formatter={(value) => <span className="text-xs text-gray-700">{value}</span>} />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </div>
+          <AccountPieChart data={accountPieData} />
         )}
-
-        {/* Monthly trend */}
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800">Evolução Mensal</h2>
-          </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={monthlyTrend} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#6b7280' }} />
-              <YAxis tickFormatter={fmtAxis} tick={{ fontSize: 11, fill: '#6b7280' }} width={60} />
-              <Tooltip content={<BarTooltip />} cursor={false} />
-              <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={60}>
-                {monthlyTrend.map((entry, i) => (
-                  <Cell key={i} fill={entry.isCurrent ? '#ef4444' : '#fecaca'} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
+        <MonthlyTrendChart data={monthlyTrend} />
       </div>
     </div>
   )
