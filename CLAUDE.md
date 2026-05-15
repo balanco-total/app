@@ -104,7 +104,9 @@ Four tables: `accounts`, `profiles` (extends `auth.users`), `categories`, `expen
 2. Run `supabase/billing.sql` in Supabase SQL Editor
 3. Run `supabase/stripe_migration.sql` in Supabase SQL Editor (renames `abacatepay_subscription_id` → `stripe_subscription_id`)
 4. Run `supabase/pluggy_migration.sql` in Supabase SQL Editor (adds `pluggy_transaction_id` to expenses + creates `bank_connections` table)
-5. Disable email confirmation: Supabase Dashboard → Authentication → Providers → Email → uncheck "Confirm email"
+5. Run `supabase/financial_accounts_migration.sql` in Supabase SQL Editor (adds `financial_accounts` table + `financial_account_id` to expenses)
+6. Run `supabase/balance_trigger_migration.sql` in Supabase SQL Editor (trigger that keeps `financial_accounts.balance` in sync with paid expenses)
+7. Disable email confirmation: Supabase Dashboard → Authentication → Providers → Email → uncheck "Confirm email"
 6. In Stripe dashboard: create a recurring price (R$7.99/month, BRL) → copy Price ID to `STRIPE_PRICE_ID`
 7. In Stripe dashboard: create a webhook endpoint pointing to `https://seudominio.com/api/billing/webhook`, subscribe to events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed` → copy signing secret to `STRIPE_WEBHOOK_SECRET`
 8. In Pluggy dashboard: create an application → copy Client ID and Secret to `PLUGGY_CLIENT_ID` / `PLUGGY_CLIENT_SECRET`
