@@ -32,6 +32,8 @@ type ParsedRow = {
   category_name: string
   date: string
   raw_date: string
+  paid_at?: string
+  account_name?: string
 }
 
 type BankConnection = {
@@ -135,10 +137,12 @@ function parseCSV(text: string): ParsedRow[] {
   const findCol = (candidates: string[]) =>
     candidates.reduce<number>((found, c) => found >= 0 ? found : headers.indexOf(c), -1)
 
-  const dateIdx = findCol(['data', 'date', 'data lancamento', 'data do lancamento', 'dt', 'data transacao', 'data pagamento'])
+  const dateIdx = findCol(['data', 'date', 'data lancamento', 'data do lancamento', 'dt', 'data transacao'])
+  const paidAtIdx = findCol(['data de pagamento', 'data pagamento', 'pagamento', 'paid at', 'paid_at'])
   const amtIdx = findCol(['valor', 'amount', 'value', 'vlr', 'debito', 'credito', 'debit', 'credit', 'montante'])
   const descIdx = findCol(['descricao', 'description', 'memo', 'historico', 'lancamento', 'complemento', 'detalhe', 'movimento'])
   const catIdx = findCol(['categoria', 'category', 'cat'])
+  const accountIdx = findCol(['conta', 'account', 'account name', 'nome da conta'])
 
   if (dateIdx < 0 || amtIdx < 0 || descIdx < 0) return []
 
@@ -149,12 +153,24 @@ function parseCSV(text: string): ParsedRow[] {
     const rawAmt = cells[amtIdx]?.trim() ?? ''
     const desc = cells[descIdx]?.trim() ?? ''
     const cat = catIdx >= 0 ? cells[catIdx]?.trim() ?? '' : ''
+    const accountName = accountIdx >= 0 ? cells[accountIdx]?.trim() ?? '' : ''
+    const rawPaidAt = paidAtIdx >= 0 ? cells[paidAtIdx]?.trim() ?? '' : ''
 
     const parsedDate = parseDateStr(rawDate)
     const amount = parseAmount(rawAmt)
     if (!parsedDate || !amount || !desc) continue
 
-    rows.push({ description: desc, amount, category_name: cat, date: parsedDate.iso, raw_date: parsedDate.display })
+    const parsedPaidAt = rawPaidAt ? parseDateStr(rawPaidAt) : null
+
+    rows.push({
+      description: desc,
+      amount,
+      category_name: cat,
+      date: parsedDate.iso,
+      raw_date: parsedDate.display,
+      paid_at: parsedPaidAt?.iso,
+      account_name: accountName || undefined,
+    })
   }
   return rows
 }
@@ -315,7 +331,7 @@ export default function ProfilePage({ profile, email, account }: { profile: Prof
 
     const { data } = await supabase
       .from('expenses')
-      .select('date, amount, description, categories(name), profiles(name)')
+      .select('date, paid_at, amount, description, categories(name), profiles(name), financial_accounts(name)')
       .eq('account_id', profile.account_id)
       .order('date', { ascending: false })
 
@@ -325,13 +341,15 @@ export default function ProfilePage({ profile, email, account }: { profile: Prof
       return
     }
 
-    const headers = ['Data', 'Valor', 'Descrição', 'Categoria', 'Usuário']
+    const headers = ['Data', 'Data de Pagamento', 'Valor', 'Descrição', 'Categoria', 'Conta', 'Usuário']
     const rows = data.map(e => [
       new Date(e.date).toLocaleDateString('pt-BR'),
+      e.paid_at ? new Date(e.paid_at as string).toLocaleDateString('pt-BR') : '',
       (e.amount as number).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       e.description as string,
-      (e.categories as {name:string}[])[0].name ?? '',
-      (e.profiles as {name:string}[])[0].name ?? '',
+      ((e.categories as unknown as {name:string} | null)?.name ?? ''),
+      ((e.financial_accounts as unknown as {name:string} | null)?.name ?? ''),
+      ((e.profiles as unknown as {name:string} | null)?.name ?? ''),
     ])
 
     const csv = [headers, ...rows]

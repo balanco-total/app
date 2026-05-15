@@ -10,6 +10,8 @@ type ImportRow = {
   amount: number
   category_name: string
   date: string
+  paid_at?: string
+  account_name?: string
 }
 
 export async function POST(request: Request) {
@@ -41,14 +43,19 @@ export async function POST(request: Request) {
   if (!checkRateLimit(`import:${user.id}`, 5, 60 * 60 * 1000))
     return NextResponse.json({ error: 'Muitas importações. Tente novamente em 1 hora.' }, { status: 429 })
 
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('id, name')
-    .eq('account_id', profile.account_id)
+  const [{ data: categories }, { data: financialAccounts }] = await Promise.all([
+    supabase.from('categories').select('id, name').eq('account_id', profile.account_id),
+    supabase.from('financial_accounts').select('id, name').eq('account_id', profile.account_id),
+  ])
 
   const catMap = new Map<string, string>()
   for (const c of (categories ?? [])) {
     catMap.set(c.name.toLowerCase(), c.id)
+  }
+
+  const accountMap = new Map<string, string>()
+  for (const a of (financialAccounts ?? [])) {
+    accountMap.set(a.name.toLowerCase(), a.id)
   }
 
   // Check if any row will need the fallback "Outros" category
@@ -72,6 +79,14 @@ export async function POST(request: Request) {
     }
   }
 
+  const parseIsoDate = (str: string) => {
+    const m = String(str ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (!m) return null
+    const d = new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]))
+    if (d.getDate() !== parseInt(m[3])) return null
+    return `${m[1]}-${m[2]}-${m[3]}T12:00:00.000Z`
+  }
+
   const insertRows: object[] = []
   for (const row of rows) {
     const desc = String(row.description ?? '')
@@ -84,15 +99,16 @@ export async function POST(request: Request) {
     const amount = Number(row.amount)
     if (!isFinite(amount) || amount <= 0) continue
 
-    const dateStr = String(row.date ?? '')
-    const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-    if (!dateMatch) continue
-    const d = new Date(parseInt(dateMatch[1]), parseInt(dateMatch[2]) - 1, parseInt(dateMatch[3]))
-    if (d.getDate() !== parseInt(dateMatch[3])) continue
-    const isoDate = `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}T12:00:00.000Z`
+    const isoDate = parseIsoDate(row.date)
+    if (!isoDate) continue
+
+    const isoPaidAt = row.paid_at ? (parseIsoDate(row.paid_at) ?? isoDate) : isoDate
 
     const catName = String(row.category_name ?? '').trim().toLowerCase()
     const categoryId = catName ? (catMap.get(catName) ?? othersCategoryId) : othersCategoryId
+
+    const accountName = String(row.account_name ?? '').trim().toLowerCase()
+    const financialAccountId = accountName ? (accountMap.get(accountName) ?? null) : null
 
     insertRows.push({
       account_id: profile.account_id,
@@ -101,7 +117,8 @@ export async function POST(request: Request) {
       amount: Math.round(amount * 100) / 100,
       category_id: categoryId,
       date: isoDate,
-      paid_at: isoDate,
+      paid_at: isoPaidAt,
+      ...(financialAccountId ? { financial_account_id: financialAccountId } : {}),
     })
   }
 
