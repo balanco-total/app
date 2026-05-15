@@ -375,7 +375,7 @@ export default function Dashboard({
   const categorySummary = categories.map(cat => ({
     ...cat,
     total: monthlyData.filter(e => e.category_id === cat.id).reduce((sum, e) => sum + e.amount, 0),
-  }))
+  })).sort((a, b) => b.total - a.total)
 
   const totalMonth = monthlyData.reduce((sum, e) => sum + e.amount, 0)
   const totalUnpaid = monthlyData.filter(e => !e.paid_at).reduce((sum, e) => sum + e.amount, 0)

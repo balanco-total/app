@@ -22,6 +22,20 @@ export default function CategorySummary({
   const [selYear, selMonthNum] = selectedMonth.split('-').map(Number)
   const categoriesWithExpenses = categorySummary.filter(cat => cat.total > 0)
 
+  const mainCategories = categoriesWithExpenses.filter(cat =>
+    totalMonth > 0 ? (cat.total / totalMonth) * 100 >= 5 : true
+  )
+  const smallCategories = categoriesWithExpenses.filter(cat =>
+    totalMonth > 0 ? (cat.total / totalMonth) * 100 < 5 : false
+  )
+  const othersTotal = smallCategories.reduce((sum, cat) => sum + cat.total, 0)
+  const othersDescription = smallCategories
+    .map(cat => {
+      const pct = totalMonth > 0 ? (cat.total / totalMonth) * 100 : 0
+      return `${cat.name} ${pct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
+    })
+    .join(', ')
+
   return (
     <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
       {/* Header */}
@@ -74,7 +88,7 @@ export default function CategorySummary({
         {categoriesWithExpenses.length === 0 && (
           <p className="text-center text-gray-500 py-4">Nenhuma despesa neste mês.</p>
         )}
-        {categoriesWithExpenses.map(cat => {
+        {mainCategories.map(cat => {
           const pct = totalMonth > 0 ? (cat.total / totalMonth) * 100 : 0
           return (
             <div key={cat.id} className="p-3 bg-gray-50 rounded-lg">
@@ -101,6 +115,31 @@ export default function CategorySummary({
             </div>
           )
         })}
+        {smallCategories.length > 0 && (
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-gray-400" />
+                <span className="font-medium text-gray-700">Outros</span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-sm font-medium text-gray-500">
+                  {(totalMonth > 0 ? (othersTotal / totalMonth) * 100 : 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
+                </span>
+                <span className="font-bold text-gray-800 text-right">
+                  R$ {othersTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2">
+              <div
+                className="bg-gray-400 h-1.5 rounded-full transition-all duration-500"
+                style={{ width: `${totalMonth > 0 ? (othersTotal / totalMonth) * 100 : 0}%` }}
+              />
+            </div>
+            <p className="text-xs text-gray-400 leading-snug">{othersDescription}</p>
+          </div>
+        )}
       </div>
     </div>
   )
