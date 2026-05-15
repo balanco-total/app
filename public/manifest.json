@@ -2,7 +2,7 @@
   "name": "BalançoTotal",
   "short_name": "BalançoTotal",
   "description": "Controle de despesas compartilhado",
-  "start_url": "/",
+  "start_url": "/app",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1B4332",
