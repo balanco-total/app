@@ -443,6 +443,7 @@ export default function ProfilePage({ profile, email, account }: { profile: Prof
   }
 
   const handleRemoveConnection = async (conn: BankConnection) => {
+    if (!confirm(`Remover a conexão com ${conn.connector_name ?? 'este banco'}? Os lançamentos importados não serão excluídos.`)) return
     const res = await fetch('/api/pluggy/connections', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
