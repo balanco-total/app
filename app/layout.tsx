@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: 'BalançoTotal',
   description: 'Controle de despesas compartilhado',
   manifest: '/manifest.json',
+  icons: { icon: '/icon.svg', apple: '/icon.svg' },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
