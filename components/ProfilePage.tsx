@@ -1,28 +1,15 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { User, Lock, Download, Upload, FileText, AlertCircle, X, Trash2, Check, Loader2, Building2, RefreshCw, Link2, Link2Off, Users, LogOut, User as UserIcon, CreditCard, PieChart } from 'lucide-react'
-import Link from 'next/link'
+import { User, Lock, Download, Upload, FileText, AlertCircle, X, Trash2, Check, Loader2, Building2, RefreshCw, Link2, Link2Off } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useToast, Toasts } from './toast'
-import Logo from './Logo'
 import BillingBanner from './BillingBanner'
+import DashboardHeader from './dashboard/DashboardHeader'
 
 type Profile = { id: string; name: string; account_id: string; role: string }
 type Account = { id: string; trial_ends_at: string; subscription_status: string } | null
-
-const AVATAR_COLORS = ['#3b82f6','#22c55e','#a855f7','#f97316','#ef4444','#14b8a6','#6366f1','#ec4899']
-
-function getInitials(name: string) {
-  return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
-}
-
-function getAvatarColor(name: string) {
-  let h = 0
-  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h)
-  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]
-}
 
 const FIELD_PATTERN = /[^a-zA-Z0-9\-\/\. À-ÿ]/g
 
@@ -211,19 +198,6 @@ function parseOFX(text: string): ParsedRow[] {
 export default function ProfilePage({ profile, email, account }: { profile: Profile; email: string; account: Account }) {
   const supabase = createClient()
   const router = useRouter()
-
-  const [showAvatarMenu, setShowAvatarMenu] = useState(false)
-  const avatarRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
-        setShowAvatarMenu(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -565,89 +539,7 @@ export default function ProfilePage({ profile, email, account }: { profile: Prof
     <div className="min-h-screen bg-white p-4">
       <div className="max-w-7xl mx-auto">
 
-        {/* Header — identical to Dashboard */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <div className="flex justify-between items-center">
-            <Link href="/app"><Logo height={40} width={130} /></Link>
-            <div className="flex items-center gap-3">
-              <Link
-                href="/app/charts"
-                className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
-                title="Ver gráficos"
-              >
-                <PieChart size={20} className="text-gray-600" />
-                <span className="text-gray-700 font-medium">Gráficos</span>
-              </Link>
-              {profile.role === 'owner' ? (
-                <Link
-                  href="/app/users"
-                  className="hidden sm:flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
-                >
-                  <Users size={20} className="text-gray-600" />
-                  <span className="text-gray-700 font-medium">Usuários</span>
-                </Link>
-              ) : (
-                <div className="hidden sm:flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg">
-                  <Users size={20} className="text-gray-600" />
-                  <span className="text-gray-700 font-medium">Usuários</span>
-                </div>
-              )}
-              <div className="relative" ref={avatarRef}>
-                <button
-                  onClick={() => setShowAvatarMenu(v => !v)}
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow hover:opacity-90 transition"
-                  style={{ backgroundColor: getAvatarColor(profile.name) }}
-                  title={profile.name}
-                >
-                  {getInitials(profile.name)}
-                </button>
-                {showAvatarMenu && (
-                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
-                    <Link
-                      href="/app/profile"
-                      onClick={() => setShowAvatarMenu(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
-                    >
-                      <UserIcon size={16} className="text-gray-400" />
-                      {profile.name}
-                    </Link>
-                    <Link
-                      href="/app/plan"
-                      onClick={() => setShowAvatarMenu(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
-                    >
-                      <CreditCard size={16} className="text-gray-400" />
-                      Meu plano
-                    </Link>
-                    {profile.role === 'owner' ? (
-                      <Link
-                        href="/app/users"
-                        onClick={() => setShowAvatarMenu(false)}
-                        className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
-                      >
-                        <Users size={16} className="text-gray-400" />
-                        Usuários
-                      </Link>
-                    ) : (
-                      <div className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-500 text-sm">
-                        <Users size={16} className="text-gray-400" />
-                        Usuários
-                      </div>
-                    )}
-                    <hr className="border-gray-100" />
-                    <button
-                      onClick={handleSignOut}
-                      className="flex items-center gap-3 w-full px-4 py-2.5 text-red-600 hover:bg-red-50 transition text-sm"
-                    >
-                      <LogOut size={16} />
-                      Sair
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <DashboardHeader profile={profile} onSignOut={handleSignOut} />
 
         {account && (
           <BillingBanner
