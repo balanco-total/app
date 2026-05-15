@@ -330,8 +330,8 @@ export default function ProfilePage({ profile, email, account }: { profile: Prof
       new Date(e.date).toLocaleDateString('pt-BR'),
       (e.amount as number).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       e.description as string,
-      (e.categories as any)?.name ?? '',
-      (e.profiles as any)?.name ?? '',
+      (e.categories as {name:string}[])[0].name ?? '',
+      (e.profiles as {name:string}[])[0].name ?? '',
     ])
 
     const csv = [headers, ...rows]
@@ -342,7 +342,7 @@ export default function ProfilePage({ profile, email, account }: { profile: Prof
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `lancamentos_${new Date().toISOString().slice(0, 10)}.csv`
+    a.download = `Lancamentos_${new Date().toISOString().slice(0, 10)}.csv`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

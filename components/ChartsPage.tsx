@@ -70,6 +70,7 @@ const fmt = (v: number) =>
 const fmtAxis = (v: number) =>
   v >= 1000 ? `R$ ${(v / 1000).toFixed(0)}k` : `R$ ${v.toFixed(0)}`
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function BarTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
   return (
@@ -80,6 +81,7 @@ function BarTooltip({ active, payload, label }: any) {
   )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function PieTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null
   return (
@@ -142,7 +144,7 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
         .reduce((s, e) => s + e.amount, 0)
       return { key, label, total, isCurrent: key === nowKey }
     })
-  }, [expenses, selectedMonth])
+  }, [expenses, nowKey, selMonthNum, selYear])
 
   const monthlyExpenses = useMemo(
     () => expenses.filter(e => e.date.slice(0, 7) === selectedMonth),
@@ -331,7 +333,7 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
 
           {/* Category Pie */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Lançamentos por categoria</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Despesas por categoria</h2>
             {categoryPieData.length === 0 ? (
               <div className="flex items-center justify-center h-72 text-gray-400 text-sm">
                 Nenhuma despesa neste mês.
