@@ -13,6 +13,9 @@ import {
   Shield,
   Smartphone,
   X,
+  Building2,
+  RefreshCw,
+  Landmark,
 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -52,6 +55,12 @@ const features = [
     description:
       'Instale como aplicativo no celular ou desktop. Funciona como app nativo, sem precisar da loja.',
   },
+  {
+    icon: Building2,
+    title: 'Contas financeiras',
+    description:
+      'Organize seu dinheiro em contas separadas — carteira, conta corrente, poupança. Saldo atualizado automaticamente.',
+  },
 ]
 
 const steps = [
@@ -80,6 +89,8 @@ const planFeatures = [
   'Exportação de dados',
   'Categorias personalizadas',
   'Parcelamento automático',
+  'Contas financeiras separadas',
+  'Conciliação bancária via Open Finance',
   'Acesso via PWA (app nativo)',
   'Suporte por e-mail',
 ]
@@ -218,6 +229,7 @@ export default function LandingPage() {
                   'Quer anotar seus gastos do mês e saber o saldo',
                   'Precisa acompanhar despesas parceladas',
                   'Quer importar o extrato do banco sem trabalho manual',
+                  'Quer conectar o banco e sincronizar transações automaticamente',
                   'Divide as contas com cônjuge ou família',
                   'Quer ver seus gastos organizados por categoria',
                   'É autônomo e quer controlar o fluxo pessoal',
@@ -401,6 +413,93 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* Bank reconciliation highlight */}
+      <section className="py-24 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm font-semibold px-3 py-1.5 rounded-full mb-6">
+              <RefreshCw className="w-4 h-4" />
+              Conciliação bancária
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-5">
+              Conecte seu banco e sincronize automaticamente
+            </h2>
+            <p className="text-gray-500 text-lg leading-relaxed mb-6">
+              Via Pluggy e Open Finance regulamentado pelo Banco Central, você conecta sua conta bancária
+              uma única vez e os lançamentos chegam automaticamente — sem baixar extrato, sem digitar nada.
+            </p>
+            <ul className="space-y-3">
+              {[
+                'Suporte a +200 bancos e fintechs brasileiras',
+                'Conexão segura via Open Finance (Banco Central)',
+                'Transações importadas com categoria sugerida',
+                'Múltiplas contas financeiras em um só lugar',
+              ].map(item => (
+                <li key={item} className="flex items-center gap-3 text-gray-600 text-sm">
+                  <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-3 h-3 text-[#1B4332]" />
+                  </div>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden">
+              <div className="bg-gray-50 border-b border-gray-200 px-5 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Landmark className="w-4 h-4 text-gray-400" />
+                  <span className="text-xs text-gray-500 font-medium">Contas conectadas</span>
+                </div>
+                <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  Sincronizado
+                </span>
+              </div>
+              <div className="p-5 space-y-3">
+                {[
+                  { bank: 'Nubank', type: 'Conta corrente', balance: 'R$ 2.340,00', color: 'bg-purple-100 text-purple-700' },
+                  { bank: 'Itaú', type: 'Conta corrente', balance: 'R$ 8.120,50', color: 'bg-orange-100 text-orange-700' },
+                  { bank: 'Carteira', type: 'Dinheiro em espécie', balance: 'R$ 450,00', color: 'bg-gray-100 text-gray-600' },
+                ].map(({ bank, type, balance, color }) => (
+                  <div key={bank} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black ${color}`}>
+                        {bank.slice(0, 2)}
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-gray-800">{bank}</div>
+                        <div className="text-xs text-gray-400">{type}</div>
+                      </div>
+                    </div>
+                    <span className="text-sm font-bold text-gray-700">{balance}</span>
+                  </div>
+                ))}
+                <div className="pt-2 space-y-2">
+                  <div className="text-xs text-gray-400 font-medium mb-1">Últimas transações sincronizadas</div>
+                  {[
+                    { desc: 'Mercado Pago', value: '-R$ 67,90', type: 'out' },
+                    { desc: 'Pix recebido', value: '+R$ 500,00', type: 'in' },
+                  ].map(({ desc, value, type }) => (
+                    <div key={desc} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${type === 'in' ? 'bg-green-500' : 'bg-red-400'}`} />
+                        <span className="text-gray-600">{desc}</span>
+                      </div>
+                      <span className={`font-semibold ${type === 'in' ? 'text-green-600' : 'text-red-500'}`}>{value}</span>
+                    </div>
+                  ))}
+                  <div className="bg-[#1B4332] text-white text-center text-xs font-semibold py-2.5 rounded-lg mt-2">
+                    <RefreshCw className="w-3 h-3 inline mr-1.5 mb-0.5" />
+                    Atualizado há 2 minutos
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
