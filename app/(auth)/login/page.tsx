@@ -164,6 +164,7 @@ function LoginForm() {
                   <button
                     type="button"
                     onClick={switchToRecovery}
+                    tabIndex={-1}
                     className="text-xs text-[#1B4332] hover:text-[#163a2b] hover:underline transition"
                   >
                     Esqueceu a senha?
