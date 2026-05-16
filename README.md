@@ -38,6 +38,8 @@ app/
   (app)/app/charts/page.tsx          → /app/charts
   (app)/app/users/page.tsx           → /app/users (somente owner)
   (app)/app/profile/page.tsx         → /app/profile
+  (app)/app/billing/page.tsx         → /app/billing (assinatura; acessível mesmo com trial expirado)
+  (app)/app/billing/success/page.tsx → /app/billing/success (confirmação pós-pagamento)
 ```
 
 ---
@@ -112,6 +114,7 @@ app/
 - Tipo (pagamento | recebimento)
 - Valor total (máx. R$ 1.000.000,00)
 - Categoria (opcional)
+- Conta financeira (opcional; ex.: Carteira, Nubank)
 - Data de emissão (opcional; aceita de 1 ano atrás até 90 dias no futuro)
 - Quantidade de parcelas (1–99)
 - Status de pagamento (pago | pendente)
@@ -149,6 +152,34 @@ app/
 - **Barras por usuário:** total gasto por membro da conta no mês.
 - **Tendência mensal:** janela de 9 meses (4 anteriores + atual + 4 seguintes), mês corrente destacado em vermelho; meses futuros exibem apenas receitas/pagamentos lançados.
 - Valores exibidos em formato pt-BR; números ≥ 1.000 abreviados com "k".
+
+---
+
+## Contas financeiras
+
+- Cada conta pode ter N contas financeiras (ex.: Carteira, Nubank, Itaú).
+- Uma conta "Carteira" é criada automaticamente no cadastro.
+- O saldo de cada conta financeira é mantido em sincronia por trigger: atualizado automaticamente quando lançamentos pagos são inseridos, editados ou excluídos.
+- Lançamentos podem ser vinculados a uma conta financeira (campo opcional).
+
+---
+
+## Assinatura
+
+- Trial gratuito de 7 dias a partir do cadastro.
+- Após o trial: plano mensal R$ 7,99/mês via Stripe.
+- Middleware bloqueia todas as rotas `/app/*` (exceto `/app/billing`) quando o trial expira e a assinatura não está ativa.
+- O dashboard exibe um banner com dias restantes de trial e botão "Assinar" para o owner.
+- **Status possíveis:** `trialing` | `active` | `past_due` | `canceled`.
+- Fluxo: `POST /api/billing/subscribe` → Stripe Checkout → webhook confirma pagamento → status atualizado para `active`.
+
+---
+
+## Open Finance (Pluggy)
+
+- Owner pode conectar contas bancárias via Pluggy na tela de Perfil.
+- Transações importadas do banco são sincronizadas como lançamentos (`pluggy_transaction_id` evita duplicatas).
+- Conexões armazenadas na tabela `bank_connections`.
 
 ---
 
@@ -211,25 +242,58 @@ app/
 
 ---
 
-## Schema do banco (`supabase/schema.sql`)
+## Schema do banco
 
-Quatro tabelas principais:
+Migrations em `supabase/migrations/` (executar em ordem alfabética = cronológica).
 
 | Tabela | Descrição |
 |---|---|
 | `accounts` | Container compartilhado por todos os usuários de uma conta |
-| `profiles` | Estende `auth.users`; armazena nome, papel (owner/member) e flag `disabled` |
+| `profiles` | Estende `auth.users`; armazena nome, papel (owner/member) e flag `is_disabled` |
 | `categories` | Categorias por conta; nome único case-insensitive |
 | `expenses` | Lançamentos; `user_id` referencia `profiles.id` |
+| `financial_accounts` | Contas financeiras por account (ex.: Carteira, Nubank); saldo mantido por trigger |
+| `bank_connections` | Conexões Open Finance via Pluggy |
 
 - `profiles.id = auth.users.id` (mesmo UUID).
-- Trigger `handle_new_user()` em `auth.users` cria automaticamente account + profile no cadastro.
-- Convites gerenciados por RPC (`create_invite`, `get_invite_by_token`) em `supabase/invites.sql`.
+- Trigger `handle_new_user()` em `auth.users` cria automaticamente account + profile + conta "Carteira" no cadastro.
+- Convites gerenciados por RPC (`create_invite`, `get_invite_by_token`).
+- Saldo de `financial_accounts.balance` atualizado automaticamente por trigger ao inserir/editar/excluir lançamentos pagos.
 
 ---
 
 ## Setup (primeira vez)
 
-1. Executar `supabase/schema.sql` no SQL Editor do Supabase.
-2. Executar `supabase/invites.sql` no SQL Editor do Supabase.
-3. Desativar confirmação de e-mail: Supabase Dashboard → Authentication → Providers → Email → desmarcar "Confirm email".
+### Banco de dados
+
+Execute todos os arquivos de `supabase/migrations/` em ordem alfabética no SQL Editor do Supabase:
+
+| Arquivo | O que faz |
+|---|---|
+| `20260511000000_initial_schema.sql` | Schema base (tabelas, RLS, trigger de cadastro) |
+| `20260511120000_invite_system.sql` | Sistema de convites (RPC) |
+| `20260512000000_add_is_disabled.sql` | Coluna `is_disabled` em profiles |
+| `20260512010000_fix_invite_owner_email.sql` | Corrige `get_invite_by_token` para retornar e-mail do owner |
+| `20260512020000_billing.sql` | Colunas de trial/assinatura em accounts |
+| `20260512030000_stripe.sql` | Renomeia coluna para `stripe_subscription_id` |
+| `20260512040000_pluggy.sql` | `pluggy_transaction_id` em expenses + tabela `bank_connections` |
+| `20260513000000_financial_accounts.sql` | Tabela `financial_accounts` + `financial_account_id` em expenses |
+| `20260513010000_seed_carteira.sql` | Trigger cria conta "Carteira" automaticamente no cadastro |
+| `20260515000000_balance_trigger.sql` | Trigger de saldo em `financial_accounts` |
+
+### Supabase
+
+- Desativar confirmação de e-mail: Dashboard → Authentication → Providers → Email → desmarcar "Confirm email".
+
+### Stripe
+
+- Criar preço recorrente (R$ 7,99/mês, BRL) → copiar Price ID para `STRIPE_PRICE_ID`.
+- Criar webhook apontando para `https://seudominio.com/api/billing/webhook` com os eventos: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed` → copiar signing secret para `STRIPE_WEBHOOK_SECRET`.
+
+### Pluggy
+
+- Criar aplicação no dashboard Pluggy → copiar Client ID e Secret para `PLUGGY_CLIENT_ID` / `PLUGGY_CLIENT_SECRET`.
+
+### Novas migrations
+
+Toda nova migration deve ser criada em `supabase/migrations/` com o nome no formato `YYYYMMDDHHMMSS_descricao.sql`.
