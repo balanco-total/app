@@ -8,6 +8,7 @@ export type Expense = {
   category_id: string | null
   financial_account_id: string | null
   date: string
+  description: string | null
   profiles: { name: string } | null
 }
 export type FinancialAccount = { id: string; name: string }

@@ -12,6 +12,7 @@ import DashboardHeader from './dashboard/DashboardHeader'
 import ExpenseForm from './dashboard/ExpenseForm'
 import CategorySummary from './dashboard/CategorySummary'
 import RecentExpenses from './dashboard/RecentExpenses'
+import CategoryExpensesAside from './charts/CategoryExpensesAside'
 
 // Shared helpers
 import {
@@ -77,6 +78,11 @@ export default function Dashboard({
   const [pendingCategoryChange, setPendingCategoryChange] = useState<PendingCategoryChange | null>(null)
   const [pendingPaidToggle, setPendingPaidToggle] = useState<PendingPaidToggle | null>(null)
   const [editingExpense, setEditingExpense] = useState<EditingExpenseState | null>(null)
+
+  // ── Category aside ─────────────────────────
+  const [asideCategory, setAsideCategory] = useState<{ id: string; name: string } | null>(null)
+  const [asideExpenses, setAsideExpenses] = useState<Expense[]>([])
+  const [asideLoading, setAsideLoading] = useState(false)
 
   const { toasts, toast, dismiss } = useToast()
   const { confirmState, showConfirm, handleConfirm, handleCancel } = useConfirm()
@@ -152,6 +158,25 @@ export default function Dashboard({
     const [y, m] = selectedMonth.split('-').map(Number)
     const d = new Date(y, m - 1 + delta)
     setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+  }
+
+  const openCategoryAside = async (cat: { id: string; name: string }) => {
+    if (asideCategory?.id === cat.id) { setAsideCategory(null); return }
+    setAsideCategory(cat)
+    setAsideExpenses([])
+    setAsideLoading(true)
+    const [y, m] = selectedMonth.split('-').map(Number)
+    const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
+    const { data } = await supabase
+      .from('expenses')
+      .select('id, description, amount, date, category_id, profiles(name)')
+      .eq('account_id', profile.account_id)
+      .eq('category_id', cat.id)
+      .gte('date', `${selectedMonth}-01`)
+      .lt('date', nextMonth)
+      .order('date', { ascending: false })
+    setAsideExpenses((data ?? []) as unknown as Expense[])
+    setAsideLoading(false)
   }
 
   const addExpense = async () => {
@@ -421,6 +446,7 @@ export default function Dashboard({
             totalUnpaid={totalUnpaid}
             selectedMonth={selectedMonth}
             onShiftMonth={shiftMonth}
+            onCategoryClick={openCategoryAside}
           />
         </div>
 
@@ -682,6 +708,14 @@ export default function Dashboard({
 
       <ConfirmModal {...confirmState} onConfirm={handleConfirm} onCancel={handleCancel} />
       <Toasts toasts={toasts} dismiss={dismiss} />
+
+      <CategoryExpensesAside
+        category={asideCategory}
+        expenses={asideExpenses}
+        onClose={() => setAsideCategory(null)}
+        selectedMonth={selectedMonth}
+        loading={asideLoading}
+      />
     </div>
   )
 }

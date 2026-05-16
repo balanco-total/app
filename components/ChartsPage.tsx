@@ -5,6 +5,7 @@ import BillingBanner from './BillingBanner'
 import DashboardHeader from './dashboard/DashboardHeader'
 import MonthSelector from './charts/MonthSelector'
 import CategoryPieChart from './charts/CategoryPieChart'
+import CategoryExpensesAside from './charts/CategoryExpensesAside'
 import UserBarChart from './charts/UserBarChart'
 import AccountPieChart from './charts/AccountPieChart'
 import MonthlyTrendChart from './charts/MonthlyTrendChart'
@@ -21,6 +22,7 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
   const now = new Date()
   const nowKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
   const [selectedMonth, setSelectedMonth] = useState(nowKey)
+  const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null)
   const [selYear, selMonthNum] = selectedMonth.split('-').map(Number)
 
   const shiftMonth = (delta: number) => {
@@ -86,27 +88,49 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
     return data.map(d => ({ ...d, percent: total > 0 ? d.value / total : 0 }))
   }, [financialAccounts, monthlyExpenses])
 
+  const selectedCategory = useMemo(
+    () => categories.find(c => c.name === selectedCategoryName) ?? null,
+    [categories, selectedCategoryName]
+  )
+
+  const asideExpenses = useMemo(() => {
+    if (!selectedCategory) return []
+    return monthlyExpenses.filter(e => e.category_id === selectedCategory.id)
+  }, [monthlyExpenses, selectedCategory])
+
   return (
-    <div className="min-h-screen bg-white p-4">
-      <div className="max-w-7xl mx-auto">
-        <DashboardHeader profile={profile} />
-        {account && (
-          <BillingBanner
-            subscriptionStatus={account.subscription_status}
-            trialEndsAt={account.trial_ends_at}
-            isOwner={profile.role === 'owner'}
-          />
-        )}
-        <MonthSelector selectedMonth={selectedMonth} onShift={shiftMonth} totalMonth={totalMonth} />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <CategoryPieChart data={categoryPieData} />
-          <UserBarChart data={userBarData} />
+    <>
+      <div className="min-h-screen bg-white p-4">
+        <div className="max-w-7xl mx-auto">
+          <DashboardHeader profile={profile} />
+          {account && (
+            <BillingBanner
+              subscriptionStatus={account.subscription_status}
+              trialEndsAt={account.trial_ends_at}
+              isOwner={profile.role === 'owner'}
+            />
+          )}
+          <MonthSelector selectedMonth={selectedMonth} onShift={shiftMonth} totalMonth={totalMonth} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <CategoryPieChart
+              data={categoryPieData}
+              onCategoryClick={name => setSelectedCategoryName(prev => prev === name ? null : name)}
+            />
+            <UserBarChart data={userBarData} />
+          </div>
+          {financialAccounts.length > 0 && (
+            <AccountPieChart data={accountPieData} />
+          )}
+          <MonthlyTrendChart data={monthlyTrend} />
         </div>
-        {financialAccounts.length > 0 && (
-          <AccountPieChart data={accountPieData} />
-        )}
-        <MonthlyTrendChart data={monthlyTrend} />
       </div>
-    </div>
+
+      <CategoryExpensesAside
+        category={selectedCategory}
+        expenses={asideExpenses}
+        onClose={() => setSelectedCategoryName(null)}
+        selectedMonth={selectedMonth}
+      />
+    </>
   )
 }

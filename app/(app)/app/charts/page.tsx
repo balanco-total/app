@@ -26,7 +26,7 @@ export default async function Page() {
       .order('name'),
     supabase
       .from('expenses')
-      .select('id, user_id, amount, category_id, financial_account_id, date, profiles(name)')
+      .select('id, user_id, amount, category_id, financial_account_id, date, description, profiles(name)')
       .eq('account_id', profile.account_id)
       .order('date', { ascending: false })
       .limit(2000),

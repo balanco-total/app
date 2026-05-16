@@ -10,6 +10,7 @@ type Props = {
   totalUnpaid: number
   selectedMonth: string
   onShiftMonth: (delta: number) => void
+  onCategoryClick?: (cat: { id: string; name: string }) => void
 }
 
 export default function CategorySummary({
@@ -18,6 +19,7 @@ export default function CategorySummary({
   totalUnpaid,
   selectedMonth,
   onShiftMonth,
+  onCategoryClick,
 }: Props) {
   const [selYear, selMonthNum] = selectedMonth.split('-').map(Number)
   const categoriesWithExpenses = categorySummary.filter(cat => cat.total > 0)
@@ -39,8 +41,13 @@ export default function CategorySummary({
   return (
     <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-        <h2 className="text-xl font-bold text-gray-800">Despesa por categoria</h2>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-1">
+        <div>
+          <h2 className="text-xl font-bold text-gray-800">Despesa por categoria</h2>
+          {onCategoryClick && categoriesWithExpenses.length > 0 && (
+            <p className="text-xs text-gray-400 mt-0.5">Clique em uma categoria para ver as despesas</p>
+          )}
+        </div>
         <div className="flex items-center gap-1 sm:self-auto">
           <button
             onClick={() => onShiftMonth(-1)}
@@ -91,7 +98,11 @@ export default function CategorySummary({
         {mainCategories.map(cat => {
           const pct = totalMonth > 0 ? (cat.total / totalMonth) * 100 : 0
           return (
-            <div key={cat.id} className="p-3 bg-gray-50 rounded-lg">
+            <div
+              key={cat.id}
+              className={`p-3 bg-gray-50 rounded-lg ${onCategoryClick ? 'cursor-pointer hover:bg-gray-100 transition-colors' : ''}`}
+              onClick={() => onCategoryClick?.(cat)}
+            >
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-3">
                   <div className={`w-3 h-3 rounded-full ${cat.color}`} />
