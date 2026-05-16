@@ -495,6 +495,8 @@ export default function LandingPage() {
           <div className="flex items-center gap-6 text-sm text-gray-400">
             <Link href="/login" className="hover:text-gray-600 transition">Entrar</Link>
             <Link href="/signup" className="hover:text-gray-600 transition">Cadastrar</Link>
+            <Link href="/privacy" className="hover:text-gray-600 transition">Privacidade</Link>
+            <Link href="/terms" className="hover:text-gray-600 transition">Termos</Link>
           </div>
           <p className="text-xs text-gray-400">
             © {new Date().getFullYear()} BalançoTotal. Todos os direitos reservados.

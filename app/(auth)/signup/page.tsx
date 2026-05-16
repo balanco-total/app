@@ -98,6 +98,12 @@ export default function SignupPage() {
           >
             {loading ? 'Criando conta...' : 'Criar conta'}
           </button>
+          <p className="text-xs text-gray-400 text-center">
+            Ao criar sua conta, você concorda com nossa{' '}
+            <Link href="/privacy" className="underline hover:text-gray-600">Política de Privacidade</Link>
+            {' '}e{' '}
+            <Link href="/terms" className="underline hover:text-gray-600">Termos de Uso</Link>.
+          </p>
         </form>
 
         <p className="mt-6 text-center text-gray-600">
