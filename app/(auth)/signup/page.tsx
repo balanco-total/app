@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
+import PasswordInput from '@/components/PasswordInput'
 
 const MAX_NAME = 60
 const MAX_EMAIL = 100
@@ -13,6 +14,7 @@ export default function SignupPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -26,6 +28,7 @@ export default function SignupPage() {
     if (name.trim().length > MAX_NAME) { setError(`Nome deve ter no máximo ${MAX_NAME} caracteres.`); return }
     if (email.length > MAX_EMAIL) { setError(`E-mail deve ter no máximo ${MAX_EMAIL} caracteres.`); return }
     if (password.length > MAX_PASSWORD) { setError(`Senha deve ter no máximo ${MAX_PASSWORD} caracteres.`); return }
+    if (password !== confirm) { setError('As senhas não coincidem.'); return }
 
     setLoading(true)
 
@@ -65,7 +68,6 @@ export default function SignupPage() {
               required
               maxLength={MAX_NAME}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
-              placeholder="Seu nome"
             />
           </div>
           <div>
@@ -81,14 +83,22 @@ export default function SignupPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Senha</label>
-            <input
-              type="password"
+            <PasswordInput
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
               minLength={6}
               maxLength={MAX_PASSWORD}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Confirmar senha</label>
+            <PasswordInput
+              value={confirm}
+              onChange={e => setConfirm(e.target.value)}
+              required
+              minLength={6}
+              maxLength={MAX_PASSWORD}
             />
           </div>
           <button
