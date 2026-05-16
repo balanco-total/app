@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { AuthProvider } from '@/contexts/AuthContext'
+import UpdateBanner from '@/components/UpdateBanner'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies()
@@ -21,5 +22,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     redirect('/login')
   }
 
-  return <AuthProvider>{children}</AuthProvider>
+  return (
+    <AuthProvider>
+      <UpdateBanner />
+      {children}
+    </AuthProvider>
+  )
 }
