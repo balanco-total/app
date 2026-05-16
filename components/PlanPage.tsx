@@ -1,9 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { CreditCard } from 'lucide-react'
-import { createClient } from '@/utils/supabase/client'
 import DashboardHeader from './dashboard/DashboardHeader'
 import PlanSummary from './plan/PlanSummary'
 import InvoiceHistory from './plan/InvoiceHistory'
@@ -11,15 +9,6 @@ import CancelSubscription from './plan/CancelSubscription'
 import type { Profile, BillingData } from './plan/types'
 
 export default function PlanPage({ profile }: { profile: Profile }) {
-  const supabase = createClient()
-  const router = useRouter()
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
-
   const [data, setData] = useState<BillingData | null>(null)
   const [loadError, setLoadError] = useState('')
 
@@ -37,7 +26,7 @@ export default function PlanPage({ profile }: { profile: Profile }) {
   return (
     <div className="min-h-screen bg-white p-4">
       <div className="max-w-7xl mx-auto">
-        <DashboardHeader profile={profile} onSignOut={handleSignOut} />
+        <DashboardHeader profile={profile} />
 
         <div className="max-w-2xl mx-auto">
           <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-4">

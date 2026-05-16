@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { AuthProvider } from '@/contexts/AuthContext'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies()
@@ -20,5 +21,5 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     redirect('/login')
   }
 
-  return <>{children}</>
+  return <AuthProvider>{children}</AuthProvider>
 }

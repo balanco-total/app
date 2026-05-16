@@ -1,7 +1,5 @@
 'use client'
 
-import { createClient } from '@/utils/supabase/client'
-import { useRouter } from 'next/navigation'
 import { useToast, Toasts } from './toast'
 import BillingBanner from './BillingBanner'
 import DashboardHeader from './dashboard/DashboardHeader'
@@ -13,20 +11,12 @@ import DangerZoneCard from './profile/DangerZoneCard'
 import type { Profile, Account } from './profile/types'
 
 export default function ProfilePage({ profile, email, account }: { profile: Profile; email: string; account: Account }) {
-  const supabase = createClient()
-  const router = useRouter()
   const { toasts, toast, dismiss } = useToast()
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
 
   return (
     <div className="min-h-screen bg-white p-4">
       <div className="max-w-7xl mx-auto">
-        <DashboardHeader profile={profile} onSignOut={handleSignOut} />
+        <DashboardHeader profile={profile} />
         {account && (
           <BillingBanner
             subscriptionStatus={account.subscription_status}

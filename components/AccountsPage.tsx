@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { Landmark, PlusCircle } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
-import Logo from './Logo'
+import LoadingPage from './LoadingPage'
 import BillingBanner from './BillingBanner'
 import DashboardHeader from './dashboard/DashboardHeader'
 import AccountForm from './accounts/AccountForm'
@@ -14,7 +13,6 @@ import type { Profile, Account, FinancialAccount } from './accounts/types'
 
 export default function AccountsPage({ profile, account }: { profile: Profile; account: Account }) {
   const supabase = createClient()
-  const router = useRouter()
 
   const [financialAccounts, setFinancialAccounts] = useState<FinancialAccount[]>([])
   const [loading, setLoading] = useState(true)
@@ -47,12 +45,6 @@ export default function AccountsPage({ profile, account }: { profile: Profile; a
 
     setFinancialAccounts(accounts)
     setLoading(false)
-  }
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
   }
 
   const openCreate = () => {
@@ -157,18 +149,12 @@ export default function AccountsPage({ profile, account }: { profile: Profile; a
     })
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Logo />
-      </div>
-    )
-  }
+  if (loading) return <LoadingPage />
 
   return (
     <div className="min-h-screen bg-white p-4">
       <div className="max-w-4xl mx-auto">
-        <DashboardHeader profile={profile} onSignOut={handleSignOut} />
+        <DashboardHeader profile={profile} />
         {account && (
           <BillingBanner
             subscriptionStatus={account.subscription_status}

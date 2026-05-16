@@ -5,8 +5,8 @@ import { Users, LogOut, PieChart, User as UserIcon, CreditCard, Landmark } from 
 import Link from 'next/link'
 import Logo from '../Logo'
 import { getInitials, getAvatarColor } from './helpers'
+import { useAuth } from '@/contexts/AuthContext'
 
-// Minimal profile shape required by the header — compatible with any page's Profile type
 type HeaderProfile = {
   name: string
   role: string
@@ -14,10 +14,10 @@ type HeaderProfile = {
 
 type Props = {
   profile: HeaderProfile
-  onSignOut: () => void
 }
 
-export default function DashboardHeader({ profile, onSignOut }: Props) {
+export default function DashboardHeader({ profile }: Props) {
+  const { signOut } = useAuth()
   const [showAvatarMenu, setShowAvatarMenu] = useState(false)
   const avatarRef = useRef<HTMLDivElement>(null)
 
@@ -131,7 +131,7 @@ export default function DashboardHeader({ profile, onSignOut }: Props) {
                 <hr className="border-gray-100" />
 
                 <button
-                  onClick={onSignOut}
+                  onClick={signOut}
                   className="flex items-center gap-3 w-full px-4 py-2.5 text-red-600 hover:bg-red-50 transition text-sm"
                 >
                   <LogOut size={16} />

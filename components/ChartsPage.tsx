@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { createClient } from '@/utils/supabase/client'
-import { useRouter } from 'next/navigation'
 import BillingBanner from './BillingBanner'
 import DashboardHeader from './dashboard/DashboardHeader'
 import MonthSelector from './charts/MonthSelector'
@@ -20,15 +18,6 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
   account: Account
   financialAccounts?: FinancialAccount[]
 }) {
-  const supabase = createClient()
-  const router = useRouter()
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
-
   const now = new Date()
   const nowKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
   const [selectedMonth, setSelectedMonth] = useState(nowKey)
@@ -100,7 +89,7 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
   return (
     <div className="min-h-screen bg-white p-4">
       <div className="max-w-7xl mx-auto">
-        <DashboardHeader profile={profile} onSignOut={handleSignOut} />
+        <DashboardHeader profile={profile} />
         {account && (
           <BillingBanner
             subscriptionStatus={account.subscription_status}

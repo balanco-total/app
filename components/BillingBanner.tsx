@@ -3,16 +3,12 @@
 import { useState } from 'react'
 import { AlertCircle, X, CreditCard } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { daysRemaining } from '@/utils/billing'
 
 type BillingBannerProps = {
   subscriptionStatus: string
   trialEndsAt: string
   isOwner: boolean
-}
-
-function daysRemaining(trialEndsAt: string): number {
-  const diff = new Date(trialEndsAt).getTime() - Date.now()
-  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
 }
 
 export default function BillingBanner({ subscriptionStatus, trialEndsAt, isOwner }: BillingBannerProps) {

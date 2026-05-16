@@ -3,9 +3,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { ChevronRight, Calendar, X, Circle, CheckCircle2 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
-import Logo from './Logo'
+import LoadingPage from './LoadingPage'
 import BillingBanner from './BillingBanner'
 
 // Sub-components
@@ -54,7 +53,6 @@ export default function Dashboard({
   account: Account
 }) {
   const supabase = createClient()
-  const router = useRouter()
 
   // ── Core data ──────────────────────────────
   const [categories, setCategories] = useState<Category[]>([])
@@ -149,12 +147,6 @@ export default function Dashboard({
   }
 
   // ── Handlers ───────────────────────────────
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
 
   const shiftMonth = (delta: number) => {
     const [y, m] = selectedMonth.split('-').map(Number)
@@ -382,13 +374,7 @@ export default function Dashboard({
 
   // ── Loading ────────────────────────────────
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Logo />
-      </div>
-    )
-  }
+  if (loading) return <LoadingPage />
 
   // ── Render ─────────────────────────────────
 
@@ -396,7 +382,7 @@ export default function Dashboard({
     <div className="min-h-screen bg-white p-4">
       <div className="max-w-7xl mx-auto">
 
-        <DashboardHeader profile={profile} onSignOut={handleSignOut} />
+        <DashboardHeader profile={profile} />
 
         {account && (
           <BillingBanner
