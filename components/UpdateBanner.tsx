@@ -41,19 +41,14 @@ export default function UpdateBanner() {
   if (!updateAvailable) return null
 
   return (
-    <div className="flex items-center justify-between gap-3 border border-blue-200 bg-blue-50 text-blue-700 rounded-xl px-4 py-3 mb-4">
-      <div className="flex items-center gap-2 min-w-0">
-        <RefreshCw size={18} className="shrink-0 text-blue-500" />
-        <span className="text-sm font-medium">
-          Nova versão disponível. Atualize a página para carregar.
-        </span>
-      </div>
-      <button
-        onClick={() => window.location.reload()}
-        className="shrink-0 text-sm font-semibold bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition"
-      >
-        Atualizar
-      </button>
+    <div className="flex items-center justify-center gap-2 border border-blue-200 bg-blue-50 text-blue-700 px-4 py-3 mb-4 text-center">
+      <RefreshCw size={18} className="shrink-0 text-blue-500" />
+      <span className="text-sm font-medium">
+        Nova versão disponível. Atualize a página para carregar.{' '}
+        <a href="" className="font-semibold underline hover:text-blue-900 transition-colors">
+          Clique para Atualizar.
+        </a>
+      </span>
     </div>
   )
 }

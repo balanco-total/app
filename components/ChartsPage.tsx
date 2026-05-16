@@ -49,9 +49,10 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
     })
   }, [expenses, nowKey, selMonthNum, selYear])
 
-  const categoryPieData = useMemo(() => {
+  const { categoryPieData, smallCategoryIds } = useMemo(() => {
     const data = categories
       .map((cat, i) => ({
+        id: cat.id,
         name: cat.name,
         value: monthlyExpenses.filter(e => e.category_id === cat.id).reduce((s, e) => s + e.amount, 0),
         fill: COLOR_MAP[cat.color] ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length],
@@ -59,7 +60,19 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
       .filter(d => d.value > 0)
       .sort((a, b) => b.value - a.value)
     const total = data.reduce((s, d) => s + d.value, 0)
-    return data.map(d => ({ ...d, percent: total > 0 ? d.value / total : 0 }))
+    const withPercent = data.map(d => ({ ...d, percent: total > 0 ? d.value / total : 0 }))
+    const main = withPercent.filter(d => d.percent >= 0.05)
+    const small = withPercent.filter(d => d.percent < 0.05)
+    const smallIds = new Set(small.map(d => d.id))
+    if (small.length === 0) return { categoryPieData: withPercent, smallCategoryIds: smallIds }
+    const othersValue = small.reduce((s, d) => s + d.value, 0)
+    return {
+      categoryPieData: [
+        ...main,
+        { name: 'Outros', value: othersValue, fill: '#9ca3af', percent: total > 0 ? othersValue / total : 0 },
+      ],
+      smallCategoryIds: smallIds,
+    }
   }, [categories, monthlyExpenses])
 
   const userBarData = useMemo(() => {
@@ -88,15 +101,18 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
     return data.map(d => ({ ...d, percent: total > 0 ? d.value / total : 0 }))
   }, [financialAccounts, monthlyExpenses])
 
-  const selectedCategory = useMemo(
-    () => categories.find(c => c.name === selectedCategoryName) ?? null,
-    [categories, selectedCategoryName]
-  )
+  const selectedCategory = useMemo(() => {
+    if (selectedCategoryName === 'Outros') return { id: '__others__', name: 'Outros' }
+    return categories.find(c => c.name === selectedCategoryName) ?? null
+  }, [categories, selectedCategoryName])
 
   const asideExpenses = useMemo(() => {
     if (!selectedCategory) return []
+    if (selectedCategory.id === '__others__') {
+      return monthlyExpenses.filter(e => e.category_id !== null && smallCategoryIds.has(e.category_id))
+    }
     return monthlyExpenses.filter(e => e.category_id === selectedCategory.id)
-  }, [monthlyExpenses, selectedCategory])
+  }, [monthlyExpenses, selectedCategory, smallCategoryIds])
 
   return (
     <>

@@ -11,6 +11,7 @@ type Props = {
   selectedMonth: string
   onShiftMonth: (delta: number) => void
   onCategoryClick?: (cat: { id: string; name: string }) => void
+  onOthersClick?: (categoryIds: string[]) => void
 }
 
 export default function CategorySummary({
@@ -20,6 +21,7 @@ export default function CategorySummary({
   selectedMonth,
   onShiftMonth,
   onCategoryClick,
+  onOthersClick,
 }: Props) {
   const [selYear, selMonthNum] = selectedMonth.split('-').map(Number)
   const categoriesWithExpenses = categorySummary.filter(cat => cat.total > 0)
@@ -127,7 +129,10 @@ export default function CategorySummary({
           )
         })}
         {smallCategories.length > 0 && (
-          <div className="p-3 bg-gray-50 rounded-lg">
+          <div
+            className={`p-3 bg-gray-50 rounded-lg ${onOthersClick ? 'cursor-pointer hover:bg-gray-100 transition-colors' : ''}`}
+            onClick={() => onOthersClick?.(smallCategories.map(c => c.id))}
+          >
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 rounded-full bg-gray-400" />
