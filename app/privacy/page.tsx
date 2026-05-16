@@ -128,8 +128,8 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-semibold text-gray-800 mb-3">8. Contato</h2>
             <p>
               Dúvidas, solicitações ou reclamações relacionadas a esta Política podem ser enviadas para:{' '}
-              <a href="mailto:contato@balancototal.com.br" className="text-[#1B4332] underline">
-                contato@balancototal.com.br
+              <a href="mailto:privacidade@balancototal.com.br" className="text-[#1B4332] underline">
+                privacidade@balancototal.com.br
               </a>
             </p>
           </section>

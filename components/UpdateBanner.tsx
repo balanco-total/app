@@ -46,7 +46,7 @@ export default function UpdateBanner() {
       <span className="text-sm font-medium">
         Nova versão disponível. Atualize a página para carregar.{' '}
         <a href="" className="font-semibold underline hover:text-blue-900 transition-colors">
-          Clique para Atualizar.
+          Clique para atualizar.
         </a>
       </span>
     </div>
