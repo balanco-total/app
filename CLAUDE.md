@@ -62,7 +62,23 @@ Route groups `(auth)` and `(app)` are invisible in URLs. `/` is the public landi
 - `utils/supabase/middleware.ts` — not used by middleware.ts; kept for reference
 - `middleware.ts` — inlines Supabase client creation to refresh sessions, enforce auth redirects, and block expired/unsubscribed accounts (redirects to `/app/billing`)
 
-### Database Schema (`supabase/schema.sql`)
+### Database Migrations (`supabase/migrations/`)
+
+All SQL files live in `supabase/migrations/` with the naming convention `YYYYMMDDHHMMSS_description.sql`. Run them in filename order (alphabetical = chronological).
+
+**Migration naming rule:** every new migration file must start with the timestamp of creation in the format `YYYYMMDDHHMMSS_` (e.g. `20260515212405_add_column_foo.sql`). Never add SQL directly to an existing migration.
+
+Current migrations in order:
+1. `20260511000000_initial_schema.sql` — tables: accounts, profiles, categories, expenses
+2. `20260511120000_invite_system.sql` — invite token + RPC functions
+3. `20260512000000_add_is_disabled.sql` — `profiles.is_disabled` column
+4. `20260512010000_fix_invite_owner_email.sql` — adds owner_email to get_invite_by_token
+5. `20260512020000_billing.sql` — trial/subscription columns on accounts
+6. `20260512030000_stripe.sql` — renames abacatepay_subscription_id → stripe_subscription_id
+7. `20260512040000_pluggy.sql` — pluggy_transaction_id on expenses + bank_connections table
+8. `20260513000000_financial_accounts.sql` — financial_accounts table + financial_account_id on expenses
+9. `20260513010000_seed_carteira.sql` — handle_new_user creates default "Carteira" account
+10. `20260515000000_balance_trigger.sql` — trigger to keep financial_accounts.balance in sync
 
 Four tables: `accounts`, `profiles` (extends `auth.users`), `categories`, `expenses`.
 
@@ -100,13 +116,8 @@ Four tables: `accounts`, `profiles` (extends `auth.users`), `categories`, `expen
 
 ## Setup Required (One-time)
 
-1. Run `supabase/schema.sql` in Supabase SQL Editor
-2. Run `supabase/billing.sql` in Supabase SQL Editor
-3. Run `supabase/stripe_migration.sql` in Supabase SQL Editor (renames `abacatepay_subscription_id` → `stripe_subscription_id`)
-4. Run `supabase/pluggy_migration.sql` in Supabase SQL Editor (adds `pluggy_transaction_id` to expenses + creates `bank_connections` table)
-5. Run `supabase/financial_accounts_migration.sql` in Supabase SQL Editor (adds `financial_accounts` table + `financial_account_id` to expenses)
-6. Run `supabase/balance_trigger_migration.sql` in Supabase SQL Editor (trigger that keeps `financial_accounts.balance` in sync with paid expenses)
-7. Disable email confirmation: Supabase Dashboard → Authentication → Providers → Email → uncheck "Confirm email"
-6. In Stripe dashboard: create a recurring price (R$7.99/month, BRL) → copy Price ID to `STRIPE_PRICE_ID`
-7. In Stripe dashboard: create a webhook endpoint pointing to `https://seudominio.com/api/billing/webhook`, subscribe to events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed` → copy signing secret to `STRIPE_WEBHOOK_SECRET`
-8. In Pluggy dashboard: create an application → copy Client ID and Secret to `PLUGGY_CLIENT_ID` / `PLUGGY_CLIENT_SECRET`
+1. Run all files in `supabase/migrations/` in order (alphabetical = chronological) in the Supabase SQL Editor
+2. Disable email confirmation: Supabase Dashboard → Authentication → Providers → Email → uncheck "Confirm email"
+3. In Stripe dashboard: create a recurring price (R$7.99/month, BRL) → copy Price ID to `STRIPE_PRICE_ID`
+4. In Stripe dashboard: create a webhook endpoint pointing to `https://seudominio.com/api/billing/webhook`, subscribe to events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed` → copy signing secret to `STRIPE_WEBHOOK_SECRET`
+5. In Pluggy dashboard: create an application → copy Client ID and Secret to `PLUGGY_CLIENT_ID` / `PLUGGY_CLIENT_SECRET`
