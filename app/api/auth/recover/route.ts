@@ -25,12 +25,14 @@ export async function POST(request: Request) {
   if (!checkRateLimit(`recover-email:${normalized}`, 3, 60 * 60 * 1000))
     return NextResponse.json({ success: true }) // silent
 
-  const origin = request.headers.get('origin') ?? ''
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+  const requestOrigin = request.headers.get('origin') ?? ''
+  const safeOrigin = requestOrigin === appUrl ? requestOrigin : appUrl
   const admin = createAdminClient()
 
   // Fire and forget — never expose whether the email exists
   admin.auth.resetPasswordForEmail(normalized, {
-    redirectTo: `${origin}/reset-password`,
+    redirectTo: `${safeOrigin}/reset-password`,
   })
 
   return NextResponse.json({ success: true })

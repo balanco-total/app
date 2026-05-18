@@ -37,6 +37,14 @@ export async function POST(request: Request) {
       clientSecret: process.env.PLUGGY_CLIENT_SECRET,
     }
     if (itemId) {
+      const { data: ownedConnection } = await supabase
+        .from('bank_connections')
+        .select('id')
+        .eq('account_id', profile.account_id)
+        .eq('item_id', itemId)
+        .maybeSingle()
+      if (!ownedConnection)
+        return NextResponse.json({ error: 'Conexão não encontrada.' }, { status: 404 })
       connectTokenBody.options = { url: itemId }
     }
 
