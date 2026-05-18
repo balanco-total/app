@@ -169,7 +169,7 @@ export default function Dashboard({
     const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
     const { data } = await supabase
       .from('expenses')
-      .select('id, description, amount, date, category_id, profiles(name)')
+      .select('id, description, amount, date, category_id, paid_at, user_id, financial_account_id, profiles(name)')
       .eq('account_id', profile.account_id)
       .eq('category_id', cat.id)
       .gte('date', `${selectedMonth}-01`)
@@ -189,7 +189,7 @@ export default function Dashboard({
     const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
     const { data } = await supabase
       .from('expenses')
-      .select('id, description, amount, date, category_id, profiles(name)')
+      .select('id, description, amount, date, category_id, paid_at, user_id, financial_account_id, profiles(name)')
       .eq('account_id', profile.account_id)
       .in('category_id', categoryIds)
       .gte('date', `${selectedMonth}-01`)
@@ -300,6 +300,7 @@ export default function Dashboard({
           const { error } = await supabase.from('expenses').update({ paid_at: null }).eq('id', exp.id)
           if (error) { toast.error('Erro ao atualizar pagamento.'); return }
           setExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, paid_at: null } : e))
+          setAsideExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, paid_at: null } : e))
           fetchMonthlySummary(selectedMonth)
         },
       })
@@ -354,15 +355,16 @@ export default function Dashboard({
     const { error } = await supabase.from('expenses').update(updates).eq('id', exp.id)
     if (error) { toast.error('Erro ao atualizar lançamento.'); return }
 
-    setExpenses(prev => prev.map(e => e.id === exp.id ? {
-      ...e,
+    const editedFields = {
       description: updates.description as string,
       amount: updates.amount as number,
       category_id: updates.category_id as string | null,
       date: updates.date as string,
       financial_account_id: updates.financial_account_id as string | null,
-      paid_at: 'paid_at' in updates ? (updates.paid_at as string | null) : e.paid_at,
-    } : e))
+      paid_at: 'paid_at' in updates ? (updates.paid_at as string | null) : exp.paid_at,
+    }
+    setExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, ...editedFields } : e))
+    setAsideExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, ...editedFields } : e))
     fetchMonthlySummary(selectedMonth)
     setEditingExpense(null)
   }
@@ -576,14 +578,13 @@ export default function Dashboard({
                     if (accountChanged) updates.financial_account_id = financialAccountId || null
                     const { error } = await supabase.from('expenses').update(updates).eq('id', exp.id)
                     if (error) { toast.error('Erro ao atualizar lançamento.'); return }
-                    setExpenses(prev => prev.map(e =>
-                      e.id === exp.id ? {
-                        ...e,
-                        paid_at: now,
-                        ...(amountChanged ? { amount: newAmount } : {}),
-                        ...(accountChanged ? { financial_account_id: financialAccountId || null } : {}),
-                      } : e
-                    ))
+                    const updatedFields = {
+                      paid_at: now,
+                      ...(amountChanged ? { amount: newAmount } : {}),
+                      ...(accountChanged ? { financial_account_id: financialAccountId || null } : {}),
+                    }
+                    setExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, ...updatedFields } : e))
+                    setAsideExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, ...updatedFields } : e))
                     fetchMonthlySummary(selectedMonth)
                     setPendingPaidToggle(null)
                   }}
@@ -736,6 +737,8 @@ export default function Dashboard({
         onClose={() => setAsideCategory(null)}
         selectedMonth={selectedMonth}
         loading={asideLoading}
+        onTogglePaid={(exp) => togglePaid(exp as unknown as Expense)}
+        onEdit={(exp) => openEditModal(exp as unknown as Expense)}
       />
     </div>
   )

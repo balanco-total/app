@@ -1,6 +1,6 @@
 'use client'
 
-import { X, Loader2 } from 'lucide-react'
+import { X, Loader2, Circle, CheckCircle2 } from 'lucide-react'
 import { MONTHS_PT } from './helpers'
 
 type AsideExpense = {
@@ -8,6 +8,8 @@ type AsideExpense = {
   amount: number
   date: string
   description?: string | null
+  paid_at?: string | null
+  financial_account_id?: string | null
   profiles?: { name: string } | null
 }
 
@@ -31,12 +33,16 @@ export default function CategoryExpensesAside({
   onClose,
   selectedMonth,
   loading = false,
+  onTogglePaid,
+  onEdit,
 }: {
   category: AsideCategory | null
   expenses: AsideExpense[]
   onClose: () => void
   selectedMonth: string
   loading?: boolean
+  onTogglePaid?: (exp: AsideExpense) => void
+  onEdit?: (exp: AsideExpense) => void
 }) {
   const isOpen = !!category
 
@@ -56,7 +62,7 @@ export default function CategoryExpensesAside({
 
       {/* panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-50 flex flex-col transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-[45] flex flex-col transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         {/* header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
@@ -96,8 +102,8 @@ export default function CategoryExpensesAside({
                 <ul className="divide-y divide-gray-50">
                   {sorted.map(exp => (
                     <li key={exp.id} className="px-5 py-3 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium text-gray-800 truncate">
                             {exp.description ?? '—'}
                           </p>
@@ -108,9 +114,30 @@ export default function CategoryExpensesAside({
                             )}
                           </div>
                         </div>
-                        <span className="text-sm font-semibold text-red-500 whitespace-nowrap">
-                          {fmtAmount(exp.amount)}
-                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {onTogglePaid && (
+                            <button
+                              onClick={() => onTogglePaid(exp)}
+                              title={exp.paid_at ? 'Desmarcar pagamento' : 'Marcar como pago'}
+                              className={`transition ${exp.paid_at ? 'text-green-500 hover:text-green-700' : 'text-gray-300 hover:text-gray-500'}`}
+                            >
+                              {exp.paid_at ? <CheckCircle2 size={18} /> : <Circle size={18} />}
+                            </button>
+                          )}
+                          {onEdit ? (
+                            <button
+                              onClick={() => onEdit(exp)}
+                              title="Editar lançamento"
+                              className="text-sm font-semibold text-red-500 whitespace-nowrap underline underline-offset-2 decoration-dashed decoration-red-300 hover:text-red-700 transition"
+                            >
+                              {fmtAmount(exp.amount)}
+                            </button>
+                          ) : (
+                            <span className="text-sm font-semibold text-red-500 whitespace-nowrap">
+                              {fmtAmount(exp.amount)}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </li>
                   ))}
