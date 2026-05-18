@@ -112,43 +112,47 @@ export default function BankConnectionsCard({ role, toast }: { role: string; toa
       ) : connections.length > 0 ? (
         <div className="space-y-3 mb-4">
           {connections.map(conn => (
-            <div key={conn.id} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50">
-              {conn.connector_logo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={conn.connector_logo} alt={conn.connector_name ?? 'banco'} className="w-8 h-8 rounded-full object-contain bg-white border border-gray-100" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                  <Building2 size={16} className="text-gray-400" />
+            <div key={conn.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                {conn.connector_logo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={conn.connector_logo} alt={conn.connector_name ?? 'banco'} className="w-8 h-8 rounded-full object-contain bg-white border border-gray-100 shrink-0" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
+                    <Building2 size={16} className="text-gray-400" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-800 text-sm truncate">{conn.connector_name ?? 'Banco'}</p>
+                  <p className="text-xs text-gray-400">
+                    {conn.last_synced_at
+                      ? `Sincronizado ${new Date(conn.last_synced_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}`
+                      : 'Nunca sincronizado'}
+                  </p>
                 </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-800 text-sm truncate">{conn.connector_name ?? 'Banco'}</p>
-                <p className="text-xs text-gray-400">
-                  {conn.last_synced_at
-                    ? `Sincronizado ${new Date(conn.last_synced_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}`
-                    : 'Nunca sincronizado'}
-                </p>
               </div>
-              <button
-                onClick={() => handleSync(conn)}
-                disabled={!!syncing}
-                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-[#1B4332]/10 text-[#1B4332] hover:bg-[#1B4332]/20 transition disabled:opacity-40 font-medium"
-              >
-                {syncing === conn.item_id
-                  ? <Loader2 size={13} className="animate-spin" />
-                  : <RefreshCw size={13} />}
-                Sincronizar
-              </button>
-              {role === 'owner' && (
+              <div className="flex items-center gap-2 self-end sm:self-auto">
                 <button
-                  onClick={() => handleRemoveConnection(conn)}
+                  onClick={() => handleSync(conn)}
                   disabled={!!syncing}
-                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition disabled:opacity-40 font-medium"
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-[#1B4332]/10 text-[#1B4332] hover:bg-[#1B4332]/20 transition disabled:opacity-40 font-medium"
                 >
-                  <Link2Off size={13} />
-                  Remover
+                  {syncing === conn.item_id
+                    ? <Loader2 size={13} className="animate-spin" />
+                    : <RefreshCw size={13} />}
+                  Sincronizar
                 </button>
-              )}
+                {role === 'owner' && (
+                  <button
+                    onClick={() => handleRemoveConnection(conn)}
+                    disabled={!!syncing}
+                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition disabled:opacity-40 font-medium"
+                  >
+                    <Link2Off size={13} />
+                    Remover
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
