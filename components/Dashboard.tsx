@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { ChevronRight, Calendar, X, Circle, CheckCircle2 } from 'lucide-react'
+import { ChevronRight, X, Circle, CheckCircle2 } from 'lucide-react'
 import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
 import LoadingPage from './LoadingPage'
 import BillingBanner from './BillingBanner'
@@ -18,7 +18,6 @@ import CategoryExpensesAside from './charts/CategoryExpensesAside'
 import {
   applyMask,
   parseMasked,
-  applyDateMask,
   parseDateDisplay,
   toLocalDateStr,
   toLocalDateDisplay,
@@ -210,7 +209,7 @@ export default function Dashboard({
     const todayInternal = toLocalDateStr(today)
     const internalDate = parseDateDisplay(expenseDate)
 
-    if (!internalDate) { toast.error('Data inválida. Use o formato DD/MM/AAAA.'); return }
+    if (!internalDate) { toast.error('Data inválida.'); return }
 
     if (internalDate !== todayInternal) {
       const [y, m, d] = internalDate.split('-').map(Number)
@@ -331,7 +330,7 @@ export default function Dashboard({
     if (!editingExpense.categoryId) { toast.error('Selecione uma categoria.'); return }
 
     const internalDate = parseDateDisplay(editingExpense.dateDisplay)
-    if (!internalDate) { toast.error('Data inválida. Use o formato DD/MM/AAAA.'); return }
+    if (!internalDate) { toast.error('Data inválida.'); return }
 
     const today = new Date()
     const [ey, em, ed] = internalDate.split('-').map(Number)
@@ -609,9 +608,7 @@ export default function Dashboard({
         const { description: editDesc, amountDisplay, categoryId, dateDisplay, paid: editPaid, financialAccountId } = editingExpense
         const parsedAmount = parseMasked(amountDisplay)
         const amountValid = parsedAmount > 0 && parsedAmount <= 1_000_000
-        const digitsTyped = dateDisplay.replace(/\D/g, '').length
-        const dateValid = parseDateDisplay(dateDisplay) !== ''
-        const showDateError = digitsTyped === 8 && !dateValid
+        const showDateError = dateDisplay !== '' && parseDateDisplay(dateDisplay) === ''
 
         return (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -663,18 +660,19 @@ export default function Dashboard({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Data</label>
-                  <div className="relative">
-                    <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={dateDisplay}
-                      onChange={e => setEditingExpense(prev => prev ? { ...prev, dateDisplay: applyDateMask(e.target.value) } : null)}
-                      placeholder="DD/MM/AAAA"
-                      maxLength={10}
-                      className={`w-full pl-9 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm ${showDateError ? 'border-red-400' : 'border-gray-300'}`}
-                    />
-                  </div>
+                  <input
+                    type="date"
+                    value={parseDateDisplay(dateDisplay) || ''}
+                    onChange={e => {
+                      if (e.target.value) {
+                        const [y, m, d] = e.target.value.split('-')
+                        setEditingExpense(prev => prev ? { ...prev, dateDisplay: `${d}/${m}/${y}` } : null)
+                      } else {
+                        setEditingExpense(prev => prev ? { ...prev, dateDisplay: '' } : null)
+                      }
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm ${showDateError ? 'border-red-400' : 'border-gray-300'}`}
+                  />
                   {showDateError && <p className="text-xs text-red-500 mt-1">Data inválida.</p>}
                 </div>
 

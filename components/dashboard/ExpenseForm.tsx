@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { PlusCircle, Calendar, ChevronDown, Repeat, Circle, CheckCircle2, X } from 'lucide-react'
+import { PlusCircle, ChevronDown, Repeat, Circle, CheckCircle2, X } from 'lucide-react'
 import {
   applyMask,
-  applyDateMask,
   parseDateDisplay,
   toLocalDateStr,
   FIELD_PATTERN,
@@ -191,18 +190,17 @@ export default function ExpenseForm({
               {/* Data */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Data</label>
-                <div className="relative">
-                  <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={expenseDate}
-                    onChange={e => setExpenseDate(applyDateMask(e.target.value))}
-                    placeholder="DD/MM/AAAA"
-                    maxLength={10}
-                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-700 text-sm"
-                  />
-                </div>
+                <input
+                  type="date"
+                  value={parseDateDisplay(expenseDate) || ''}
+                  onChange={e => {
+                    if (e.target.value) {
+                      const [y, m, d] = e.target.value.split('-')
+                      setExpenseDate(`${d}/${m}/${y}`)
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-700 text-sm"
+                />
               </div>
 
               {/* Quantidade */}
