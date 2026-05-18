@@ -57,7 +57,7 @@ const features = [
   },
   {
     icon: Building2,
-    title: 'Contas financeiras',
+    title: 'Contas',
     description:
       'Organize seu dinheiro em contas separadas — carteira, conta corrente, poupança. Saldo atualizado automaticamente.',
   },
@@ -89,7 +89,7 @@ const planFeatures = [
   'Exportação de dados',
   'Categorias personalizadas',
   'Parcelamento automático',
-  'Contas financeiras separadas',
+  'Contas separadas',
   'Conciliação bancária via Open Finance',
   'Acesso via PWA (app nativo)',
   'Suporte por e-mail',
@@ -437,7 +437,7 @@ export default function LandingPage() {
                 'Suporte a +200 bancos e fintechs brasileiras',
                 'Conexão segura via Open Finance (Banco Central)',
                 'Transações importadas com categoria sugerida',
-                'Múltiplas contas financeiras em um só lugar',
+                'Múltiplas contas em um só lugar',
               ].map(item => (
                 <li key={item} className="flex items-center gap-3 text-gray-600 text-sm">
                   <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">

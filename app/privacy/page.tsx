@@ -37,7 +37,7 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-semibold text-gray-800 mb-3">2. Dados que coletamos</h2>
             <ul className="list-disc pl-5 space-y-2">
               <li><strong>Cadastro:</strong> nome e endereço de e-mail fornecidos no momento do registro.</li>
-              <li><strong>Dados financeiros:</strong> despesas, categorias e contas financeiras que você cadastra voluntariamente.</li>
+              <li><strong>Dados financeiros:</strong> despesas, categorias e contas que você cadastra voluntariamente.</li>
               <li><strong>Conexões bancárias:</strong> quando você conecta uma conta bancária via Pluggy, recebemos transações e saldos diretamente da instituição financeira, com sua autorização expressa.</li>
               <li><strong>Dados de pagamento:</strong> assinatura processada pela Stripe; não armazenamos dados de cartão — eles ficam integralmente na Stripe.</li>
               <li><strong>Dados técnicos:</strong> endereço IP, tipo de navegador e logs de acesso para fins de segurança e diagnóstico.</li>

@@ -51,7 +51,7 @@ export default function DashboardHeader({ profile }: Props) {
           <Link
             href="/app/accounts"
             className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
-            title="Contas financeiras"
+            title="Contas"
           >
             <Landmark size={20} className="text-gray-600" />
             <span className="text-gray-700 font-medium hidden sm:inline">Contas</span>

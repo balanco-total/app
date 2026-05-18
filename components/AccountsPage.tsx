@@ -167,7 +167,7 @@ export default function AccountsPage({ profile, account }: { profile: Profile; a
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
               <Landmark size={22} className="text-[#1B4332]" />
-              Contas Financeiras
+              Contas
             </h2>
             {!showForm && (
               <button

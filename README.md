@@ -155,9 +155,9 @@ app/
 
 ---
 
-## Contas financeiras
+## Contas
 
-- Cada conta pode ter N contas financeiras (ex.: Carteira, Nubank, Itaú).
+- Cada conta pode ter N contas (ex.: Carteira, Nubank, Itaú).
 - Uma conta "Carteira" é criada automaticamente no cadastro.
 - O saldo de cada conta financeira é mantido em sincronia por trigger: atualizado automaticamente quando lançamentos pagos são inseridos, editados ou excluídos.
 - Lançamentos podem ser vinculados a uma conta financeira (campo opcional).
@@ -252,7 +252,7 @@ Migrations em `supabase/migrations/` (executar em ordem alfabética = cronológi
 | `profiles` | Estende `auth.users`; armazena nome, papel (owner/member) e flag `is_disabled` |
 | `categories` | Categorias por conta; nome único case-insensitive |
 | `expenses` | Lançamentos; `user_id` referencia `profiles.id` |
-| `financial_accounts` | Contas financeiras por account (ex.: Carteira, Nubank); saldo mantido por trigger |
+| `financial_accounts` | Contas por account (ex.: Carteira, Nubank); saldo mantido por trigger |
 | `bank_connections` | Conexões Open Finance via Pluggy |
 
 - `profiles.id = auth.users.id` (mesmo UUID).
