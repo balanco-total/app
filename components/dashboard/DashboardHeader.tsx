@@ -45,7 +45,7 @@ export default function DashboardHeader({ profile }: Props) {
             title="Ver gráficos"
           >
             <PieChart size={20} className="text-gray-600" />
-            <span className="text-gray-700 font-medium">Gráficos</span>
+            <span className="text-gray-700 font-medium hidden sm:inline">Gráficos</span>
           </Link>
 
           <Link

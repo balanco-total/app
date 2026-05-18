@@ -43,14 +43,14 @@ export default function CategorySummary({
   return (
     <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-1">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
         <div>
           <h2 className="text-xl font-bold text-gray-800">Despesa por categoria</h2>
           {onCategoryClick && categoriesWithExpenses.length > 0 && (
             <p className="text-xs text-gray-400 mt-0.5">Clique em uma categoria para ver as despesas</p>
           )}
         </div>
-        <div className="flex items-center gap-1 sm:self-auto">
+        <div className="flex items-center gap-1 sm:self-auto mt-2 sm:mt-0">
           <button
             onClick={() => onShiftMonth(-1)}
             className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500 hover:text-gray-700"
