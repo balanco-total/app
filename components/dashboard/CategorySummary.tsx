@@ -77,7 +77,7 @@ export default function CategorySummary({
       {/* Totals */}
       <div className="bg-red-50 rounded-lg p-4 mb-4 flex justify-between items-start gap-4">
         <div>
-          <p className="text-sm text-gray-600">Total do mês</p>
+          <p className="text-sm text-gray-600">Despesas do mês</p>
           <p className="sm:text-3xl text-xl font-bold text-red-600">
             R$ {totalMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
