@@ -34,7 +34,7 @@ export default async function ConfirmPage({
             </p>
             <Link
               href="/app"
-              className="inline-block w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-blue-700 transition-colors"
+              className="inline-block w-full bg-[#1B4332] hover:bg-[#14532d] text-white font-semibold py-3 px-6 rounded-xl transition-colors"
             >
               Adicionar minha primeira despesa
             </Link>
@@ -50,7 +50,7 @@ export default async function ConfirmPage({
             </p>
             <Link
               href="/signup"
-              className="inline-block w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-blue-700 transition-colors"
+              className="inline-block w-full bg-[#1B4332] hover:bg-[#14532d] text-white font-semibold py-3 px-6 rounded-xl transition-colors"
             >
               Criar nova conta
             </Link>
