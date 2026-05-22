@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     password,
     options: {
       data: { name: name.trim() },
-      emailRedirectTo: `${origin}/confirm`,
+      emailRedirectTo: `${origin}/api/auth/callback`,
     },
   })
 

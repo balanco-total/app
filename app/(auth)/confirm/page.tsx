@@ -6,23 +6,17 @@ import { CheckCircle, XCircle } from 'lucide-react'
 export default async function ConfirmPage({
   searchParams,
 }: {
-  searchParams: { token_hash?: string; type?: string; code?: string }
+  searchParams: { verified?: string; token_hash?: string; type?: string }
 }) {
-  const { token_hash, type, code } = searchParams
+  const { verified, token_hash, type } = searchParams
 
-  let confirmed = false
+  let confirmed = verified === '1'
 
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
-
-  if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) confirmed = true
-  } else if (token_hash && type === 'signup') {
-    const { error } = await supabase.auth.verifyOtp({
-      token_hash,
-      type: 'signup',
-    })
+  // Fallback: token_hash flow (non-PKCE)
+  if (!confirmed && token_hash && type === 'signup') {
+    const cookieStore = await cookies()
+    const supabase = createClient(cookieStore)
+    const { error } = await supabase.auth.verifyOtp({ token_hash, type: 'signup' })
     if (!error) confirmed = true
   }
 
