@@ -35,10 +35,14 @@ export async function POST(request: Request) {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
+  const { origin } = new URL(request.url)
   const { error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { name: name.trim() } },
+    options: {
+      data: { name: name.trim() },
+      emailRedirectTo: `${origin}/confirm`,
+    },
   })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })

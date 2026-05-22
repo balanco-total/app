@@ -99,9 +99,10 @@ const planFeatures = [
 export default function LandingPage({
   searchParams,
 }: {
-  searchParams: { error?: string }
+  searchParams: { error?: string; code?: string }
 }) {
   if (searchParams.error) redirect('/confirm')
+  if (searchParams.code) redirect(`/confirm?code=${searchParams.code}`)
 
   return (
     <div className="min-h-screen bg-white">
