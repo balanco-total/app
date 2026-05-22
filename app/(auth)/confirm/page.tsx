@@ -14,7 +14,7 @@ export default async function ConfirmPage({
 
   // Fallback: token_hash flow (non-PKCE)
   if (!confirmed && token_hash && type === 'signup') {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
     const { error } = await supabase.auth.verifyOtp({ token_hash, type: 'signup' })
     if (!error) confirmed = true
