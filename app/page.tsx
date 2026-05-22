@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
 import {
@@ -95,7 +96,13 @@ const planFeatures = [
   'Suporte por e-mail',
 ]
 
-export default function LandingPage() {
+export default function LandingPage({
+  searchParams,
+}: {
+  searchParams: { error?: string }
+}) {
+  if (searchParams.error) redirect('/confirm')
+
   return (
     <div className="min-h-screen bg-white">
 
