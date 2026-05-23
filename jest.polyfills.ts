@@ -2,13 +2,13 @@
 // Required for: Next.js NextResponse/Request/Response in jsdom env, fetch in utils/pluggy.
 import { TextEncoder, TextDecoder } from 'util'
 
-if (typeof global.TextEncoder === 'undefined') {
-  // @ts-expect-error attaching to global
-  global.TextEncoder = TextEncoder
+const g = global as unknown as Record<string, unknown>
+
+if (typeof g.TextEncoder === 'undefined') {
+  g.TextEncoder = TextEncoder
 }
-if (typeof global.TextDecoder === 'undefined') {
-  // @ts-expect-error attaching to global
-  global.TextDecoder = TextDecoder
+if (typeof g.TextDecoder === 'undefined') {
+  g.TextDecoder = TextDecoder
 }
 
 // Provide Web Fetch API (Request/Response/Headers/fetch) in jsdom.
@@ -16,25 +16,20 @@ if (typeof global.TextDecoder === 'undefined') {
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const undici = require('undici')
-  if (typeof global.Request === 'undefined') {
-    // @ts-expect-error attaching to global
-    global.Request = undici.Request
+  if (typeof g.Request === 'undefined') {
+    g.Request = undici.Request
   }
-  if (typeof global.Response === 'undefined') {
-    // @ts-expect-error attaching to global
-    global.Response = undici.Response
+  if (typeof g.Response === 'undefined') {
+    g.Response = undici.Response
   }
-  if (typeof global.Headers === 'undefined') {
-    // @ts-expect-error attaching to global
-    global.Headers = undici.Headers
+  if (typeof g.Headers === 'undefined') {
+    g.Headers = undici.Headers
   }
-  if (typeof global.fetch === 'undefined') {
-    // @ts-expect-error attaching to global
-    global.fetch = undici.fetch
+  if (typeof g.fetch === 'undefined') {
+    g.fetch = undici.fetch
   }
-  if (typeof global.FormData === 'undefined') {
-    // @ts-expect-error attaching to global
-    global.FormData = undici.FormData
+  if (typeof g.FormData === 'undefined') {
+    g.FormData = undici.FormData
   }
 } catch {
   // undici is optional; tests that don't need fetch will still work.
