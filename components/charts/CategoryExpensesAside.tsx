@@ -50,7 +50,7 @@ export default function CategoryExpensesAside({
   const monthLabel = `${MONTHS_PT[selMonthNum - 1]} ${selYear}`
 
   const total = expenses.reduce((s, e) => s + e.amount, 0)
-  const sorted = [...expenses].sort((a, b) => b.date.localeCompare(a.date))
+  const sorted = [...expenses].sort((a, b) => a.date.localeCompare(b.date))
 
   return (
     <>
