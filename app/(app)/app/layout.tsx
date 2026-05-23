@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { AuthProvider } from '@/contexts/AuthContext'
 import UpdateBanner from '@/components/UpdateBanner'
+import SupportButton from '@/components/SupportButton'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies()
@@ -26,6 +27,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <AuthProvider>
       <UpdateBanner />
       {children}
+      <SupportButton />
     </AuthProvider>
   )
 }

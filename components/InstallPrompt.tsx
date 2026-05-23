@@ -29,6 +29,10 @@ export default function InstallPrompt() {
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('install-prompt-visibility', { detail: visible }))
+  }, [visible])
+
   const handleInstall = async () => {
     if (!deferredPrompt) return
     await deferredPrompt.prompt()
