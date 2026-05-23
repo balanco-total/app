@@ -47,6 +47,7 @@ Route groups `(auth)` and `(app)` are invisible in URLs. `/` is the public landi
 
 ### Components
 
+- `components/ui/` — design system primitives (`Button`, `Input`, `Modal`, `Card`). See **Design System** section below.
 - `components/Dashboard.tsx` — `'use client'`, main dashboard UI with all CRUD via Supabase browser client
 - `components/ChartsPage.tsx` — `'use client'`, analytics charts (pie, bar, monthly trend)
 - `components/UsersPage.tsx` — `'use client'`, member management (invite, disable, delete)
@@ -54,6 +55,10 @@ Route groups `(auth)` and `(app)` are invisible in URLs. `/` is the public landi
 - `components/BillingPage.tsx` — `'use client'`, subscription page with Stripe Checkout redirect
 - `components/BillingBanner.tsx` — `'use client'`, trial/subscription status banner shown in dashboard
 - `components/ProfilePage.tsx` — `'use client'`, profile settings, CSV/OFX import, data export, Pluggy bank connections
+
+### Shared utilities
+
+- `lib/utils.ts` — single source of truth for `applyMask`, `parseMasked`, `MAX_CENTS`, `FIELD_PATTERN`. `components/dashboard/helpers.ts`, `components/accounts/helpers.ts`, `components/profile/parsers.ts` re-export from here — **do not duplicate these functions locally**. If you need a new shared helper, add it here.
 
 ### Supabase Utilities
 
@@ -100,6 +105,105 @@ Four tables: `accounts`, `profiles` (extends `auth.users`), `categories`, `expen
 - RLS on all tables — never bypass with service role key on client
 - Members can only edit/delete their own expenses (enforced by RLS: `user_id = auth.uid()`)
 - Billing: R$7.99/month, 7-day free trial
+
+## Design System
+
+The project has a minimal design system in `components/ui/`. **Use the primitives — do not reinvent buttons, inputs, modals, or card containers inline.**
+
+### Color tokens (tailwind.config.js)
+
+| Token            | Hex       | Use                                          |
+|------------------|-----------|----------------------------------------------|
+| `brand-500`      | `#1B4332` | primary brand (base)                         |
+| `brand-600`      | `#163a2b` | primary hover                                |
+| `brand-700`      | `#14332a` | primary active / darker variant              |
+| `brand-{50..900}`| —         | full palette                                 |
+| `accent`         | `#F5A623` | secondary brand (CTAs, badges)               |
+| `accent-hover`   | `#e09510` | accent hover                                 |
+
+**Rules:**
+- **Never hardcode `#1B4332`, `#163a2b`, `#F5A623` (or any brand hex) in className.** Use `bg-brand-500`, `text-brand-600`, `focus:ring-brand-500`, `bg-brand-500/10`, etc.
+- The only legitimate hex literals for these colors are: SVG `fill`/`stroke` attributes (e.g. `components/Logo.tsx`) and `<meta name="theme-color">` in `app/layout.tsx`. Nothing else.
+- If you need a brand shade that doesn't exist in the palette, **extend `tailwind.config.js`** — don't introduce a one-off `[#xxxxxx]` arbitrary value.
+- Standard Tailwind colors (`bg-red-600`, `text-gray-700`, `bg-emerald-600`, etc.) are fine; the rule applies only to brand colors.
+
+### Primitives
+
+#### `<Button>` — `components/ui/Button.tsx`
+
+```tsx
+<Button
+  variant="primary" | "secondary" | "destructive"  // default: primary
+  size="sm" | "md" | "lg"                          // default: md
+  isLoading={boolean}                              // shows spinner, disables
+  fullWidth={boolean}
+  icon={<Icon />}                                  // leading icon
+  // …native button props (onClick, disabled, type, etc.)
+/>
+```
+
+- `primary` → `bg-brand-500 hover:bg-brand-600 text-white` (the most common CTA)
+- `secondary` → `bg-gray-100 hover:bg-gray-200 text-gray-700` (cancel, dismiss)
+- `destructive` → `bg-red-600 hover:bg-red-700 text-white` (confirm-delete, irreversible)
+- Sizes: `sm` = `px-3 py-2`, `md` = `px-4 py-2.5`, `lg` = `px-5 py-3`. Text size inherits from context; pass `className="text-sm"` if the surrounding context calls for it.
+- For a leading icon, prefer the `icon` prop over composing inside `children` — it keeps the gap/alignment consistent.
+- For "loading with spinner" use `isLoading={loading}`. Don't manually toggle a Loader2 inside children.
+- **When NOT to use `<Button>`**: text-only links (e.g. "Voltar ao login", "Esqueceu a senha?"), buttons with a deliberately non-standard color (e.g. the `bg-red-900` "Apagar conta" in DangerZoneCard, the emerald CTA in BillingPage), and icon-only utility buttons (close `X`, copy, paginator chevrons).
+
+#### `<Input>` — `components/ui/Input.tsx`
+
+```tsx
+<Input
+  label="E-mail"
+  error="Mensagem"                       // shows below, switches focus ring to red
+  variant="default" | "danger"           // default: default (brand ring)
+  // …native input props
+/>
+```
+
+- Encapsulates label + input + error message. Use for plain text/email/number inputs in forms.
+- **When NOT to use `<Input>`**: password fields (use `<PasswordInput>`), masked currency inputs in modals (Dashboard expense modals), `<select>` elements, `<textarea>`, native date pickers, and inputs whose visual treatment differs structurally (inline edit fields, inputs with adornments).
+
+#### `<Modal>` — `components/ui/Modal.tsx`
+
+```tsx
+<Modal
+  open={boolean}
+  onClose={() => void}                   // called on backdrop click + Escape
+  size="sm" | "md" | "lg"                // max-w-sm / md / lg
+  title="..."                            // optional, renders bold h3
+  showClose={boolean}                    // optional X icon top-right
+>
+  {content}
+</Modal>
+```
+
+- The backdrop click and Escape both invoke `onClose`. **For destructive operations in progress**, gate it: `onClose={loading ? () => {} : actualClose}` so the user can't accidentally dismiss mid-delete.
+- Don't recreate `fixed inset-0 bg-black/50 ...` wrappers inline; always wrap in `<Modal>`.
+
+#### `<Card>` — `components/ui/Card.tsx`
+
+```tsx
+<Card
+  padding="sm" | "md" | "lg"             // p-4 / p-6 / p-8 (default: md)
+  shadow="none" | "sm" | "md" | "lg" | "xl"   // default: lg
+>
+  {content}
+</Card>
+```
+
+- Use for any `bg-white rounded-2xl shadow-* p-*` container. Common pattern for auth pages and dashboard sections.
+
+### Performance patterns
+
+- **Don't `.find()` inside a render loop.** When you need to look up by id repeatedly (e.g. `categories.find(c => c.id === expense.category_id)` for each row), build a `Map` with `useMemo` once and use `.get()`:
+  ```tsx
+  const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c])), [categories])
+  // then in render:
+  const category = exp.category_id ? categoryMap.get(exp.category_id) : undefined
+  ```
+- **Wrap derived data in `useMemo`** when it traverses a list (filter/map/reduce/sort) and the source list isn't trivially small. `Dashboard.tsx` is the canonical example — see `categorySummary`, `totalMonth`, `totalUnpaid`.
+- New images sourced from URLs should use `next/image` (with `unoptimized` when the host is a third-party CDN like Pluggy whose domain isn't allowlisted in `next.config.js`).
 
 ### Billing Flow (Stripe)
 
