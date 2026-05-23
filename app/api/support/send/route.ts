@@ -1,22 +1,13 @@
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import nodemailer from 'nodemailer'
+import { escapeHtml, sendMail } from '@/lib/email'
 
 const ALLOWED_CATEGORIES = ['Reclamação', 'Elogio', 'Dúvida', 'Sugestão', 'Bug', 'Outro'] as const
 type Category = (typeof ALLOWED_CATEGORIES)[number]
 
 const MIN_MESSAGE = 10
 const MAX_MESSAGE = 2000
-
-function escapeHtml(text: string) {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
 
 export async function POST(request: Request) {
   const cookieStore = await cookies()
@@ -58,24 +49,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Mensagem deve ter no máximo ${MAX_MESSAGE} caracteres.` }, { status: 400 })
   }
 
-  const host = process.env.SMTP_HOST
-  const port = Number(process.env.SMTP_PORT || 587)
-  const smtpUser = process.env.SMTP_USER
-  const smtpPass = process.env.SMTP_PASS
-  const from = process.env.SMTP_FROM
   const to = process.env.SUPPORT_EMAIL
-
-  if (!host || !smtpUser || !smtpPass || !from || !to) {
-    console.error('[support] SMTP environment variables missing')
+  if (!to) {
+    console.error('[support] SUPPORT_EMAIL environment variable missing')
     return NextResponse.json({ error: 'Configuração de e-mail incompleta.' }, { status: 500 })
   }
-
-  const transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user: smtpUser, pass: smtpPass },
-  })
 
   const subject = `Suporte [${category}] - ${profile.name}`
   const text = `De: ${profile.name} <${user.email}>\nCategoria: ${category}\n\n${message}`
@@ -87,14 +65,7 @@ export async function POST(request: Request) {
   `
 
   try {
-    await transporter.sendMail({
-      from,
-      to,
-      replyTo: user.email,
-      subject,
-      text,
-      html,
-    })
+    await sendMail({ to, replyTo: user.email, subject, text, html })
   } catch (err) {
     console.error('[support] Failed to send email:', err)
     return NextResponse.json({ error: 'Falha ao enviar mensagem. Tente novamente.' }, { status: 502 })

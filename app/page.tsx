@@ -17,6 +17,7 @@ import {
   Building2,
   RefreshCw,
   Landmark,
+  Mail,
 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -62,6 +63,12 @@ const features = [
     description:
       'Organize seu dinheiro em contas separadas — carteira, conta corrente, poupança. Saldo atualizado automaticamente.',
   },
+  {
+    icon: Mail,
+    title: 'Aviso semanal por e-mail',
+    description:
+      'Toda segunda-feira pela manhã você recebe um resumo das despesas em aberto da semana — para não esquecer nenhum vencimento.',
+  },
 ]
 
 const steps = [
@@ -92,6 +99,7 @@ const planFeatures = [
   'Parcelamento automático',
   'Contas separadas',
   'Conciliação bancária via Open Finance',
+  'Aviso semanal por e-mail das despesas a vencer',
   'Acesso via PWA (app nativo)',
   'Suporte por e-mail',
 ]

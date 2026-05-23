@@ -12,3 +12,7 @@ export function parseMasked(value: string): number {
 }
 
 export const FIELD_PATTERN = /[^a-zA-Z0-9\-\/\. À-ÿ]/g
+
+export function formatBRL(amount: number): string {
+  return amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
