@@ -5,6 +5,8 @@ import { Upload, FileText, AlertCircle, Check, X, Loader2 } from 'lucide-react'
 import { parseCSV, parseOFX } from './parsers'
 import type { ParsedRow } from './types'
 
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024 // 10 MB
+
 export default function ImportCard() {
   const [isDragging, setIsDragging] = useState(false)
   const [importFileName, setImportFileName] = useState('')
@@ -25,6 +27,10 @@ export default function ImportCard() {
     const ext = file.name.split('.').pop()?.toLowerCase()
     if (ext !== 'csv' && ext !== 'ofx') {
       setImportError('Formato não suportado. Use .csv ou .ofx.')
+      return
+    }
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setImportError('Arquivo muito grande. O limite é de 10 MB.')
       return
     }
     const reader = new FileReader()

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Trash2, ChevronDown, Circle, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const PAGE_SIZE = 10
@@ -33,15 +33,27 @@ export default function RecentExpenses({
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
   const [page, setPage] = useState(0)
 
-  const filtered = expenses.filter(e =>
-    (
-      !filterCategoryId ||
-      (filterCategoryId === '__no_category__' ? !e.category_id : e.category_id === filterCategoryId)
-    ) &&
-    (
-      !filterAccountId ||
-      (filterAccountId === '__no_account__' ? !e.financial_account_id : e.financial_account_id === filterAccountId)
-    )
+  const categoryMap = useMemo(
+    () => new Map(categories.map(c => [c.id, c])),
+    [categories],
+  )
+  const accountMap = useMemo(
+    () => new Map(financialAccounts.map(a => [a.id, a])),
+    [financialAccounts],
+  )
+
+  const filtered = useMemo(
+    () => expenses.filter(e =>
+      (
+        !filterCategoryId ||
+        (filterCategoryId === '__no_category__' ? !e.category_id : e.category_id === filterCategoryId)
+      ) &&
+      (
+        !filterAccountId ||
+        (filterAccountId === '__no_account__' ? !e.financial_account_id : e.financial_account_id === filterAccountId)
+      ),
+    ),
+    [expenses, filterCategoryId, filterAccountId],
   )
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
@@ -94,8 +106,8 @@ export default function RecentExpenses({
       {/* List */}
       <div className="space-y-2">
         {paginated.map(exp => {
-          const category = categories.find(c => c.id === exp.category_id)
-          const financialAccount = financialAccounts.find(a => a.id === exp.financial_account_id)
+          const category = exp.category_id ? categoryMap.get(exp.category_id) : undefined
+          const financialAccount = exp.financial_account_id ? accountMap.get(exp.financial_account_id) : undefined
           const date = new Date(exp.date)
           const createdAt = new Date(exp.created_at)
           const isOwn = exp.user_id === user.id

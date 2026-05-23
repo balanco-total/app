@@ -7,6 +7,9 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import Logo from '@/components/Logo'
 import PasswordInput from '@/components/PasswordInput'
+import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+import Card from '@/components/ui/Card'
 
 const MAX_EMAIL = 100
 const MAX_PASSWORD = 40
@@ -72,7 +75,7 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+      <Card shadow="xl" padding="lg" className="max-w-md w-full">
         <div className="flex justify-center mb-4"><Logo /></div>
 
         {view === 'recovery' ? (
@@ -92,32 +95,30 @@ function LoginForm() {
                 </p>
                 <button
                   onClick={() => { setView('login'); setRecoverySent(false) }}
-                  className="text-[#1B4332] font-semibold hover:underline text-sm"
+                  className="text-brand-500 font-semibold hover:underline text-sm"
                 >
                   Voltar ao login
                 </button>
               </div>
             ) : (
               <form onSubmit={handleRecovery} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
-                  <input
-                    type="email"
-                    value={recoveryEmail}
-                    onChange={e => setRecoveryEmail(e.target.value)}
-                    required
-                    autoFocus
-                    maxLength={MAX_EMAIL}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
-                  />
-                </div>
-                <button
+                <Input
+                  label="E-mail"
+                  type="email"
+                  value={recoveryEmail}
+                  onChange={e => setRecoveryEmail(e.target.value)}
+                  required
+                  autoFocus
+                  maxLength={MAX_EMAIL}
+                />
+                <Button
                   type="submit"
-                  disabled={recoveryLoading}
-                  className="w-full bg-[#1B4332] text-white py-3 rounded-lg font-semibold hover:bg-[#163a2b] transition disabled:opacity-50"
+                  size="lg"
+                  fullWidth
+                  isLoading={recoveryLoading}
                 >
                   {recoveryLoading ? 'Enviando...' : 'Enviar link de recuperação'}
-                </button>
+                </Button>
                 <button
                   type="button"
                   onClick={() => setView('login')}
@@ -147,17 +148,14 @@ function LoginForm() {
               {error && (
                 <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">{error}</div>
               )}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  maxLength={MAX_EMAIL}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
-                />
-              </div>
+              <Input
+                label="E-mail"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                maxLength={MAX_EMAIL}
+              />
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <label className="block text-sm font-medium text-gray-700">Senha</label>
@@ -165,7 +163,7 @@ function LoginForm() {
                     type="button"
                     onClick={switchToRecovery}
                     tabIndex={-1}
-                    className="text-xs text-[#1B4332] hover:text-[#163a2b] hover:underline transition"
+                    className="text-xs text-brand-500 hover:text-brand-600 hover:underline transition"
                   >
                     Esqueceu a senha?
                   </button>
@@ -177,18 +175,19 @@ function LoginForm() {
                   maxLength={MAX_PASSWORD}
                 />
               </div>
-              <button
+              <Button
                 type="submit"
-                disabled={loading}
-                className="w-full bg-[#1B4332] text-white py-3 rounded-lg font-semibold hover:bg-[#163a2b] transition disabled:opacity-50"
+                size="lg"
+                fullWidth
+                isLoading={loading}
               >
                 {loading ? 'Entrando...' : 'Entrar'}
-              </button>
+              </Button>
             </form>
 
             <p className="mt-6 text-center text-gray-600">
               Não tem conta?{' '}
-              <Link href="/signup" className="text-[#1B4332] font-semibold hover:underline">
+              <Link href="/signup" className="text-brand-500 font-semibold hover:underline">
                 Cadastre-se
               </Link>
             </p>
@@ -199,7 +198,7 @@ function LoginForm() {
             </p>
           </>
         )}
-      </div>
+      </Card>
     </div>
   )
 }

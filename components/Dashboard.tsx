@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { ChevronRight, X, Circle, CheckCircle2 } from 'lucide-react'
 import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
@@ -410,13 +410,36 @@ export default function Dashboard({
 
   // ── Derived state ──────────────────────────
 
-  const categorySummary = categories.map(cat => ({
-    ...cat,
-    total: monthlyData.filter(e => e.category_id === cat.id).reduce((sum, e) => sum + e.amount, 0),
-  })).sort((a, b) => b.total - a.total)
+  const categoryMap = useMemo(
+    () => new Map(categories.map(c => [c.id, c])),
+    [categories],
+  )
 
-  const totalMonth = monthlyData.reduce((sum, e) => sum + e.amount, 0)
-  const totalUnpaid = monthlyData.filter(e => !e.paid_at).reduce((sum, e) => sum + e.amount, 0)
+  const expenseMap = useMemo(
+    () => new Map(expenses.map(e => [e.id, e])),
+    [expenses],
+  )
+
+  const categorySummary = useMemo(() => {
+    const totalsByCategory = new Map<string, number>()
+    for (const e of monthlyData) {
+      if (!e.category_id) continue
+      totalsByCategory.set(e.category_id, (totalsByCategory.get(e.category_id) ?? 0) + e.amount)
+    }
+    return categories
+      .map(cat => ({ ...cat, total: totalsByCategory.get(cat.id) ?? 0 }))
+      .sort((a, b) => b.total - a.total)
+  }, [categories, monthlyData])
+
+  const { totalMonth, totalUnpaid } = useMemo(() => {
+    let total = 0
+    let unpaid = 0
+    for (const e of monthlyData) {
+      total += e.amount
+      if (!e.paid_at) unpaid += e.amount
+    }
+    return { totalMonth: total, totalUnpaid: unpaid }
+  }, [monthlyData])
 
   // ── Loading ────────────────────────────────
 
@@ -486,9 +509,11 @@ export default function Dashboard({
 
       {/* ── Modal: Confirm category change ────────── */}
       {pendingCategoryChange && (() => {
-        const exp = expenses.find(e => e.id === pendingCategoryChange.expenseId)
-        const from = categories.find(c => c.id === exp?.category_id)
-        const to = categories.find(c => c.id === pendingCategoryChange.newCategoryId)
+        const exp = expenseMap.get(pendingCategoryChange.expenseId)
+        const from = exp?.category_id ? categoryMap.get(exp.category_id) : undefined
+        const to = pendingCategoryChange.newCategoryId
+          ? categoryMap.get(pendingCategoryChange.newCategoryId)
+          : undefined
         return (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
