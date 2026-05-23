@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import InstallPrompt from '@/components/InstallPrompt'
 import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 export const metadata: Metadata = {
   title: 'BalançoTotal',
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <InstallPrompt />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
