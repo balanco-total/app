@@ -88,7 +88,7 @@ export default function ImportCard() {
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6">
       <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4">
-        <Upload size={20} className="text-[#1B4332]" />
+        <Upload size={20} className="text-brand-500" />
         Importar lançamentos
       </h2>
 
@@ -154,7 +154,7 @@ export default function ImportCard() {
           </p>
 
           {importError && (
-            <p className="text-sm text-[#1B4332]/80 flex items-center gap-1.5">
+            <p className="text-sm text-brand-500/80 flex items-center gap-1.5">
               <AlertCircle size={14} className="shrink-0" />
               {importError}
             </p>
@@ -164,7 +164,7 @@ export default function ImportCard() {
             <button
               onClick={handleImport}
               disabled={importLoading}
-              className="flex items-center gap-2 bg-[#1B4332] text-white px-5 py-2.5 rounded-lg hover:bg-[#163a2b] transition disabled:opacity-50 font-medium"
+              className="flex items-center gap-2 bg-brand-500 text-white px-5 py-2.5 rounded-lg hover:bg-brand-600 transition disabled:opacity-50 font-medium"
             >
               {importLoading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
               {importLoading ? 'Importando...' : `Importar ${importRows.length} lançamentos`}
@@ -186,13 +186,13 @@ export default function ImportCard() {
           </p>
           <label
             className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-8 cursor-pointer transition
-              ${isDragging ? 'border-[#1B4332] bg-green-50' : 'border-gray-200 hover:border-[#1B4332]/40 hover:bg-gray-50'}`}
+              ${isDragging ? 'border-brand-500 bg-green-50' : 'border-gray-200 hover:border-brand-500/40 hover:bg-gray-50'}`}
             onDragEnter={e => { e.preventDefault(); setIsDragging(true) }}
             onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
             onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false) }}
             onDrop={handleDrop}
           >
-            <FileText size={32} className={isDragging ? 'text-[#1B4332]' : 'text-gray-300'} />
+            <FileText size={32} className={isDragging ? 'text-brand-500' : 'text-gray-300'} />
             <p className="mt-2 font-medium text-gray-600">Arraste um arquivo aqui</p>
             <p className="text-sm text-gray-400">ou clique para selecionar</p>
             <p className="text-xs text-gray-300 mt-1">.csv · .ofx</p>

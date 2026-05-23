@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { ChevronRight, X, Circle, CheckCircle2 } from 'lucide-react'
+import { ChevronRight, Circle, CheckCircle2 } from 'lucide-react'
 import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
 import LoadingPage from './LoadingPage'
 import BillingBanner from './BillingBanner'
+import Button from './ui/Button'
+import Modal from './ui/Modal'
 
 // Sub-components
 import DashboardHeader from './dashboard/DashboardHeader'
@@ -515,38 +517,40 @@ export default function Dashboard({
           ? categoryMap.get(pendingCategoryChange.newCategoryId)
           : undefined
         return (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
-              <h3 className="text-lg font-bold text-gray-800 mb-1">Alterar categoria</h3>
-              <p className="text-sm text-gray-500 mb-4 truncate">{exp?.description}</p>
-              <div className="flex items-center gap-3 mb-6">
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${from?.color ?? 'bg-gray-400'} text-white`}>
-                  {from?.name ?? 'Sem categoria'}
-                </span>
-                <ChevronRight size={16} className="text-gray-400 shrink-0" />
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${to?.color ?? 'bg-gray-400'} text-white`}>
-                  {to?.name ?? 'Sem categoria'}
-                </span>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    updateExpenseCategory(pendingCategoryChange.expenseId, pendingCategoryChange.newCategoryId)
-                    setPendingCategoryChange(null)
-                  }}
-                  className="flex-1 bg-red-600 text-white py-2.5 rounded-lg font-semibold hover:bg-red-700 transition"
-                >
-                  Confirmar
-                </button>
-                <button
-                  onClick={() => setPendingCategoryChange(null)}
-                  className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition"
-                >
-                  Cancelar
-                </button>
-              </div>
+          <Modal open={true} onClose={() => setPendingCategoryChange(null)} size="sm">
+            <h3 className="text-lg font-bold text-gray-800 mb-1">Alterar categoria</h3>
+            <p className="text-sm text-gray-500 mb-4 truncate">{exp?.description}</p>
+            <div className="flex items-center gap-3 mb-6">
+              <span className={`px-3 py-1 rounded-full text-xs font-medium ${from?.color ?? 'bg-gray-400'} text-white`}>
+                {from?.name ?? 'Sem categoria'}
+              </span>
+              <ChevronRight size={16} className="text-gray-400 shrink-0" />
+              <span className={`px-3 py-1 rounded-full text-xs font-medium ${to?.color ?? 'bg-gray-400'} text-white`}>
+                {to?.name ?? 'Sem categoria'}
+              </span>
             </div>
-          </div>
+            <div className="flex gap-3">
+              <Button
+                variant="destructive"
+                size="md"
+                onClick={() => {
+                  updateExpenseCategory(pendingCategoryChange.expenseId, pendingCategoryChange.newCategoryId)
+                  setPendingCategoryChange(null)
+                }}
+                className="flex-1"
+              >
+                Confirmar
+              </Button>
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={() => setPendingCategoryChange(null)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </Modal>
         )
       })()}
 
@@ -558,73 +562,75 @@ export default function Dashboard({
         const amountChanged = isValid && newAmount !== exp.amount
         const accountChanged = financialAccountId !== (exp.financial_account_id ?? '')
         return (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
-              <h3 className="text-lg font-bold text-gray-800 mb-1">Marcar como pago?</h3>
-              <p className="text-sm text-gray-500 mb-4 truncate">{exp.description}</p>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Valor (R$)</label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={amountDisplay}
-                  onChange={e => setPendingPaidToggle(prev => prev ? { ...prev, amountDisplay: applyMask(e.target.value) } : null)}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${!isValid && amountDisplay ? 'border-red-400' : 'border-gray-300'}`}
-                />
-                {!isValid && amountDisplay && <p className="text-xs text-red-500 mt-1">Valor inválido.</p>}
-              </div>
-              {financialAccounts.length > 0 && (
-                <div className="mb-5">
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Conta</label>
-                  <select
-                    value={financialAccountId}
-                    onChange={e => setPendingPaidToggle(prev => prev ? { ...prev, financialAccountId: e.target.value } : null)}
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm ${!financialAccountId ? 'text-gray-400' : 'text-gray-700'} border-gray-300`}
-                  >
-                    <option value="">Selecione uma conta</option>
-                    {financialAccounts.map(acc => (
-                      <option key={acc.id} value={acc.id}>
-                        {acc.name}{acc.is_default ? ' (padrão)' : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              <div className="flex gap-3">
-                <button
-                  disabled={!isValid}
-                  onClick={async () => {
-                    if (!isValid) return
-                    if (financialAccounts.length > 0 && !financialAccountId) { toast.error('Selecione uma conta.'); return }
-                    const now = new Date().toISOString()
-                    const updates: Record<string, unknown> = { paid_at: now }
-                    if (amountChanged) updates.amount = newAmount
-                    if (accountChanged) updates.financial_account_id = financialAccountId || null
-                    const { error } = await supabase.from('expenses').update(updates).eq('id', exp.id)
-                    if (error) { toast.error('Erro ao atualizar lançamento.'); return }
-                    const updatedFields = {
-                      paid_at: now,
-                      ...(amountChanged ? { amount: newAmount } : {}),
-                      ...(accountChanged ? { financial_account_id: financialAccountId || null } : {}),
-                    }
-                    setExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, ...updatedFields } : e))
-                    setAsideExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, ...updatedFields } : e))
-                    fetchMonthlySummary(selectedMonth)
-                    setPendingPaidToggle(null)
-                  }}
-                  className="flex-1 bg-red-600 text-white py-2.5 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {amountChanged ? 'Editar e pagar' : 'Marcar pago'}
-                </button>
-                <button
-                  onClick={() => setPendingPaidToggle(null)}
-                  className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition"
-                >
-                  Cancelar
-                </button>
-              </div>
+          <Modal open={true} onClose={() => setPendingPaidToggle(null)} size="sm">
+            <h3 className="text-lg font-bold text-gray-800 mb-1">Marcar como pago?</h3>
+            <p className="text-sm text-gray-500 mb-4 truncate">{exp.description}</p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Valor (R$)</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={amountDisplay}
+                onChange={e => setPendingPaidToggle(prev => prev ? { ...prev, amountDisplay: applyMask(e.target.value) } : null)}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${!isValid && amountDisplay ? 'border-red-400' : 'border-gray-300'}`}
+              />
+              {!isValid && amountDisplay && <p className="text-xs text-red-500 mt-1">Valor inválido.</p>}
             </div>
-          </div>
+            {financialAccounts.length > 0 && (
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Conta</label>
+                <select
+                  value={financialAccountId}
+                  onChange={e => setPendingPaidToggle(prev => prev ? { ...prev, financialAccountId: e.target.value } : null)}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm ${!financialAccountId ? 'text-gray-400' : 'text-gray-700'} border-gray-300`}
+                >
+                  <option value="">Selecione uma conta</option>
+                  {financialAccounts.map(acc => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.name}{acc.is_default ? ' (padrão)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="flex gap-3">
+              <Button
+                variant="destructive"
+                size="md"
+                disabled={!isValid}
+                onClick={async () => {
+                  if (!isValid) return
+                  if (financialAccounts.length > 0 && !financialAccountId) { toast.error('Selecione uma conta.'); return }
+                  const now = new Date().toISOString()
+                  const updates: Record<string, unknown> = { paid_at: now }
+                  if (amountChanged) updates.amount = newAmount
+                  if (accountChanged) updates.financial_account_id = financialAccountId || null
+                  const { error } = await supabase.from('expenses').update(updates).eq('id', exp.id)
+                  if (error) { toast.error('Erro ao atualizar lançamento.'); return }
+                  const updatedFields = {
+                    paid_at: now,
+                    ...(amountChanged ? { amount: newAmount } : {}),
+                    ...(accountChanged ? { financial_account_id: financialAccountId || null } : {}),
+                  }
+                  setExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, ...updatedFields } : e))
+                  setAsideExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, ...updatedFields } : e))
+                  fetchMonthlySummary(selectedMonth)
+                  setPendingPaidToggle(null)
+                }}
+                className="flex-1"
+              >
+                {amountChanged ? 'Editar e pagar' : 'Marcar pago'}
+              </Button>
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={() => setPendingPaidToggle(null)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </Modal>
         )
       })()}
 
@@ -636,16 +642,14 @@ export default function Dashboard({
         const showDateError = dateDisplay !== '' && parseDateDisplay(dateDisplay) === ''
 
         return (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-800">Editar lançamento</h3>
-                <button onClick={() => setEditingExpense(null)} className="text-gray-400 hover:text-gray-600 transition">
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="space-y-4">
+          <Modal
+            open={true}
+            onClose={() => setEditingExpense(null)}
+            size="sm"
+            title="Editar lançamento"
+            showClose
+          >
+            <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Descrição</label>
                   <input
@@ -732,22 +736,25 @@ export default function Dashboard({
                 )}
               </div>
 
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={saveEditedExpense}
-                  className="flex-1 bg-red-600 text-white py-2.5 rounded-lg font-semibold hover:bg-red-700 transition"
-                >
-                  Salvar
-                </button>
-                <button
-                  onClick={() => setEditingExpense(null)}
-                  className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition"
-                >
-                  Cancelar
-                </button>
-              </div>
+            <div className="flex gap-3 mt-6">
+              <Button
+                variant="destructive"
+                size="md"
+                onClick={saveEditedExpense}
+                className="flex-1"
+              >
+                Salvar
+              </Button>
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={() => setEditingExpense(null)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
             </div>
-          </div>
+          </Modal>
         )
       })()}
 

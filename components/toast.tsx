@@ -2,6 +2,8 @@
 
 import { useState, useRef } from 'react'
 import { CheckCircle, XCircle, AlertTriangle, X } from 'lucide-react'
+import Button from '@/components/ui/Button'
+import Modal from '@/components/ui/Modal'
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
 
@@ -87,28 +89,19 @@ export function useConfirm() {
 export function ConfirmModal({
   open, title, body, confirmLabel = 'Confirmar', onConfirm, onCancel,
 }: ConfirmState & { onConfirm: () => void; onCancel: () => void }) {
-  if (!open) return null
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
-        <h3 className="text-lg font-bold text-gray-800 mb-1">{title}</h3>
-        {body && <p className="text-sm text-gray-500 mb-5">{body}</p>}
-        {!body && <div className="mb-5" />}
-        <div className="flex gap-3">
-          <button
-            onClick={onConfirm}
-            className="flex-1 bg-red-600 text-white py-2.5 rounded-lg font-semibold hover:bg-red-700 transition"
-          >
-            {confirmLabel}
-          </button>
-          <button
-            onClick={onCancel}
-            className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition"
-          >
-            Cancelar
-          </button>
-        </div>
+    <Modal open={open} onClose={onCancel} size="sm">
+      <h3 className="text-lg font-bold text-gray-800 mb-1">{title}</h3>
+      {body && <p className="text-sm text-gray-500 mb-5">{body}</p>}
+      {!body && <div className="mb-5" />}
+      <div className="flex gap-3">
+        <Button variant="destructive" size="md" onClick={onConfirm} className="flex-1">
+          {confirmLabel}
+        </Button>
+        <Button variant="secondary" size="md" onClick={onCancel} className="flex-1">
+          Cancelar
+        </Button>
       </div>
-    </div>
+    </Modal>
   )
 }

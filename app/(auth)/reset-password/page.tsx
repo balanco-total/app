@@ -5,6 +5,8 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import PasswordInput from '@/components/PasswordInput'
+import Button from '@/components/ui/Button'
+import Card from '@/components/ui/Card'
 
 const MAX_PASSWORD = 40
 
@@ -68,22 +70,22 @@ export default function ResetPasswordPage() {
   if (status === 'invalid') {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+        <Card shadow="xl" padding="lg" className="max-w-md w-full text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-3">Link inválido ou expirado</h1>
           <p className="text-gray-500 mb-6">
             Este link de recuperação é inválido ou já expirou. Solicite um novo.
           </p>
-          <Link href="/login" className="text-[#1B4332] font-semibold hover:underline">
+          <Link href="/login" className="text-brand-500 font-semibold hover:underline">
             Voltar ao login
           </Link>
-        </div>
+        </Card>
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+      <Card shadow="xl" padding="lg" className="max-w-md w-full">
         <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">BalançoTotal</h1>
         <p className="text-gray-500 text-center mb-6">Criar nova senha</p>
 
@@ -112,15 +114,16 @@ export default function ResetPasswordPage() {
               maxLength={MAX_PASSWORD}
             />
           </div>
-          <button
+          <Button
             type="submit"
-            disabled={loading}
-            className="w-full bg-[#1B4332] text-white py-3 rounded-lg font-semibold hover:bg-[#163a2b] transition disabled:opacity-50"
+            size="lg"
+            fullWidth
+            isLoading={loading}
           >
             {loading ? 'Salvando...' : 'Salvar nova senha'}
-          </button>
+          </Button>
         </form>
-      </div>
+      </Card>
     </div>
   )
 }

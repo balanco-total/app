@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { User, Lock, Check, Loader2 } from 'lucide-react'
 import PasswordInput from '@/components/PasswordInput'
+import Button from '@/components/ui/Button'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { FIELD_PATTERN } from './parsers'
@@ -72,7 +73,7 @@ export default function PersonalInfoCard({ profile, email }: { profile: Profile;
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 space-y-6">
       <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-        <User size={20} className="text-[#1B4332]" />
+        <User size={20} className="text-brand-500" />
         Informações pessoais
       </h2>
 
@@ -85,19 +86,20 @@ export default function PersonalInfoCard({ profile, email }: { profile: Profile;
               value={name}
               onChange={e => setName(e.target.value.replace(FIELD_PATTERN, ''))}
               maxLength={60}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             />
-            <button
+            <Button
               type="submit"
+              size="sm"
               disabled={nameSaving || name.trim() === profile.name}
-              className="px-4 py-2 bg-[#1B4332] text-white rounded-lg hover:bg-[#163a2b] transition disabled:opacity-40 font-medium"
+              className="px-4 font-medium"
             >
               {nameSaving ? <Loader2 size={18} className="animate-spin" /> : 'Salvar'}
-            </button>
+            </Button>
           </div>
         </div>
         {nameMsg && (
-          <p className={`text-sm flex items-center gap-1 ${nameMsg.ok ? 'text-green-600' : 'text-[#1B4332]'}`}>
+          <p className={`text-sm flex items-center gap-1 ${nameMsg.ok ? 'text-green-600' : 'text-brand-500'}`}>
             {nameMsg.ok && <Check size={14} />}
             {nameMsg.text}
           </p>
@@ -130,17 +132,18 @@ export default function PersonalInfoCard({ profile, email }: { profile: Profile;
               placeholder="••••••••"
               wrapperClassName="flex-1"
             />
-            <button
+            <Button
               type="submit"
+              size="sm"
               disabled={passwordSaving || !currentPassword || !newPassword}
-              className="px-4 py-2 bg-[#1B4332] text-white rounded-lg hover:bg-[#163a2b] transition disabled:opacity-40 font-medium"
+              className="px-4 font-medium"
             >
               {passwordSaving ? <Loader2 size={18} className="animate-spin" /> : 'Alterar'}
-            </button>
+            </Button>
           </div>
         </div>
         {passwordMsg && (
-          <p className={`text-sm flex items-center gap-1 ${passwordMsg.ok ? 'text-green-600' : 'text-[#1B4332]'}`}>
+          <p className={`text-sm flex items-center gap-1 ${passwordMsg.ok ? 'text-green-600' : 'text-brand-500'}`}>
             {passwordMsg.ok && <Check size={14} />}
             {passwordMsg.text}
           </p>

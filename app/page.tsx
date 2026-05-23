@@ -114,13 +114,13 @@ export default function LandingPage({
           <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="text-sm font-medium text-gray-600 hover:text-[#1B4332] transition px-3 py-2"
+              className="text-sm font-medium text-gray-600 hover:text-brand-500 transition px-3 py-2"
             >
               Entrar
             </Link>
             <Link
               href="/signup"
-              className="text-sm font-semibold bg-[#1B4332] text-white px-4 py-2 rounded-lg hover:bg-[#163a2b] transition"
+              className="text-sm font-semibold bg-brand-500 text-white px-4 py-2 rounded-lg hover:bg-brand-600 transition"
             >
               Começar grátis
             </Link>
@@ -131,12 +131,12 @@ export default function LandingPage({
       {/* Hero */}
       <section className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 pt-20 pb-28 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-block bg-[#1B4332]/10 text-[#1B4332] text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
+          <span className="inline-block bg-brand-500/10 text-brand-500 text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
             7 dias grátis · Sem cartão de crédito
           </span>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 leading-tight mb-6">
             Anote suas despesas e{' '}
-            <span className="text-[#1B4332]">saiba para onde</span>{' '}
+            <span className="text-brand-500">saiba para onde</span>{' '}
             o dinheiro vai
           </h1>
           <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed">
@@ -146,7 +146,7 @@ export default function LandingPage({
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/signup"
-              className="inline-flex items-center justify-center gap-2 bg-[#1B4332] text-white text-base font-semibold px-7 py-4 rounded-xl hover:bg-[#163a2b] transition shadow-lg shadow-[#1B4332]/20"
+              className="inline-flex items-center justify-center gap-2 bg-brand-500 text-white text-base font-semibold px-7 py-4 rounded-xl hover:bg-brand-600 transition shadow-lg shadow-brand-500/20"
             >
               Começar grátis agora
               <ArrowRight className="w-5 h-5" />
@@ -162,12 +162,12 @@ export default function LandingPage({
       </section>
 
       {/* Social proof bar */}
-      <div className="bg-[#1B4332] py-4 px-4">
+      <div className="bg-brand-500 py-4 px-4">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 text-white/90 text-sm font-medium">
-          <span className="flex items-center gap-2"><Check className="w-4 h-4 text-[#F5A623]" /> Sem cartão de crédito</span>
-          <span className="flex items-center gap-2"><Check className="w-4 h-4 text-[#F5A623]" /> Cancele quando quiser</span>
-          <span className="flex items-center gap-2"><Check className="w-4 h-4 text-[#F5A623]" /> Suporte por e-mail</span>
-          <span className="flex items-center gap-2"><Check className="w-4 h-4 text-[#F5A623]" /> Dados protegidos</span>
+          <span className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Sem cartão de crédito</span>
+          <span className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Cancele quando quiser</span>
+          <span className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Suporte por e-mail</span>
+          <span className="flex items-center gap-2"><Check className="w-4 h-4 text-accent" /> Dados protegidos</span>
         </div>
       </div>
 
@@ -183,12 +183,12 @@ export default function LandingPage({
             </p>
           </div>
           {/* Card destaque — Compartilhe com a família */}
-          <div className="bg-[#1B4332] rounded-2xl p-8 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div className="bg-brand-500 rounded-2xl p-8 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-6">
             <div className="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center flex-shrink-0">
               <Users className="w-7 h-7 text-white" />
             </div>
             <div className="flex-1">
-              <span className="inline-block bg-[#F5A623] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide mb-3">
+              <span className="inline-block bg-accent text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide mb-3">
                 Para toda a família
               </span>
               <h3 className="text-xl font-black text-white mb-2">Compartilhe com a família</h3>
@@ -200,7 +200,7 @@ export default function LandingPage({
             <div className="hidden lg:flex flex-col gap-2 text-sm flex-shrink-0">
               {['Convite por link', 'Cada um vê o próprio', 'Visão consolidada'].map(item => (
                 <span key={item} className="flex items-center gap-2 text-white/80">
-                  <Check className="w-4 h-4 text-[#F5A623]" /> {item}
+                  <Check className="w-4 h-4 text-accent" /> {item}
                 </span>
               ))}
             </div>
@@ -212,8 +212,8 @@ export default function LandingPage({
                 key={title}
                 className="bg-gray-50 rounded-2xl p-6 hover:bg-emerald-50 hover:shadow-md transition group"
               >
-                <div className="w-11 h-11 bg-[#1B4332]/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#1B4332]/15 transition">
-                  <Icon className="w-5 h-5 text-[#1B4332]" />
+                <div className="w-11 h-11 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-brand-500/15 transition">
+                  <Icon className="w-5 h-5 text-brand-500" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900 mb-2">{title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{description}</p>
@@ -244,7 +244,7 @@ export default function LandingPage({
                 ].map(item => (
                   <li key={item} className="flex items-start gap-3 text-sm text-gray-700">
                     <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-[#1B4332]" />
+                      <Check className="w-3 h-3 text-brand-500" />
                     </div>
                     {item}
                   </li>
@@ -287,7 +287,7 @@ export default function LandingPage({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {steps.map(({ number, title, description }) => (
               <div key={number} className="text-center">
-                <div className="w-14 h-14 bg-[#1B4332] text-white rounded-2xl flex items-center justify-center text-2xl font-black mx-auto mb-5 shadow-lg shadow-[#1B4332]/20">
+                <div className="w-14 h-14 bg-brand-500 text-white rounded-2xl flex items-center justify-center text-2xl font-black mx-auto mb-5 shadow-lg shadow-brand-500/20">
                   {number}
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
@@ -317,7 +317,7 @@ export default function LandingPage({
               {['Gráfico de pizza por categoria', 'Barras de gastos por usuário', 'Tendência mensal de 9 meses', 'Saldo de pagamentos x recebimentos'].map(item => (
                 <li key={item} className="flex items-center gap-3 text-gray-600 text-sm">
                   <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                    <Check className="w-3 h-3 text-[#1B4332]" />
+                    <Check className="w-3 h-3 text-brand-500" />
                   </div>
                   {item}
                 </li>
@@ -325,7 +325,7 @@ export default function LandingPage({
             </ul>
           </div>
           <div>
-            <div className="bg-gradient-to-br from-[#1B4332] to-emerald-700 rounded-2xl p-8 text-white shadow-2xl">
+            <div className="bg-gradient-to-br from-brand-500 to-emerald-700 rounded-2xl p-8 text-white shadow-2xl">
               <div className="flex justify-between items-center mb-6">
                 <span className="text-white/70 text-sm">Maio 2025</span>
                 <span className="bg-white/10 text-xs px-2 py-1 rounded">Saldo</span>
@@ -392,7 +392,7 @@ export default function LandingPage({
                   </div>
                 ))}
                 <div className="pt-2">
-                  <div className="bg-[#1B4332] text-white text-center text-xs font-semibold py-2.5 rounded-lg">
+                  <div className="bg-brand-500 text-white text-center text-xs font-semibold py-2.5 rounded-lg">
                     5 lançamentos importados
                   </div>
                 </div>
@@ -449,7 +449,7 @@ export default function LandingPage({
               ].map(item => (
                 <li key={item} className="flex items-center gap-3 text-gray-600 text-sm">
                   <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                    <Check className="w-3 h-3 text-[#1B4332]" />
+                    <Check className="w-3 h-3 text-brand-500" />
                   </div>
                   {item}
                 </li>
@@ -501,7 +501,7 @@ export default function LandingPage({
                       <span className={`font-semibold ${type === 'in' ? 'text-green-600' : 'text-red-500'}`}>{value}</span>
                     </div>
                   ))}
-                  <div className="bg-[#1B4332] text-white text-center text-xs font-semibold py-2.5 rounded-lg mt-2">
+                  <div className="bg-brand-500 text-white text-center text-xs font-semibold py-2.5 rounded-lg mt-2">
                     <RefreshCw className="w-3 h-3 inline mr-1.5 mb-0.5" />
                     Atualizado há 2 minutos
                   </div>
@@ -513,7 +513,7 @@ export default function LandingPage({
       </section>
 
       {/* Security */}
-      <section className="py-16 px-4 sm:px-6 bg-[#1B4332]">
+      <section className="py-16 px-4 sm:px-6 bg-brand-500">
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col sm:flex-row items-center gap-8">
             <div className="flex-shrink-0">
@@ -541,9 +541,9 @@ export default function LandingPage({
             </h2>
             <p className="text-gray-500 text-lg">Tudo incluso. Sem surpresas na fatura.</p>
           </div>
-          <div className="relative bg-white border-2 border-[#1B4332] rounded-2xl p-8 shadow-2xl shadow-[#1B4332]/10">
+          <div className="relative bg-white border-2 border-brand-500 rounded-2xl p-8 shadow-2xl shadow-brand-500/10">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-              <span className="bg-[#F5A623] text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide">
+              <span className="bg-accent text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide">
                 7 dias grátis
               </span>
             </div>
@@ -557,7 +557,7 @@ export default function LandingPage({
               {planFeatures.map(feature => (
                 <li key={feature} className="flex items-center gap-3 text-gray-700 text-sm">
                   <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                    <Check className="w-3 h-3 text-[#1B4332]" />
+                    <Check className="w-3 h-3 text-brand-500" />
                   </div>
                   {feature}
                 </li>
@@ -565,7 +565,7 @@ export default function LandingPage({
             </ul>
             <Link
               href="/signup"
-              className="block w-full bg-[#1B4332] text-white text-center font-bold py-4 rounded-xl hover:bg-[#163a2b] transition shadow-lg shadow-[#1B4332]/20 text-base"
+              className="block w-full bg-brand-500 text-white text-center font-bold py-4 rounded-xl hover:bg-brand-600 transition shadow-lg shadow-brand-500/20 text-base"
             >
               Começar teste grátis
             </Link>
@@ -587,7 +587,7 @@ export default function LandingPage({
           </p>
           <Link
             href="/signup"
-            className="inline-flex items-center gap-2 bg-[#1B4332] text-white font-bold text-base px-8 py-4 rounded-xl hover:bg-[#163a2b] transition shadow-lg shadow-[#1B4332]/20"
+            className="inline-flex items-center gap-2 bg-brand-500 text-white font-bold text-base px-8 py-4 rounded-xl hover:bg-brand-600 transition shadow-lg shadow-brand-500/20"
           >
             Criar conta grátis
             <ArrowRight className="w-5 h-5" />

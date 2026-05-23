@@ -42,7 +42,7 @@ export default function InstallPrompt() {
   if (!visible) return null
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 flex items-center gap-3 rounded-2xl bg-[#1B4332] px-4 py-3 shadow-xl sm:left-auto sm:right-4 sm:w-80">
+    <div className="fixed bottom-4 left-4 right-4 z-50 flex items-center gap-3 rounded-2xl bg-brand-500 px-4 py-3 shadow-xl sm:left-auto sm:right-4 sm:w-80">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10">
         <Download className="h-5 w-5 text-white" />
       </div>
@@ -52,7 +52,7 @@ export default function InstallPrompt() {
       </div>
       <button
         onClick={handleInstall}
-        className="shrink-0 rounded-lg bg-[#F5A623] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#e09510] transition-colors"
+        className="shrink-0 rounded-lg bg-accent px-3 py-1.5 text-xs font-bold text-white hover:bg-accent-hover transition-colors"
       >
         Instalar
       </button>

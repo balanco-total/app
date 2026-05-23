@@ -6,6 +6,7 @@ import { UserPlus } from 'lucide-react'
 import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
 import LoadingPage from './LoadingPage'
 import BillingBanner from './BillingBanner'
+import Button from './ui/Button'
 
 // Reused from dashboard
 import DashboardHeader from './dashboard/DashboardHeader'
@@ -177,13 +178,14 @@ export default function UsersPage({
             <p className="text-gray-600 text-sm sm:text-base">
               {members.length} membro(s) na conta
             </p>
-            <button
+            <Button
+              size="sm"
+              icon={<UserPlus size={18} />}
               onClick={() => setShowInviteModal(true)}
-              className="flex items-center gap-2 bg-[#1B4332] text-white px-4 py-2 rounded-lg hover:bg-[#163a2b] transition shrink-0"
+              className="px-4 shrink-0"
             >
-              <UserPlus size={18} />
               <span>Convidar</span>
-            </button>
+            </Button>
           </div>
         </div>
 

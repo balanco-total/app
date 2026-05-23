@@ -9,6 +9,7 @@ import BillingBanner from './BillingBanner'
 import DashboardHeader from './dashboard/DashboardHeader'
 import AccountForm from './accounts/AccountForm'
 import AccountList from './accounts/AccountList'
+import Button from './ui/Button'
 import type { Profile, Account, FinancialAccount } from './accounts/types'
 
 export default function AccountsPage({ profile, account }: { profile: Profile; account: Account }) {
@@ -166,17 +167,18 @@ export default function AccountsPage({ profile, account }: { profile: Profile; a
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-              <Landmark size={22} className="text-[#1B4332]" />
+              <Landmark size={22} className="text-brand-500" />
               Contas
             </h2>
             {!showForm && (
-              <button
+              <Button
+                size="sm"
+                icon={<PlusCircle size={16} />}
                 onClick={openCreate}
-                className="flex items-center gap-2 bg-[#1B4332] text-white px-4 py-2 rounded-lg hover:bg-[#14332a] transition text-sm font-medium"
+                className="px-4 text-sm font-medium"
               >
-                <PlusCircle size={16} />
                 Nova conta
-              </button>
+              </Button>
             )}
           </div>
 

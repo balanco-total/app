@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { Building2, Link2, Link2Off, RefreshCw, Loader2 } from 'lucide-react'
 import type { BankConnection, ToastApi } from './types'
 
@@ -100,7 +101,7 @@ export default function BankConnectionsCard({ role, toast }: { role: string; toa
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6">
       <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4">
-        <Building2 size={20} className="text-[#1B4332]" />
+        <Building2 size={20} className="text-brand-500" />
         Contas bancárias
       </h2>
 
@@ -115,8 +116,14 @@ export default function BankConnectionsCard({ role, toast }: { role: string; toa
             <div key={conn.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 {conn.connector_logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={conn.connector_logo} alt={conn.connector_name ?? 'banco'} className="w-8 h-8 rounded-full object-contain bg-white border border-gray-100 shrink-0" />
+                  <Image
+                    src={conn.connector_logo}
+                    alt={conn.connector_name ?? 'banco'}
+                    width={32}
+                    height={32}
+                    unoptimized
+                    className="w-8 h-8 rounded-full object-contain bg-white border border-gray-100 shrink-0"
+                  />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
                     <Building2 size={16} className="text-gray-400" />
@@ -135,7 +142,7 @@ export default function BankConnectionsCard({ role, toast }: { role: string; toa
                 <button
                   onClick={() => handleSync(conn)}
                   disabled={!!syncing}
-                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-[#1B4332]/10 text-[#1B4332] hover:bg-[#1B4332]/20 transition disabled:opacity-40 font-medium"
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-brand-500/10 text-brand-500 hover:bg-brand-500/20 transition disabled:opacity-40 font-medium"
                 >
                   {syncing === conn.item_id
                     ? <Loader2 size={13} className="animate-spin" />
@@ -165,7 +172,7 @@ export default function BankConnectionsCard({ role, toast }: { role: string; toa
       <button
         onClick={handleConnectBank}
         disabled={connecting || !!syncing}
-        className="flex items-center gap-2 bg-[#1B4332] text-white px-5 py-2.5 rounded-lg hover:bg-[#163a2b] transition disabled:opacity-50 font-medium"
+        className="flex items-center gap-2 bg-brand-500 text-white px-5 py-2.5 rounded-lg hover:bg-brand-600 transition disabled:opacity-50 font-medium"
       >
         {connecting ? <Loader2 size={18} className="animate-spin" /> : <Link2 size={18} />}
         {connecting ? 'Abrindo...' : 'Conectar banco'}

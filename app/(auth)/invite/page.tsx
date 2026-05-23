@@ -6,6 +6,9 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
 import PasswordInput from '@/components/PasswordInput'
+import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+import Card from '@/components/ui/Card'
 
 const MAX_NAME = 60
 const MAX_PASSWORD = 40
@@ -83,22 +86,22 @@ function InviteForm() {
   if (!isValid) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+        <Card shadow="xl" padding="lg" className="max-w-md w-full text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-3">Convite inválido</h1>
           <p className="text-gray-500 mb-6">
             Este link de convite é inválido, já foi utilizado ou expirou.
           </p>
-          <Link href="/login" className="text-[#1B4332] font-semibold hover:underline">
+          <Link href="/login" className="text-brand-500 font-semibold hover:underline">
             Ir para o login
           </Link>
-        </div>
+        </Card>
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+      <Card shadow="xl" padding="lg" className="max-w-md w-full">
         <div className="flex justify-center mb-4"><Logo /></div>
         <p className="text-gray-500 text-center mb-1">Você foi convidado!</p>
         <p className="text-center text-sm text-gray-400 mb-8">
@@ -109,19 +112,16 @@ function InviteForm() {
           {error && (
             <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">{error}</div>
           )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Nome</label>
-            <input
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
-              autoFocus
-              maxLength={MAX_NAME}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent"
-              placeholder="Como quer ser chamado"
-            />
-          </div>
+          <Input
+            label="Nome"
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            required
+            autoFocus
+            maxLength={MAX_NAME}
+            placeholder="Como quer ser chamado"
+          />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Senha</label>
             <PasswordInput
@@ -132,15 +132,16 @@ function InviteForm() {
               maxLength={MAX_PASSWORD}
             />
           </div>
-          <button
+          <Button
             type="submit"
-            disabled={submitting}
-            className="w-full bg-[#1B4332] text-white py-3 rounded-lg font-semibold hover:bg-[#163a2b] transition disabled:opacity-50"
+            size="lg"
+            fullWidth
+            isLoading={submitting}
           >
             {submitting ? 'Criando conta...' : 'Entrar na conta'}
-          </button>
+          </Button>
         </form>
-      </div>
+      </Card>
     </div>
   )
 }

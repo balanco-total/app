@@ -1,6 +1,6 @@
 import type { ParsedRow } from './types'
 
-export const FIELD_PATTERN = /[^a-zA-Z0-9\-\/\. À-ÿ]/g
+export { FIELD_PATTERN } from '@/lib/utils'
 
 function stripAccents(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '')

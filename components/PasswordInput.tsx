@@ -15,7 +15,7 @@ export default function PasswordInput({ wrapperClassName = 'w-full', className =
       <input
         {...props}
         type={show ? 'text' : 'password'}
-        className={`w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-transparent ${className}`}
+        className={`w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent ${className}`}
       />
       <button
         type="button"

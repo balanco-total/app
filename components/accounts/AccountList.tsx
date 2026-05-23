@@ -21,7 +21,7 @@ export default function AccountList({ financialAccounts, showForm, onCreate, onE
         <p className="text-gray-400 text-xs mt-1">Adicione uma conta para associar aos seus lançamentos.</p>
         <button
           onClick={onCreate}
-          className="mt-4 flex items-center gap-2 bg-[#1B4332] text-white px-4 py-2 rounded-lg hover:bg-[#14332a] transition text-sm font-medium mx-auto"
+          className="mt-4 flex items-center gap-2 bg-brand-500 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition text-sm font-medium mx-auto"
         >
           <PlusCircle size={16} />
           Criar primeira conta

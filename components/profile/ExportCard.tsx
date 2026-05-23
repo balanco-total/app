@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Download, Loader2 } from 'lucide-react'
+import { Download } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
+import Button from '@/components/ui/Button'
 import type { ToastApi } from './types'
 
 export default function ExportCard({ accountId, toast }: { accountId: string; toast: ToastApi }) {
@@ -53,21 +54,22 @@ export default function ExportCard({ accountId, toast }: { accountId: string; to
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6">
       <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4">
-        <Download size={20} className="text-[#1B4332]" />
+        <Download size={20} className="text-brand-500" />
         Exportar dados
       </h2>
       <p className="text-sm text-gray-500 mb-4">
         Baixe todos os lançamentos da conta em formato CSV (compatível com Excel).
         Colunas: data, valor, descrição, categoria, usuário.
       </p>
-      <button
+      <Button
+        size="md"
         onClick={downloadCSV}
-        disabled={csvLoading}
-        className="flex items-center gap-2 bg-[#1B4332] text-white px-5 py-2.5 rounded-lg hover:bg-[#163a2b] transition disabled:opacity-50 font-medium"
+        isLoading={csvLoading}
+        icon={<Download size={18} />}
+        className="px-5 font-medium"
       >
-        {csvLoading ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
         {csvLoading ? 'Gerando CSV...' : 'Baixar CSV'}
-      </button>
+      </Button>
     </div>
   )
 }

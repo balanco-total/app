@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, CreditCard, Zap, Users, BarChart2, Download, Trash2 } from 'lucide-react'
 import Logo from './Logo'
+import Button from './ui/Button'
+import Card from './ui/Card'
 import { daysRemaining } from '@/utils/billing'
 
 type Profile = { id: string; name: string; account_id: string; role: string }
@@ -53,7 +55,7 @@ export default function BillingPage({ profile, account }: { profile: Profile; ac
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full">
+      <Card shadow="lg" padding="lg" className="max-w-md w-full">
         <div className="flex justify-center mb-6">
           <Logo height={40} width={130} />
         </div>
@@ -166,26 +168,30 @@ export default function BillingPage({ profile, account }: { profile: Profile; ac
                   Todos os dados (despesas, categorias, usuários) serão apagados e não poderão ser recuperados.
                 </p>
                 <div className="flex gap-3">
-                  <button
+                  <Button
+                    variant="destructive"
+                    size="sm"
                     onClick={handleDeleteAccount}
-                    disabled={deleting}
-                    className="flex-1 bg-red-600 text-white text-sm font-semibold py-2 rounded-lg hover:bg-red-700 transition disabled:opacity-60"
+                    isLoading={deleting}
+                    className="flex-1 text-sm"
                   >
                     {deleting ? 'Excluindo...' : 'Confirmar exclusão'}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => setConfirmDelete(false)}
                     disabled={deleting}
-                    className="flex-1 bg-gray-100 text-gray-700 text-sm font-semibold py-2 rounded-lg hover:bg-gray-200 transition"
+                    className="flex-1 text-sm"
                   >
                     Cancelar
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
           </div>
         )}
-      </div>
+      </Card>
     </div>
   )
 }

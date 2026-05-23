@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { applyMask, parseMasked } from './helpers'
 import type { FinancialAccount } from './types'
+import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
 
 type Props = {
   editingAccount: FinancialAccount | null
@@ -30,54 +32,51 @@ export default function AccountForm({ editingAccount, saving, onSave, onCancel }
         {editingAccount ? 'Editar conta' : 'Nova conta'}
       </h3>
       <div className="space-y-3">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Nome</label>
-          <input
-            type="text"
-            maxLength={60}
-            value={formName}
-            onChange={e => setFormName(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
-            placeholder="Ex: Nubank, Caixa, Carteira"
-            autoFocus
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Descrição (opcional)</label>
-          <input
-            type="text"
-            maxLength={120}
-            value={formDescription}
-            onChange={e => setFormDescription(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
-            placeholder="Ex: Conta corrente principal"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Saldo inicial (R$)</label>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={formBalance}
-            onChange={e => setFormBalance(applyMask(e.target.value))}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
-            placeholder="0,00"
-          />
-        </div>
+        <Input
+          label="Nome"
+          type="text"
+          maxLength={60}
+          value={formName}
+          onChange={e => setFormName(e.target.value)}
+          placeholder="Ex: Nubank, Caixa, Carteira"
+          autoFocus
+          className="text-sm"
+        />
+        <Input
+          label="Descrição (opcional)"
+          type="text"
+          maxLength={120}
+          value={formDescription}
+          onChange={e => setFormDescription(e.target.value)}
+          placeholder="Ex: Conta corrente principal"
+          className="text-sm"
+        />
+        <Input
+          label="Saldo inicial (R$)"
+          type="text"
+          inputMode="numeric"
+          value={formBalance}
+          onChange={e => setFormBalance(applyMask(e.target.value))}
+          placeholder="0,00"
+          className="text-sm"
+        />
         <div className="flex gap-3 pt-1">
-          <button
+          <Button
+            size="md"
             onClick={handleSave}
-            disabled={saving}
-            className="flex-1 bg-[#1B4332] text-white py-2.5 rounded-lg font-semibold hover:bg-[#14332a] transition disabled:opacity-50 text-sm"
+            isLoading={saving}
+            className="flex-1 text-sm"
           >
             {saving ? 'Salvando…' : editingAccount ? 'Salvar alterações' : 'Criar conta'}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
+            size="md"
             onClick={onCancel}
-            className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition text-sm"
+            className="flex-1 text-sm"
           >
             Cancelar
-          </button>
+          </Button>
         </div>
       </div>
     </div>

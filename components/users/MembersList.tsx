@@ -21,7 +21,7 @@ export default function MembersList({
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
       <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-        <Users size={20} className="text-[#1B4332]" />
+        <Users size={20} className="text-brand-500" />
         Membros
       </h2>
 
