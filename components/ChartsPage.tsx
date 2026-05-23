@@ -11,13 +11,16 @@ import AccountPieChart from './charts/AccountPieChart'
 import MonthlyTrendChart from './charts/MonthlyTrendChart'
 import { COLOR_MAP, FALLBACK_COLORS, MONTHS_PT } from './charts/helpers'
 import type { Profile, Account, Category, Expense, FinancialAccount } from './charts/types'
+import { generateVirtualOccurrences } from '@/lib/recurring'
+import type { RecurringExpense } from '@/lib/recurring'
 
-export default function ChartsPage({ profile, categories, expenses, account, financialAccounts = [] }: {
+export default function ChartsPage({ profile, categories, expenses, account, financialAccounts = [], recurringTemplates = [] }: {
   profile: Profile
   categories: Category[]
   expenses: Expense[]
   account: Account
   financialAccounts?: FinancialAccount[]
+  recurringTemplates?: RecurringExpense[]
 }) {
   const now = new Date()
   const nowKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
@@ -30,10 +33,16 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
     setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
   }
 
-  const monthlyExpenses = useMemo(
-    () => expenses.filter(e => e.date.slice(0, 7) === selectedMonth),
-    [expenses, selectedMonth]
-  )
+  const monthlyExpenses = useMemo(() => {
+    const real = expenses.filter(e => e.date.slice(0, 7) === selectedMonth && !(e as unknown as { skipped?: boolean }).skipped)
+    const materializedKeys = new Set(
+      real
+        .filter(e => (e as unknown as { recurring_expense_id?: string }).recurring_expense_id && (e as unknown as { occurrence_year_month?: string }).occurrence_year_month)
+        .map(e => `${(e as unknown as { recurring_expense_id: string }).recurring_expense_id}:${(e as unknown as { occurrence_year_month: string }).occurrence_year_month}`)
+    )
+    const virtuals = generateVirtualOccurrences(recurringTemplates, selectedMonth, materializedKeys)
+    return [...real, ...virtuals] as unknown as Expense[]
+  }, [expenses, selectedMonth, recurringTemplates])
 
   const totalMonth = monthlyExpenses.reduce((s, e) => s + e.amount, 0)
 
@@ -42,12 +51,17 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
       const d = new Date(selYear, selMonthNum - 1 - 4 + i)
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
       const label = `${MONTHS_PT[d.getMonth()].slice(0, 3)} ${String(d.getFullYear()).slice(2)}`
-      const total = expenses
-        .filter(e => e.date.slice(0, 7) === key)
-        .reduce((s, e) => s + e.amount, 0)
+      const real = expenses.filter(e => e.date.slice(0, 7) === key && !(e as unknown as { skipped?: boolean }).skipped)
+      const materializedKeys = new Set(
+        real
+          .filter(e => (e as unknown as { recurring_expense_id?: string }).recurring_expense_id && (e as unknown as { occurrence_year_month?: string }).occurrence_year_month)
+          .map(e => `${(e as unknown as { recurring_expense_id: string }).recurring_expense_id}:${(e as unknown as { occurrence_year_month: string }).occurrence_year_month}`)
+      )
+      const virtuals = generateVirtualOccurrences(recurringTemplates, key, materializedKeys)
+      const total = [...real, ...virtuals].reduce((s, e) => s + e.amount, 0)
       return { key, label, total, isCurrent: key === nowKey }
     })
-  }, [expenses, nowKey, selMonthNum, selYear])
+  }, [expenses, recurringTemplates, nowKey, selMonthNum, selYear])
 
   const { categoryPieData, smallCategoryIds } = useMemo(() => {
     const data = categories

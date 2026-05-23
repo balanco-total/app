@@ -18,7 +18,7 @@ export default async function Page() {
 
   if (!profile) redirect('/login')
 
-  const [categoriesRes, expensesRes, accountRes, financialAccountsRes] = await Promise.all([
+  const [categoriesRes, expensesRes, accountRes, financialAccountsRes, recurringRes] = await Promise.all([
     supabase
       .from('categories')
       .select('id, name, color')
@@ -26,7 +26,7 @@ export default async function Page() {
       .order('name'),
     supabase
       .from('expenses')
-      .select('id, user_id, amount, category_id, financial_account_id, date, description, profiles(name)')
+      .select('id, user_id, amount, category_id, financial_account_id, date, description, recurring_expense_id, occurrence_year_month, skipped, profiles(name)')
       .eq('account_id', profile.account_id)
       .order('date', { ascending: false })
       .limit(2000),
@@ -40,6 +40,11 @@ export default async function Page() {
       .select('id, name')
       .eq('account_id', profile.account_id)
       .order('created_at', { ascending: true }),
+    supabase
+      .from('recurring_expenses')
+      .select('*')
+      .eq('account_id', profile.account_id)
+      .order('created_at', { ascending: true }),
   ])
 
   return (
@@ -50,6 +55,8 @@ export default async function Page() {
       expenses={(expensesRes.data ?? []) as any}
       account={accountRes.data ?? null}
       financialAccounts={financialAccountsRes.data ?? []}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      recurringTemplates={(recurringRes.data ?? []) as any}
     />
   )
 }

@@ -28,6 +28,8 @@ type Props = {
   setPaid: (v: boolean | ((prev: boolean) => boolean)) => void
   selectedFinancialAccount: string
   setSelectedFinancialAccount: (v: string) => void
+  isRecurring: boolean
+  setIsRecurring: (v: boolean) => void
   onAdd: () => void
   onDeleteCategory: (cat: Category) => void
   onAddCategory: (name: string) => void
@@ -50,6 +52,8 @@ export default function ExpenseForm({
   setPaid,
   selectedFinancialAccount,
   setSelectedFinancialAccount,
+  isRecurring,
+  setIsRecurring,
   onAdd,
   onDeleteCategory,
   onAddCategory,
@@ -187,9 +191,36 @@ export default function ExpenseForm({
 
           {showAdvanced && (
             <div className="mt-3 pt-3 border-t border-gray-100 bg-gray-50 rounded-xl px-3 py-3 space-y-3">
+              {/* Recorrente */}
+              <div className="flex items-center justify-between py-0.5">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Recorrente</label>
+                  <p className="text-xs text-gray-400">Aparece todo mês sem limite</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsRecurring(!isRecurring)}
+                  className={`flex items-center gap-1.5 text-sm font-medium transition ${isRecurring ? 'text-blue-600' : 'text-gray-400'}`}
+                >
+                  {isRecurring ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                  <span>{isRecurring ? 'Sim' : 'Não'}</span>
+                </button>
+              </div>
+
+              {isRecurring && (
+                <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+                  <Repeat size={13} className="text-blue-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-blue-500">
+                    A despesa será gerada todo mês no dia informado, a partir deste mês, sem data de encerramento.
+                  </p>
+                </div>
+              )}
+
               {/* Data */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Data</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  {isRecurring ? 'Dia de vencimento' : 'Data'}
+                </label>
                 <input
                   type="date"
                   value={parseDateDisplay(expenseDate) || ''}
@@ -203,46 +234,50 @@ export default function ExpenseForm({
                 />
               </div>
 
-              {/* Quantidade */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Quantidade</label>
-                <input
-                  type="number"
-                  value={quantity}
-                  onChange={e => {
-                    const v = e.target.value
-                    if (v === '' || (parseInt(v, 10) >= 1 && parseInt(v, 10) <= 99)) setQuantity(v)
-                  }}
-                  min="1"
-                  max="99"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
-                />
-                {installmentWarning ? (
-                  <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
-                    <span>⚠</span> {installmentWarning}
-                  </p>
-                ) : installmentPreview ? (
-                  <div className="mt-2 flex items-center gap-2.5 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-                    <Repeat size={13} className="text-red-400 shrink-0" />
-                    <p className="text-xs text-red-400">{installmentPreview}</p>
-                  </div>
-                ) : null}
-              </div>
+              {/* Quantidade (hidden when recurring) */}
+              {!isRecurring && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Quantidade</label>
+                  <input
+                    type="number"
+                    value={quantity}
+                    onChange={e => {
+                      const v = e.target.value
+                      if (v === '' || (parseInt(v, 10) >= 1 && parseInt(v, 10) <= 99)) setQuantity(v)
+                    }}
+                    min="1"
+                    max="99"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                  />
+                  {installmentWarning ? (
+                    <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                      <span>⚠</span> {installmentWarning}
+                    </p>
+                  ) : installmentPreview ? (
+                    <div className="mt-2 flex items-center gap-2.5 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                      <Repeat size={13} className="text-red-400 shrink-0" />
+                      <p className="text-xs text-red-400">{installmentPreview}</p>
+                    </div>
+                  ) : null}
+                </div>
+              )}
 
-              {/* Pago */}
-              <div className="flex items-center justify-between py-0.5">
-                <label className="text-sm font-medium text-gray-700">Pago</label>
-                <button
-                  type="button"
-                  onClick={() => setPaid(v => !v)}
-                  className={`flex items-center gap-1.5 text-sm font-medium transition ${paid ? 'text-green-600' : 'text-gray-400'}`}
-                >
-                  {paid ? <CheckCircle2 size={16} /> : <Circle size={16} />}
-                  <span>{paid ? 'Sim' : 'Não'}</span>
-                </button>
-              </div>
+              {/* Pago (hidden when recurring) */}
+              {!isRecurring && (
+                <div className="flex items-center justify-between py-0.5">
+                  <label className="text-sm font-medium text-gray-700">Pago</label>
+                  <button
+                    type="button"
+                    onClick={() => setPaid(v => !v)}
+                    className={`flex items-center gap-1.5 text-sm font-medium transition ${paid ? 'text-green-600' : 'text-gray-400'}`}
+                  >
+                    {paid ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                    <span>{paid ? 'Sim' : 'Não'}</span>
+                  </button>
+                </div>
+              )}
 
-              {paid && qty > 1 && (
+              {paid && qty > 1 && !isRecurring && (
                 <p className="text-xs text-amber-500">Parcelas futuras serão salvas como não pagas.</p>
               )}
 
@@ -271,7 +306,7 @@ export default function ExpenseForm({
           onClick={onAdd}
           className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition"
         >
-          {parseInt(quantity, 10) > 1 ? `Adicionar ${quantity} despesas` : 'Adicionar despesa'}
+          {isRecurring ? 'Adicionar despesa recorrente' : parseInt(quantity, 10) > 1 ? `Adicionar ${quantity} despesas` : 'Adicionar despesa'}
         </button>
       </div>
     </div>
