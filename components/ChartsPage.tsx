@@ -9,31 +9,43 @@ import CategoryExpensesAside from './charts/CategoryExpensesAside'
 import UserBarChart from './charts/UserBarChart'
 import AccountPieChart from './charts/AccountPieChart'
 import MonthlyTrendChart from './charts/MonthlyTrendChart'
+import { useToast, Toasts } from './toast'
 import { COLOR_MAP, FALLBACK_COLORS, MONTHS_PT } from './charts/helpers'
 import type { Profile, Account, Category, Expense, FinancialAccount } from './charts/types'
+import { generateVirtualOccurrences } from '@/lib/recurring'
+import type { RecurringExpense } from '@/lib/recurring'
 
-export default function ChartsPage({ profile, categories, expenses, account, financialAccounts = [] }: {
+export default function ChartsPage({ profile, categories, expenses, account, financialAccounts = [], recurringTemplates: initialRecurringTemplates = [] }: {
   profile: Profile
   categories: Category[]
   expenses: Expense[]
   account: Account
   financialAccounts?: FinancialAccount[]
+  recurringTemplates?: RecurringExpense[]
 }) {
   const now = new Date()
   const nowKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
   const [selectedMonth, setSelectedMonth] = useState(nowKey)
-  const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null)
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
+  const [recurringTemplates, setRecurringTemplates] = useState<RecurringExpense[]>(initialRecurringTemplates)
   const [selYear, selMonthNum] = selectedMonth.split('-').map(Number)
+  const { toasts, toast, dismiss } = useToast()
 
   const shiftMonth = (delta: number) => {
     const d = new Date(selYear, selMonthNum - 1 + delta)
     setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
   }
 
-  const monthlyExpenses = useMemo(
-    () => expenses.filter(e => e.date.slice(0, 7) === selectedMonth),
-    [expenses, selectedMonth]
-  )
+  const monthlyExpenses = useMemo(() => {
+    const real = expenses.filter(e => e.date.slice(0, 7) === selectedMonth && !(e as unknown as { skipped?: boolean }).skipped)
+    const materializedKeys = new Set(
+      real
+        .filter(e => (e as unknown as { recurring_expense_id?: string }).recurring_expense_id && (e as unknown as { occurrence_year_month?: string }).occurrence_year_month)
+        .map(e => `${(e as unknown as { recurring_expense_id: string }).recurring_expense_id}:${(e as unknown as { occurrence_year_month: string }).occurrence_year_month}`)
+    )
+    const virtuals = generateVirtualOccurrences(recurringTemplates, selectedMonth, materializedKeys)
+    return [...real, ...virtuals] as unknown as Expense[]
+  }, [expenses, selectedMonth, recurringTemplates])
 
   const totalMonth = monthlyExpenses.reduce((s, e) => s + e.amount, 0)
 
@@ -42,12 +54,17 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
       const d = new Date(selYear, selMonthNum - 1 - 4 + i)
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
       const label = `${MONTHS_PT[d.getMonth()].slice(0, 3)} ${String(d.getFullYear()).slice(2)}`
-      const total = expenses
-        .filter(e => e.date.slice(0, 7) === key)
-        .reduce((s, e) => s + e.amount, 0)
+      const real = expenses.filter(e => e.date.slice(0, 7) === key && !(e as unknown as { skipped?: boolean }).skipped)
+      const materializedKeys = new Set(
+        real
+          .filter(e => (e as unknown as { recurring_expense_id?: string }).recurring_expense_id && (e as unknown as { occurrence_year_month?: string }).occurrence_year_month)
+          .map(e => `${(e as unknown as { recurring_expense_id: string }).recurring_expense_id}:${(e as unknown as { occurrence_year_month: string }).occurrence_year_month}`)
+      )
+      const virtuals = generateVirtualOccurrences(recurringTemplates, key, materializedKeys)
+      const total = [...real, ...virtuals].reduce((s, e) => s + e.amount, 0)
       return { key, label, total, isCurrent: key === nowKey }
     })
-  }, [expenses, nowKey, selMonthNum, selYear])
+  }, [expenses, recurringTemplates, nowKey, selMonthNum, selYear])
 
   const { categoryPieData, smallCategoryIds } = useMemo(() => {
     const data = categories
@@ -69,7 +86,7 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
     return {
       categoryPieData: [
         ...main,
-        { name: 'Outros', value: othersValue, fill: '#9ca3af', percent: total > 0 ? othersValue / total : 0 },
+        { id: '__others__', name: 'Outros', value: othersValue, fill: '#9ca3af', percent: total > 0 ? othersValue / total : 0 },
       ],
       smallCategoryIds: smallIds,
     }
@@ -102,9 +119,9 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
   }, [financialAccounts, monthlyExpenses])
 
   const selectedCategory = useMemo(() => {
-    if (selectedCategoryName === 'Outros') return { id: '__others__', name: 'Outros' }
-    return categories.find(c => c.name === selectedCategoryName) ?? null
-  }, [categories, selectedCategoryName])
+    if (selectedCategoryId === '__others__') return { id: '__others__', name: 'Outros' }
+    return categories.find(c => c.id === selectedCategoryId) ?? null
+  }, [categories, selectedCategoryId])
 
   const asideExpenses = useMemo(() => {
     if (!selectedCategory) return []
@@ -113,6 +130,23 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
     }
     return monthlyExpenses.filter(e => e.category_id === selectedCategory.id)
   }, [monthlyExpenses, selectedCategory, smallCategoryIds])
+
+  const handleEndRecurrence = async (recurringExpenseId: string, yearMonth: string) => {
+    const [y, m] = yearMonth.split('-').map(Number)
+    const prevMonth = m === 1
+      ? `${y - 1}-12`
+      : `${y}-${String(m - 1).padStart(2, '0')}`
+    const res = await fetch('/api/recurring/end', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recurring_expense_id: recurringExpenseId, end_year_month: prevMonth }),
+    })
+    const json = await res.json()
+    if (!res.ok) { toast.error(json.error ?? 'Erro ao encerrar recorrência.'); return }
+    const updated = json as RecurringExpense
+    setRecurringTemplates(prev => prev.map(t => t.id === updated.id ? updated : t))
+    toast.success('Recorrência encerrada.')
+  }
 
   return (
     <>
@@ -130,7 +164,7 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <CategoryPieChart
               data={categoryPieData}
-              onCategoryClick={name => setSelectedCategoryName(prev => prev === name ? null : name)}
+              onCategoryClick={id => setSelectedCategoryId(prev => prev === id ? null : id)}
             />
             <UserBarChart data={userBarData} />
           </div>
@@ -143,10 +177,12 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
 
       <CategoryExpensesAside
         category={selectedCategory}
-        expenses={asideExpenses}
-        onClose={() => setSelectedCategoryName(null)}
+        expenses={asideExpenses as Parameters<typeof CategoryExpensesAside>[0]['expenses']}
+        onClose={() => setSelectedCategoryId(null)}
         selectedMonth={selectedMonth}
+        onEndRecurrence={handleEndRecurrence}
       />
+      <Toasts toasts={toasts} dismiss={dismiss} />
     </>
   )
 }

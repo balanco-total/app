@@ -1,4 +1,5 @@
 import type { User } from '@supabase/supabase-js'
+export type { RecurringExpense, VirtualExpense } from '@/lib/recurring'
 
 export type { User }
 
@@ -17,6 +18,9 @@ export type Expense = {
   paid_at: string | null
   created_at: string
   profiles: { name: string } | null
+  recurring_expense_id?: string | null
+  occurrence_year_month?: string | null
+  skipped?: boolean
 }
 export type FinancialAccount = { id: string; name: string; is_default: boolean }
 

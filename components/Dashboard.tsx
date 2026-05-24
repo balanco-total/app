@@ -39,7 +39,12 @@ import type {
   PendingCategoryChange,
   PendingPaidToggle,
   User,
+  RecurringExpense,
+  VirtualExpense,
 } from './dashboard/types'
+
+// Recurring helpers
+import { generateVirtualOccurrences } from '@/lib/recurring'
 
 // ─────────────────────────────────────────────
 // Dashboard
@@ -60,7 +65,8 @@ export default function Dashboard({
   const [categories, setCategories] = useState<Category[]>([])
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [financialAccounts, setFinancialAccounts] = useState<FinancialAccount[]>([])
-  const [monthlyData, setMonthlyData] = useState<{ category_id: string | null; amount: number; paid_at: string | null }[]>([])
+  const [recurringTemplates, setRecurringTemplates] = useState<RecurringExpense[]>([])
+  const [monthlyData, setMonthlyData] = useState<{ category_id: string | null; amount: number; paid_at: string | null; recurring_expense_id?: string | null; occurrence_year_month?: string | null; skipped?: boolean }[]>([])
   const [loading, setLoading] = useState(true)
 
   // ── Form state ─────────────────────────────
@@ -71,6 +77,7 @@ export default function Dashboard({
   const [quantity, setQuantity] = useState('1')
   const [paid, setPaid] = useState(false)
   const [selectedFinancialAccount, setSelectedFinancialAccount] = useState<string>('')
+  const [isRecurring, setIsRecurring] = useState(false)
 
   // ── Month navigation ───────────────────────
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
@@ -82,7 +89,7 @@ export default function Dashboard({
 
   // ── Category aside ─────────────────────────
   const [asideCategory, setAsideCategory] = useState<{ id: string; name: string } | null>(null)
-  const [asideExpenses, setAsideExpenses] = useState<Expense[]>([])
+  const [asideExpenses, setAsideExpenses] = useState<(Expense | VirtualExpense)[]>([])
   const [asideLoading, setAsideLoading] = useState(false)
 
   const { toasts, toast, dismiss } = useToast()
@@ -91,6 +98,8 @@ export default function Dashboard({
 
   // ── Data fetching ──────────────────────────
 
+  const recurringTemplatesRef = useRef<RecurringExpense[]>([])
+
   const fetchMonthlySummary = useCallback(async (month: string) => {
     const [y, m] = month.split('-').map(Number)
     const nextMonth = m === 12
@@ -98,11 +107,28 @@ export default function Dashboard({
       : `${y}-${String(m + 1).padStart(2, '0')}-01`
     const { data } = await supabase
       .from('expenses')
-      .select('category_id, amount, paid_at')
+      .select('category_id, amount, paid_at, recurring_expense_id, occurrence_year_month, skipped')
       .eq('account_id', profile.account_id)
       .gte('date', `${month}-01`)
       .lt('date', nextMonth)
-    setMonthlyData(data ?? [])
+    const real = data ?? []
+
+    const materializedKeys = new Set(
+      real
+        .filter(e => e.recurring_expense_id && e.occurrence_year_month)
+        .map(e => `${e.recurring_expense_id}:${e.occurrence_year_month}`)
+    )
+    const virtuals = generateVirtualOccurrences(recurringTemplatesRef.current, month, materializedKeys)
+    const virtualData = virtuals.map(v => ({
+      category_id: v.category_id,
+      amount: v.amount,
+      paid_at: null,
+      recurring_expense_id: v.recurring_expense_id,
+      occurrence_year_month: v.occurrence_year_month,
+      skipped: false,
+    }))
+
+    setMonthlyData([...real.filter(e => !e.skipped), ...virtualData])
   }, [profile.account_id])
 
   useEffect(() => {
@@ -115,13 +141,18 @@ export default function Dashboard({
   }, [selectedMonth])
 
   const loadData = async () => {
-    const [categoriesRes, expensesRes, finAccountsRes] = await Promise.all([
+    const [categoriesRes, expensesRes, finAccountsRes, recurringRes] = await Promise.all([
       supabase.from('categories').select('*').eq('account_id', profile.account_id).order('name'),
       supabase.from('expenses').select('*, profiles(name)').eq('account_id', profile.account_id).order('created_at', { ascending: false }).limit(50),
       supabase.from('financial_accounts').select('id, name, is_default').eq('account_id', profile.account_id).order('created_at', { ascending: true }),
+      supabase.from('recurring_expenses').select('*').eq('account_id', profile.account_id).order('created_at', { ascending: true }),
     ])
 
     setExpenses(expensesRes.data ?? [])
+
+    const templates = (recurringRes.data ?? []) as RecurringExpense[]
+    recurringTemplatesRef.current = templates
+    setRecurringTemplates(templates)
 
     // Seed default financial account if none exist
     let accounts = finAccountsRes.data ?? []
@@ -170,13 +201,19 @@ export default function Dashboard({
     const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
     const { data } = await supabase
       .from('expenses')
-      .select('id, description, amount, date, category_id, paid_at, user_id, financial_account_id, profiles(name)')
+      .select('id, description, amount, date, category_id, paid_at, user_id, financial_account_id, recurring_expense_id, occurrence_year_month, skipped, profiles(name)')
       .eq('account_id', profile.account_id)
       .eq('category_id', cat.id)
       .gte('date', `${selectedMonth}-01`)
       .lt('date', nextMonth)
-      .order('date', { ascending: false })
-    setAsideExpenses((data ?? []) as unknown as Expense[])
+    const real = ((data ?? []) as unknown as Expense[]).filter(e => !e.skipped)
+    const materializedKeys = new Set(
+      real.filter(e => e.recurring_expense_id && e.occurrence_year_month)
+          .map(e => `${e.recurring_expense_id}:${e.occurrence_year_month}`)
+    )
+    const virtuals = generateVirtualOccurrences(recurringTemplatesRef.current, selectedMonth, materializedKeys)
+      .filter(v => v.category_id === cat.id)
+    setAsideExpenses([...virtuals, ...real])
     setAsideLoading(false)
   }
 
@@ -190,13 +227,20 @@ export default function Dashboard({
     const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
     const { data } = await supabase
       .from('expenses')
-      .select('id, description, amount, date, category_id, paid_at, user_id, financial_account_id, profiles(name)')
+      .select('id, description, amount, date, category_id, paid_at, user_id, financial_account_id, recurring_expense_id, occurrence_year_month, skipped, profiles(name)')
       .eq('account_id', profile.account_id)
       .in('category_id', categoryIds)
       .gte('date', `${selectedMonth}-01`)
       .lt('date', nextMonth)
-      .order('date', { ascending: false })
-    setAsideExpenses((data ?? []) as unknown as Expense[])
+    const real = ((data ?? []) as unknown as Expense[]).filter(e => !e.skipped)
+    const materializedKeys = new Set(
+      real.filter(e => e.recurring_expense_id && e.occurrence_year_month)
+          .map(e => `${e.recurring_expense_id}:${e.occurrence_year_month}`)
+    )
+    const catIdSet = new Set(categoryIds)
+    const virtuals = generateVirtualOccurrences(recurringTemplatesRef.current, selectedMonth, materializedKeys)
+      .filter(v => v.category_id !== null && catIdSet.has(v.category_id))
+    setAsideExpenses([...virtuals, ...real])
     setAsideLoading(false)
   }
 
@@ -237,28 +281,52 @@ export default function Dashboard({
       }
     }
 
-    const body: Record<string, unknown> = {
-      description,
-      amount: parsedAmount,
-      category_id: selectedCategory,
+    if (isRecurring) {
+      const [ry, rm, rd] = (parseDateDisplay(expenseDate) || toLocalDateStr(new Date())).split('-').map(Number)
+      const startYm = `${ry}-${String(rm).padStart(2, '0')}`
+      const res = await fetch('/api/recurring/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description,
+          amount: parsedAmount,
+          category_id: selectedCategory,
+          financial_account_id: selectedFinancialAccount,
+          day_of_month: rd,
+          start_year_month: startYm,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) { toast.error(json.error ?? 'Erro ao criar despesa recorrente.'); return }
+      const newTemplate = json as RecurringExpense
+      recurringTemplatesRef.current = [...recurringTemplatesRef.current, newTemplate]
+      setRecurringTemplates(prev => [...prev, newTemplate])
+      fetchMonthlySummary(selectedMonth)
+      toast.success?.('Despesa recorrente criada!')
+    } else {
+      const body: Record<string, unknown> = {
+        description,
+        amount: parsedAmount,
+        category_id: selectedCategory,
+      }
+      if (internalDate !== todayInternal) body.date = internalDate
+      if (qty > 1) body.quantity = qty
+      if (paid) body.paid = true
+      if (selectedFinancialAccount) body.financial_account_id = selectedFinancialAccount
+
+      const res = await fetch('/api/expenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+
+      const json = await res.json()
+      if (!res.ok) { toast.error(json.error ?? 'Erro ao adicionar despesa.'); return }
+
+      const created: Expense[] = Array.isArray(json) ? json : [json]
+      setExpenses([...created, ...expenses])
+      fetchMonthlySummary(selectedMonth)
     }
-    if (internalDate !== todayInternal) body.date = internalDate
-    if (qty > 1) body.quantity = qty
-    if (paid) body.paid = true
-    if (selectedFinancialAccount) body.financial_account_id = selectedFinancialAccount
-
-    const res = await fetch('/api/expenses', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-
-    const json = await res.json()
-    if (!res.ok) { toast.error(json.error ?? 'Erro ao adicionar despesa.'); return }
-
-    const created: Expense[] = Array.isArray(json) ? json : [json]
-    setExpenses([...created, ...expenses])
-    fetchMonthlySummary(selectedMonth)
 
     // Reset form
     setDescription('')
@@ -267,6 +335,7 @@ export default function Dashboard({
     setExpenseDate(toLocalDateDisplay(new Date()))
     setQuantity('1')
     setPaid(false)
+    setIsRecurring(false)
     const defaultAcc = financialAccounts.find(a => a.is_default)
     setSelectedFinancialAccount(defaultAcc?.id ?? '')
   }
@@ -410,6 +479,87 @@ export default function Dashboard({
     })
   }
 
+  // ── Virtual expense handlers ───────────────
+
+  const handleMaterializePaid = async (recurringExpenseId: string, yearMonth: string) => {
+    const res = await fetch('/api/recurring/materialize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recurring_expense_id: recurringExpenseId, occurrence_year_month: yearMonth, action: 'pay' }),
+    })
+    const json = await res.json()
+    if (!res.ok) { toast.error(json.error ?? 'Erro ao marcar pagamento.'); return }
+    const materialized = json as Expense
+    setExpenses(prev => [materialized, ...prev])
+    setAsideExpenses(prev => [
+      materialized,
+      ...prev.filter(e => !(e as VirtualExpense)._virtual || (e as VirtualExpense).recurring_expense_id !== recurringExpenseId || (e as VirtualExpense).occurrence_year_month !== yearMonth),
+    ])
+    fetchMonthlySummary(selectedMonth)
+  }
+
+  const handleEndRecurrence = async (recurringExpenseId: string, yearMonth: string) => {
+    const [y, m] = yearMonth.split('-').map(Number)
+    const prevMonth = m === 1
+      ? `${y - 1}-12`
+      : `${y}-${String(m - 1).padStart(2, '0')}`
+    const res = await fetch('/api/recurring/end', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recurring_expense_id: recurringExpenseId, end_year_month: prevMonth }),
+    })
+    const json = await res.json()
+    if (!res.ok) { toast.error(json.error ?? 'Erro ao encerrar recorrência.'); return }
+    const updated = json as RecurringExpense
+    recurringTemplatesRef.current = recurringTemplatesRef.current.map(t => t.id === updated.id ? updated : t)
+    setRecurringTemplates(prev => prev.map(t => t.id === updated.id ? updated : t))
+    // Remove the virtual occurrence from aside and refresh summary
+    setAsideExpenses(prev => prev.filter(e => !(e as VirtualExpense)._virtual || (e as VirtualExpense).recurring_expense_id !== recurringExpenseId))
+    fetchMonthlySummary(selectedMonth)
+  }
+
+  const handleMaterializeEdit = async (
+    recurringExpenseId: string,
+    yearMonth: string,
+    amount: number,
+    scope: 'month' | 'future'
+  ) => {
+    if (scope === 'future') {
+      const res = await fetch('/api/recurring/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recurring_expense_id: recurringExpenseId, amount }),
+      })
+      const json = await res.json()
+      if (!res.ok) { toast.error(json.error ?? 'Erro ao atualizar recorrência.'); return }
+      const updated = json as RecurringExpense
+      recurringTemplatesRef.current = recurringTemplatesRef.current.map(t => t.id === updated.id ? updated : t)
+      setRecurringTemplates(prev => prev.map(t => t.id === updated.id ? updated : t))
+      // Refresh aside — virtual amounts changed
+      setAsideExpenses(prev => prev.map(e =>
+        (e as VirtualExpense)._virtual && (e as VirtualExpense).recurring_expense_id === recurringExpenseId
+          ? { ...e, amount }
+          : e
+      ))
+      fetchMonthlySummary(selectedMonth)
+    } else {
+      const res = await fetch('/api/recurring/materialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recurring_expense_id: recurringExpenseId, occurrence_year_month: yearMonth, action: 'edit', amount_override: amount }),
+      })
+      const json = await res.json()
+      if (!res.ok) { toast.error(json.error ?? 'Erro ao editar ocorrência.'); return }
+      const materialized = json as Expense
+      setExpenses(prev => [materialized, ...prev])
+      setAsideExpenses(prev => [
+        materialized,
+        ...prev.filter(e => !(e as VirtualExpense)._virtual || (e as VirtualExpense).recurring_expense_id !== recurringExpenseId || (e as VirtualExpense).occurrence_year_month !== yearMonth),
+      ])
+      fetchMonthlySummary(selectedMonth)
+    }
+  }
+
   // ── Derived state ──────────────────────────
 
   const categoryMap = useMemo(
@@ -481,6 +631,8 @@ export default function Dashboard({
             setPaid={setPaid}
             selectedFinancialAccount={selectedFinancialAccount}
             setSelectedFinancialAccount={setSelectedFinancialAccount}
+            isRecurring={isRecurring}
+            setIsRecurring={setIsRecurring}
             onAdd={addExpense}
             onDeleteCategory={deleteCategory}
             onAddCategory={addCategory}
@@ -763,12 +915,15 @@ export default function Dashboard({
 
       <CategoryExpensesAside
         category={asideCategory}
-        expenses={asideExpenses}
+        expenses={asideExpenses as Parameters<typeof CategoryExpensesAside>[0]['expenses']}
         onClose={() => setAsideCategory(null)}
         selectedMonth={selectedMonth}
         loading={asideLoading}
         onTogglePaid={(exp) => togglePaid(exp as unknown as Expense)}
         onEdit={(exp) => openEditModal(exp as unknown as Expense)}
+        onMaterializePaid={handleMaterializePaid}
+        onEndRecurrence={handleEndRecurrence}
+        onMaterializeEdit={handleMaterializeEdit}
       />
     </div>
   )
