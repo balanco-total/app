@@ -2,6 +2,22 @@ import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // Landing estática: trata redirects do callback de auth do Supabase
+  // (antes recebidos via searchParams em app/page.tsx) sem precisar SSR.
+  if (pathname === '/') {
+    const error = request.nextUrl.searchParams.get('error')
+    const code = request.nextUrl.searchParams.get('code')
+    if (error) return NextResponse.redirect(new URL('/confirm', request.url))
+    if (code) {
+      const url = new URL('/api/auth/callback', request.url)
+      url.searchParams.set('code', code)
+      return NextResponse.redirect(url)
+    }
+    return NextResponse.next()
+  }
+
   let supabaseResponse = NextResponse.next({ request: { headers: request.headers } })
 
   const supabase = createServerClient(
@@ -26,10 +42,8 @@ export async function middleware(request: NextRequest) {
   // Always call getUser() — refreshes the session and validates the JWT
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { pathname } = request.nextUrl
   // Routes accessible without a session
   const isPublicRoute =
-    pathname === '/' ||
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
     pathname.startsWith('/confirm') ||

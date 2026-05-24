@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
 import {
@@ -26,6 +25,8 @@ export const metadata: Metadata = {
   description:
     'Anote suas despesas, acompanhe por categoria e importe o extrato do seu banco. Para uso pessoal e familiar — não é um sistema contábil.',
 }
+
+export const dynamic = 'force-static'
 
 const features = [
   {
@@ -112,14 +113,7 @@ const planFeatures = [
   'Suporte por e-mail',
 ]
 
-export default function LandingPage({
-  searchParams,
-}: {
-  searchParams: { error?: string; code?: string }
-}) {
-  if (searchParams.error) redirect('/confirm')
-  if (searchParams.code) redirect(`/api/auth/callback?code=${searchParams.code}`)
-
+export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
 
