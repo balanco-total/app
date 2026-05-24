@@ -65,7 +65,6 @@ export default function Dashboard({
   const [categories, setCategories] = useState<Category[]>([])
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [financialAccounts, setFinancialAccounts] = useState<FinancialAccount[]>([])
-  const [recurringTemplates, setRecurringTemplates] = useState<RecurringExpense[]>([])
   const [monthlyData, setMonthlyData] = useState<{ category_id: string | null; amount: number; paid_at: string | null; recurring_expense_id?: string | null; occurrence_year_month?: string | null; skipped?: boolean }[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -152,7 +151,6 @@ export default function Dashboard({
 
     const templates = (recurringRes.data ?? []) as RecurringExpense[]
     recurringTemplatesRef.current = templates
-    setRecurringTemplates(templates)
 
     // Seed default financial account if none exist
     let accounts = finAccountsRes.data ?? []
@@ -300,7 +298,6 @@ export default function Dashboard({
       if (!res.ok) { toast.error(json.error ?? 'Erro ao criar despesa recorrente.'); return }
       const newTemplate = json as RecurringExpense
       recurringTemplatesRef.current = [...recurringTemplatesRef.current, newTemplate]
-      setRecurringTemplates(prev => [...prev, newTemplate])
       fetchMonthlySummary(selectedMonth)
       toast.success?.('Despesa recorrente criada!')
     } else {
@@ -512,7 +509,6 @@ export default function Dashboard({
     if (!res.ok) { toast.error(json.error ?? 'Erro ao encerrar recorrência.'); return }
     const updated = json as RecurringExpense
     recurringTemplatesRef.current = recurringTemplatesRef.current.map(t => t.id === updated.id ? updated : t)
-    setRecurringTemplates(prev => prev.map(t => t.id === updated.id ? updated : t))
     // Remove the virtual occurrence from aside and refresh summary
     setAsideExpenses(prev => prev.filter(e => !(e as VirtualExpense)._virtual || (e as VirtualExpense).recurring_expense_id !== recurringExpenseId))
     fetchMonthlySummary(selectedMonth)
@@ -534,7 +530,6 @@ export default function Dashboard({
       if (!res.ok) { toast.error(json.error ?? 'Erro ao atualizar recorrência.'); return }
       const updated = json as RecurringExpense
       recurringTemplatesRef.current = recurringTemplatesRef.current.map(t => t.id === updated.id ? updated : t)
-      setRecurringTemplates(prev => prev.map(t => t.id === updated.id ? updated : t))
       // Refresh aside — virtual amounts changed
       setAsideExpenses(prev => prev.map(e =>
         (e as VirtualExpense)._virtual && (e as VirtualExpense).recurring_expense_id === recurringExpenseId
