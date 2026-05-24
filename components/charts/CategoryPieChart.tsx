@@ -7,7 +7,7 @@ export default function CategoryPieChart({
   onCategoryClick,
 }: {
   data: PieEntry[]
-  onCategoryClick?: (name: string) => void
+  onCategoryClick?: (id: string) => void
 }) {
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -33,7 +33,10 @@ export default function CategoryPieChart({
                 (percent ?? 0) >= 0.05 ? `${((percent ?? 0) * 100).toFixed(0)}%` : ''
               }
               labelLine={false}
-              onClick={(entry: { name?: string }) => { if (entry.name) onCategoryClick?.(entry.name) }}
+              onClick={(entry) => {
+                const id = (entry as unknown as { id?: string }).id
+                if (id) onCategoryClick?.(id)
+              }}
               style={{ cursor: onCategoryClick ? 'pointer' : undefined }}
             >
               {data.map((entry, i) => (

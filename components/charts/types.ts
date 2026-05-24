@@ -13,6 +13,6 @@ export type Expense = {
 }
 export type FinancialAccount = { id: string; name: string }
 
-export type PieEntry = { name: string; value: number; fill: string; percent: number }
+export type PieEntry = { id?: string; name: string; value: number; fill: string; percent: number }
 export type TrendEntry = { key: string; label: string; total: number; isCurrent: boolean }
 export type UserBarEntry = { name: string; total: number }

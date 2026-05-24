@@ -75,3 +75,59 @@ export function generateVirtualOccurrences(
       profiles: null,
     }))
 }
+
+export type DueVirtualOccurrence = {
+  id: string
+  recurring_expense_id: string
+  occurrence_year_month: string
+  account_id: string
+  user_id: string
+  description: string
+  amount: number
+  date: string                // "YYYY-MM-DD"
+}
+
+/**
+ * Generates virtual occurrences whose date falls in the inclusive window [startDateIso, endDateIso].
+ * Used by cron jobs that notify on upcoming/recent due dates.
+ *
+ * Both bounds are "YYYY-MM-DD" date-only strings (compared lexicographically against occurrence dates).
+ * Skips templates whose (id, year_month) appears in materializedKeys.
+ */
+export function generateDueOccurrencesInWindow(
+  templates: RecurringExpense[],
+  startDateIso: string,
+  endDateIso: string,
+  materializedKeys: Set<string>,
+): DueVirtualOccurrence[] {
+  const [sy, sm] = startDateIso.split('-').map(Number)
+  const [ey, em] = endDateIso.split('-').map(Number)
+  const months: string[] = []
+  let y = sy, m = sm
+  while (y < ey || (y === ey && m <= em)) {
+    months.push(`${y}-${String(m).padStart(2, '0')}`)
+    m += 1
+    if (m > 12) { m = 1; y += 1 }
+  }
+
+  const result: DueVirtualOccurrence[] = []
+  for (const t of templates) {
+    for (const ym of months) {
+      if (!isTemplateActiveInMonth(t, ym)) continue
+      if (materializedKeys.has(`${t.id}:${ym}`)) continue
+      const dateStr = occurrenceDate(ym, t.day_of_month)
+      if (dateStr < startDateIso || dateStr > endDateIso) continue
+      result.push({
+        id: `virtual:${t.id}:${ym}`,
+        recurring_expense_id: t.id,
+        occurrence_year_month: ym,
+        account_id: t.account_id,
+        user_id: t.user_id,
+        description: t.description,
+        amount: t.amount,
+        date: dateStr,
+      })
+    }
+  }
+  return result
+}

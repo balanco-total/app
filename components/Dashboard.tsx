@@ -282,7 +282,7 @@ export default function Dashboard({
     }
 
     if (isRecurring) {
-      const [rd, rm, ry] = (parseDateDisplay(expenseDate) || toLocalDateStr(new Date())).split('-').map(Number)
+      const [ry, rm, rd] = (parseDateDisplay(expenseDate) || toLocalDateStr(new Date())).split('-').map(Number)
       const startYm = `${ry}-${String(rm).padStart(2, '0')}`
       const res = await fetch('/api/recurring/create', {
         method: 'POST',

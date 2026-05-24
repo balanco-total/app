@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { sendMail } from '@/lib/email'
 import { renderDueThisWeekEmail, DueThisWeekExpense } from '@/lib/expenses-due-this-week'
+import { generateDueOccurrencesInWindow, RecurringExpense } from '@/lib/recurring'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,7 +28,22 @@ export async function GET(request: NextRequest) {
 
   const admin = createAdminClient()
 
-  const { data: expenses, error: expensesError } = await admin.rpc('get_expenses_due_this_week')
+  // UTC window [today - 2, today + 6] — same semantics as the legacy get_expenses_due_this_week RPC.
+  const now = new Date()
+  const startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 2))
+  const endDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 6))
+  const startStr = startDate.toISOString().slice(0, 10)
+  const endStr = endDate.toISOString().slice(0, 10)
+  const startMonth = startStr.slice(0, 7)
+  const endMonth = endStr.slice(0, 7)
+
+  const { data: expenses, error: expensesError } = await admin
+    .from('expenses')
+    .select('id, account_id, description, amount, date, paid_at')
+    .is('paid_at', null)
+    .eq('skipped', false)
+    .gte('date', `${startStr}T00:00:00.000Z`)
+    .lte('date', `${endStr}T23:59:59.999Z`)
 
   if (expensesError) {
     console.error('[cron/due-this-week] failed to fetch expenses:', expensesError)
@@ -35,7 +51,42 @@ export async function GET(request: NextRequest) {
   }
 
   const rows = (expenses ?? []) as ExpenseRow[]
-  if (rows.length === 0) {
+
+  const { data: rawTemplates, error: templatesError } = await admin
+    .from('recurring_expenses')
+    .select('*')
+    .lte('start_year_month', endMonth)
+
+  if (templatesError) {
+    console.error('[cron/due-this-week] failed to fetch recurring templates:', templatesError)
+    return NextResponse.json({ error: 'Failed to fetch recurring templates' }, { status: 500 })
+  }
+
+  const templates = ((rawTemplates ?? []) as RecurringExpense[]).filter(
+    t => !t.end_year_month || t.end_year_month >= startMonth,
+  )
+
+  const { data: materialized, error: materializedError } = await admin
+    .from('expenses')
+    .select('recurring_expense_id, occurrence_year_month')
+    .not('recurring_expense_id', 'is', null)
+    .gte('date', startStr)
+    .lte('date', `${endStr}T23:59:59.999Z`)
+
+  if (materializedError) {
+    console.error('[cron/due-this-week] failed to fetch materialized recurring rows:', materializedError)
+    return NextResponse.json({ error: 'Failed to fetch materialized rows' }, { status: 500 })
+  }
+
+  const materializedKeys = new Set(
+    (materialized ?? [])
+      .filter(r => r.recurring_expense_id && r.occurrence_year_month)
+      .map(r => `${r.recurring_expense_id}:${r.occurrence_year_month}`),
+  )
+
+  const virtuals = generateDueOccurrencesInWindow(templates, startStr, endStr, materializedKeys)
+
+  if (rows.length === 0 && virtuals.length === 0) {
     return NextResponse.json({ sent: 0, failed: 0, accounts: 0 })
   }
 
@@ -44,6 +95,11 @@ export async function GET(request: NextRequest) {
     const list = byAccount.get(row.account_id) ?? []
     list.push({ id: row.id, description: row.description, amount: row.amount, date: row.date })
     byAccount.set(row.account_id, list)
+  }
+  for (const v of virtuals) {
+    const list = byAccount.get(v.account_id) ?? []
+    list.push({ id: v.id, description: v.description, amount: v.amount, date: v.date })
+    byAccount.set(v.account_id, list)
   }
 
   let sent = 0
