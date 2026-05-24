@@ -61,7 +61,7 @@ app/
 - Mensagem padrão exibida independentemente de o e-mail existir (proteção contra enumeração).
 
 ### Fluxo de convite
-- Token UUID com validade de 7 dias.
+- Token UUID com validade de 34 dias.
 - Owner gera o link; convidado acessa `/invite?token=...` e cria sua conta.
 - Convite pendente anterior para o mesmo e-mail é revogado automaticamente ao gerar um novo.
 
@@ -166,7 +166,7 @@ app/
 
 ## Assinatura
 
-- Trial gratuito de 7 dias a partir do cadastro.
+- Trial gratuito de 34 dias a partir do cadastro.
 - Após o trial: plano mensal R$ 7,99/mês via Stripe.
 - Middleware bloqueia todas as rotas `/app/*` (exceto `/app/billing`) quando o trial expira e a assinatura não está ativa.
 - O dashboard exibe um banner com dias restantes de trial e botão "Assinar" para o owner.

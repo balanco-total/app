@@ -104,7 +104,7 @@ Four tables: `accounts`, `profiles` (extends `auth.users`), `categories`, `expen
 - Physical deletion only (no soft deletes)
 - RLS on all tables — never bypass with service role key on client
 - Members can only edit/delete their own expenses (enforced by RLS: `user_id = auth.uid()`)
-- Billing: R$7.99/month, 7-day free trial
+- Billing: R$7.99/month, 34-day free trial
 
 ## Design System
 

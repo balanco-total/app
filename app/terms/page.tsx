@@ -45,7 +45,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold text-gray-800 mb-3">3. Plano e pagamento</h2>
             <ul className="list-disc pl-5 space-y-2">
-              <li>O serviço oferece um <strong>período de teste gratuito de 7 dias</strong>, sem necessidade de cartão de crédito.</li>
+              <li>O serviço oferece um <strong>período de teste gratuito de 34 dias</strong>, sem necessidade de cartão de crédito.</li>
               <li>Após o período de teste, a assinatura custa <strong>R$&nbsp;7,99/mês</strong>, cobrada mensalmente via Stripe.</li>
               <li>O plano contempla uma conta (grupo familiar/pessoal) com múltiplos membros.</li>
               <li>O não pagamento na data de vencimento pode resultar na suspensão do acesso ao app.</li>

@@ -83,7 +83,7 @@ const steps = [
   {
     number: '1',
     title: 'Crie sua conta',
-    description: 'Cadastro em menos de 1 minuto. Sem cartão de crédito. 7 dias grátis para explorar tudo.',
+    description: 'Cadastro em menos de 1 minuto. Sem cartão de crédito. 34 dias grátis para explorar tudo.',
   },
   {
     number: '2',
@@ -142,7 +142,7 @@ export default function LandingPage() {
       <section className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 pt-20 pb-28 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto text-center">
           <span className="inline-block bg-brand-500/10 text-brand-500 text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
-            7 dias grátis · Sem cartão de crédito
+            34 dias grátis · Sem cartão de crédito
           </span>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 leading-tight mb-6">
             Anote suas despesas e{' '}
@@ -554,7 +554,7 @@ export default function LandingPage() {
           <div className="relative bg-white border-2 border-brand-500 rounded-2xl p-8 shadow-2xl shadow-brand-500/10">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <span className="bg-accent text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide">
-                7 dias grátis
+                34 dias grátis
               </span>
             </div>
             <div className="text-center mb-8">
@@ -593,7 +593,7 @@ export default function LandingPage() {
             Pronto para ter o controle?
           </h2>
           <p className="text-gray-600 text-lg mb-8">
-            Crie sua conta agora e explore todos os recursos por 7 dias sem pagar nada.
+            Crie sua conta agora e explore todos os recursos por 34 dias sem pagar nada.
           </p>
           <Link
             href="/signup"
