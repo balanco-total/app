@@ -346,6 +346,8 @@ export default function Dashboard({
         const { error } = await supabase.from('expenses').delete().eq('id', expenseId)
         if (error) { toast.error('Erro ao excluir despesa.'); return }
         setExpenses(prev => prev.filter(e => e.id !== expenseId))
+        setAsideExpenses(prev => prev.filter(e => e.id !== expenseId))
+        setEditingExpense(prev => prev?.expense.id === expenseId ? null : prev)
         fetchMonthlySummary(selectedMonth)
       },
     })
@@ -883,23 +885,30 @@ export default function Dashboard({
                 )}
               </div>
 
-            <div className="flex gap-3 mt-6">
-              <Button
-                variant="destructive"
-                size="md"
-                onClick={saveEditedExpense}
-                className="flex-1"
+            <div className="flex items-center justify-between mt-6">
+              <button
+                type="button"
+                onClick={() => deleteExpense(editingExpense.expense.id)}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition"
               >
-                Salvar
-              </Button>
-              <Button
-                variant="secondary"
-                size="md"
-                onClick={() => setEditingExpense(null)}
-                className="flex-1"
-              >
-                Cancelar
-              </Button>
+                Excluir
+              </button>
+              <div className="flex gap-3">
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={() => setEditingExpense(null)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="md"
+                  onClick={saveEditedExpense}
+                >
+                  Salvar
+                </Button>
+              </div>
             </div>
           </Modal>
         )
