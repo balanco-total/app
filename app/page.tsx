@@ -16,6 +16,7 @@ import {
   X,
   Building2,
   RefreshCw,
+  Repeat,
   Landmark,
   Mail,
 } from 'lucide-react'
@@ -69,6 +70,12 @@ const features = [
     description:
       'Toda segunda-feira pela manhã você recebe um resumo das despesas em aberto da semana — para não esquecer nenhum vencimento.',
   },
+  {
+    icon: Repeat,
+    title: 'Despesas recorrentes sem prazo',
+    description:
+      'Cadastre aluguel, mensalidades e assinaturas uma única vez. O sistema gera automaticamente os lançamentos todo mês, sem limite de data.',
+  },
 ]
 
 const steps = [
@@ -97,6 +104,7 @@ const planFeatures = [
   'Exportação de dados',
   'Categorias personalizadas',
   'Parcelamento automático',
+  'Despesas recorrentes sem limite de prazo',
   'Contas separadas',
   'Conciliação bancária via Open Finance',
   'Aviso semanal por e-mail das despesas a vencer',
