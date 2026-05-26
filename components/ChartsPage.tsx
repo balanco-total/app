@@ -6,21 +6,18 @@ import DashboardHeader from './dashboard/DashboardHeader'
 import MonthSelector from './charts/MonthSelector'
 import CategoryPieChart from './charts/CategoryPieChart'
 import CategoryExpensesAside from './charts/CategoryExpensesAside'
-import UserBarChart from './charts/UserBarChart'
-import AccountPieChart from './charts/AccountPieChart'
 import MonthlyTrendChart from './charts/MonthlyTrendChart'
 import { useToast, Toasts } from './toast'
 import { COLOR_MAP, FALLBACK_COLORS, MONTHS_PT } from './charts/helpers'
-import type { Profile, Account, Category, Expense, FinancialAccount } from './charts/types'
+import type { Profile, Account, Category, Expense } from './charts/types'
 import { generateVirtualOccurrences } from '@/lib/recurring'
 import type { RecurringExpense } from '@/lib/recurring'
 
-export default function ChartsPage({ profile, categories, expenses, account, financialAccounts = [], recurringTemplates: initialRecurringTemplates = [] }: {
+export default function ChartsPage({ profile, categories, expenses, account, recurringTemplates: initialRecurringTemplates = [] }: {
   profile: Profile
   categories: Category[]
   expenses: Expense[]
   account: Account
-  financialAccounts?: FinancialAccount[]
   recurringTemplates?: RecurringExpense[]
 }) {
   const now = new Date()
@@ -91,32 +88,6 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
       smallCategoryIds: smallIds,
     }
   }, [categories, monthlyExpenses])
-
-  const userBarData = useMemo(() => {
-    const map = new Map<string, { name: string; total: number }>()
-    monthlyExpenses.forEach(e => {
-      const name = e.profiles?.name ?? 'Desconhecido'
-      const cur = map.get(e.user_id) ?? { name, total: 0 }
-      map.set(e.user_id, { name, total: cur.total + e.amount })
-    })
-    return Array.from(map.values()).sort((a, b) => b.total - a.total)
-  }, [monthlyExpenses])
-
-  const accountPieData = useMemo(() => {
-    if (financialAccounts.length === 0) return []
-    const data = financialAccounts
-      .map((acc, i) => ({
-        name: acc.name,
-        value: monthlyExpenses.filter(e => e.financial_account_id === acc.id).reduce((s, e) => s + e.amount, 0),
-        fill: FALLBACK_COLORS[i % FALLBACK_COLORS.length],
-      }))
-      .filter(d => d.value > 0)
-      .sort((a, b) => b.value - a.value)
-    const unassigned = monthlyExpenses.filter(e => !e.financial_account_id).reduce((s, e) => s + e.amount, 0)
-    if (unassigned > 0) data.push({ name: 'Sem conta', value: unassigned, fill: '#d1d5db' })
-    const total = data.reduce((s, d) => s + d.value, 0)
-    return data.map(d => ({ ...d, percent: total > 0 ? d.value / total : 0 }))
-  }, [financialAccounts, monthlyExpenses])
 
   const selectedCategory = useMemo(() => {
     if (selectedCategoryId === '__others__') return { id: '__others__', name: 'Outros' }

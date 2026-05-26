@@ -42,6 +42,7 @@ export default function UsersPage({
   const { toasts, toast, dismiss } = useToast()
   const { confirmState, showConfirm, handleConfirm, handleCancel } = useConfirm()
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadData() }, [])
 
   // ── Data fetching ──────────────────────────

@@ -128,15 +128,18 @@ export default function Dashboard({
     }))
 
     setMonthlyData([...real.filter(e => !e.skipped), ...virtualData])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile.account_id])
 
   useEffect(() => {
     loadData()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     if (!hasLoadedRef.current) return
     fetchMonthlySummary(selectedMonth)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonth])
 
   const loadData = async () => {

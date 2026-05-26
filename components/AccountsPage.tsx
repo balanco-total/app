@@ -25,6 +25,7 @@ export default function AccountsPage({ profile, account }: { profile: Profile; a
   const { toasts, toast, dismiss } = useToast()
   const { confirmState, showConfirm, handleConfirm, handleCancel } = useConfirm()
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadData() }, [])
 
   const loadData = async () => {

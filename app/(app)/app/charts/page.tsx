@@ -18,7 +18,7 @@ export default async function Page() {
 
   if (!profile) redirect('/login')
 
-  const [categoriesRes, expensesRes, accountRes, financialAccountsRes, recurringRes] = await Promise.all([
+  const [categoriesRes, expensesRes, accountRes, recurringRes] = await Promise.all([
     supabase
       .from('categories')
       .select('id, name, color')
@@ -36,11 +36,6 @@ export default async function Page() {
       .eq('id', profile.account_id)
       .single(),
     supabase
-      .from('financial_accounts')
-      .select('id, name')
-      .eq('account_id', profile.account_id)
-      .order('created_at', { ascending: true }),
-    supabase
       .from('recurring_expenses')
       .select('*')
       .eq('account_id', profile.account_id)
@@ -54,7 +49,6 @@ export default async function Page() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expenses={(expensesRes.data ?? []) as any}
       account={accountRes.data ?? null}
-      financialAccounts={financialAccountsRes.data ?? []}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       recurringTemplates={(recurringRes.data ?? []) as any}
     />
