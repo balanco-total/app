@@ -1,4 +1,5 @@
 import type { User } from '@supabase/supabase-js'
+import type { VirtualExpense } from '@/lib/recurring'
 export type { RecurringExpense, VirtualExpense } from '@/lib/recurring'
 
 export type { User }
@@ -42,7 +43,7 @@ export type PendingCategoryChange = {
 }
 
 export type PendingPaidToggle = {
-  expense: Expense
+  expense: Expense | VirtualExpense
   amountDisplay: string
   financialAccountId: string
 }

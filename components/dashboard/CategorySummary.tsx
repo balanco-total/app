@@ -12,6 +12,7 @@ type Props = {
   selectedMonth: string
   onShiftMonth: (delta: number) => void
   onCategoryClick?: (cat: { id: string; name: string }) => void
+  onUnpaidClick?: () => void
 }
 
 export default function CategorySummary({
@@ -21,6 +22,7 @@ export default function CategorySummary({
   selectedMonth,
   onShiftMonth,
   onCategoryClick,
+  onUnpaidClick,
 }: Props) {
   const [othersOpen, setOthersOpen] = useState(false)
   const [selYear, selMonthNum] = selectedMonth.split('-').map(Number)
@@ -83,12 +85,17 @@ export default function CategorySummary({
           </p>
         </div>
         {totalUnpaid > 0 && (
-          <div className="text-right">
+          <button
+            type="button"
+            onClick={onUnpaidClick}
+            disabled={!onUnpaidClick}
+            className={`text-right rounded-lg -m-1 p-1 transition-colors ${onUnpaidClick ? 'cursor-pointer hover:bg-orange-100' : ''}`}
+          >
             <p className="text-sm text-gray-600">Não pagos</p>
             <p className="sm:text-xl text-sm font-bold text-orange-500">
               R$ {totalUnpaid.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-          </div>
+          </button>
         )}
       </div>
 

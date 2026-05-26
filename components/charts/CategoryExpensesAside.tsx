@@ -14,6 +14,9 @@ type AsideExpense = {
   paid_at?: string | null
   financial_account_id?: string | null
   profiles?: { name: string } | null
+  // optional per-expense category (used when the aside aggregates multiple categories)
+  categoryName?: string | null
+  categoryColor?: string | null
   // virtual-only extras
   _virtual?: true
   recurring_expense_id?: string
@@ -42,7 +45,6 @@ export default function CategoryExpensesAside({
   loading = false,
   onTogglePaid,
   onEdit,
-  onMaterializePaid,
   onEndRecurrence,
   onMaterializeEdit,
 }: {
@@ -54,7 +56,6 @@ export default function CategoryExpensesAside({
   onTogglePaid?: (exp: AsideExpense) => void
   onEdit?: (exp: AsideExpense) => void
   // virtual-specific handlers
-  onMaterializePaid?: (recurringExpenseId: string, yearMonth: string) => void
   onEndRecurrence?: (recurringExpenseId: string, yearMonth: string) => void
   onMaterializeEdit?: (
     recurringExpenseId: string,
@@ -157,10 +158,16 @@ export default function CategoryExpensesAside({
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 mt-0.5">
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                               <span className="text-xs text-gray-400">{fmtDate(exp.date)}</span>
                               {exp.profiles?.name && (
                                 <span className="text-xs text-gray-400">· {exp.profiles.name}</span>
+                              )}
+                              {exp.categoryName && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                                  <span className={`w-2 h-2 rounded-full ${exp.categoryColor ?? 'bg-gray-400'}`} />
+                                  {exp.categoryName}
+                                </span>
                               )}
                             </div>
                             {isVirtual && exp.recurring_expense_id && exp.occurrence_year_month && (
@@ -175,9 +182,9 @@ export default function CategoryExpensesAside({
                           <div className="flex items-center gap-2 shrink-0">
                             {isVirtual ? (
                               <>
-                                {onMaterializePaid && exp.recurring_expense_id && exp.occurrence_year_month && (
+                                {onTogglePaid && (
                                   <button
-                                    onClick={() => onMaterializePaid(exp.recurring_expense_id!, exp.occurrence_year_month!)}
+                                    onClick={() => onTogglePaid(exp)}
                                     title="Marcar como pago"
                                     className="text-gray-300 hover:text-gray-500 transition"
                                   >
@@ -217,7 +224,7 @@ export default function CategoryExpensesAside({
                                 {onEdit ? (
                                   <button
                                     onClick={() => onEdit(exp)}
-                                    title="Editar lançamento"
+                                    title="Editar"
                                     className="text-sm font-semibold text-red-500 whitespace-nowrap underline underline-offset-2 decoration-dashed decoration-red-300 hover:text-red-700 transition"
                                   >
                                     {fmtAmount(exp.amount)}
@@ -262,7 +269,6 @@ export default function CategoryExpensesAside({
                   className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm ${!amountValid && editingVirtual.amountDisplay ? 'border-red-400' : 'border-gray-300'}`}
                 />
               </div>
-              <p className="text-xs text-gray-400 mb-4">Aplicar alteração em:</p>
               <div className="flex flex-col gap-2">
                 <button
                   disabled={!amountValid}

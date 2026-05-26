@@ -88,7 +88,7 @@ export default function Dashboard({
 
   // ── Category aside ─────────────────────────
   const [asideCategory, setAsideCategory] = useState<{ id: string; name: string } | null>(null)
-  const [asideExpenses, setAsideExpenses] = useState<(Expense | VirtualExpense)[]>([])
+  const [asideExpenses, setAsideExpenses] = useState<((Expense | VirtualExpense) & { categoryName?: string | null; categoryColor?: string | null })[]>([])
   const [asideLoading, setAsideLoading] = useState(false)
 
   const { toasts, toast, dismiss } = useToast()
@@ -218,6 +218,36 @@ export default function Dashboard({
     setAsideLoading(false)
   }
 
+  const withCategory = <T extends { category_id: string | null }>(exp: T) => {
+    const c = exp.category_id ? categoryMap.get(exp.category_id) : undefined
+    return { ...exp, categoryName: c?.name ?? null, categoryColor: c?.color ?? null }
+  }
+
+  const openUnpaidAside = async () => {
+    const unpaidCategory = { id: '__unpaid__', name: 'Não pagos' }
+    if (asideCategory?.id === '__unpaid__') { setAsideCategory(null); return }
+    setAsideCategory(unpaidCategory)
+    setAsideExpenses([])
+    setAsideLoading(true)
+    const [y, m] = selectedMonth.split('-').map(Number)
+    const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
+    const { data } = await supabase
+      .from('expenses')
+      .select('id, description, amount, date, category_id, paid_at, user_id, financial_account_id, recurring_expense_id, occurrence_year_month, skipped, profiles(name)')
+      .eq('account_id', profile.account_id)
+      .gte('date', `${selectedMonth}-01`)
+      .lt('date', nextMonth)
+    const real = ((data ?? []) as unknown as Expense[]).filter(e => !e.skipped)
+    const materializedKeys = new Set(
+      real.filter(e => e.recurring_expense_id && e.occurrence_year_month)
+          .map(e => `${e.recurring_expense_id}:${e.occurrence_year_month}`)
+    )
+    const virtuals = generateVirtualOccurrences(recurringTemplatesRef.current, selectedMonth, materializedKeys)
+    const realUnpaid = real.filter(e => !e.paid_at)
+    setAsideExpenses([...virtuals, ...realUnpaid].map(withCategory))
+    setAsideLoading(false)
+  }
+
   const addExpense = async () => {
     if (!description.trim()) { toast.error('Descrição é obrigatória.'); return }
     const parsedAmount = parseMasked(amount)
@@ -329,7 +359,15 @@ export default function Dashboard({
     })
   }
 
-  const togglePaid = (exp: Expense) => {
+  const togglePaid = (exp: Expense | VirtualExpense) => {
+    if ((exp as VirtualExpense)._virtual === true) {
+      setPendingPaidToggle({
+        expense: exp,
+        amountDisplay: exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        financialAccountId: exp.financial_account_id ?? '',
+      })
+      return
+    }
     if (!exp.paid_at) {
       setPendingPaidToggle({
         expense: exp,
@@ -456,14 +494,25 @@ export default function Dashboard({
 
   // ── Virtual expense handlers ───────────────
 
-  const handleMaterializePaid = async (recurringExpenseId: string, yearMonth: string) => {
+  const handleMaterializePaid = async (
+    recurringExpenseId: string,
+    yearMonth: string,
+    amountOverride?: number,
+    financialAccountId?: string,
+  ): Promise<boolean> => {
     const res = await fetch('/api/recurring/materialize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ recurring_expense_id: recurringExpenseId, occurrence_year_month: yearMonth, action: 'pay' }),
+      body: JSON.stringify({
+        recurring_expense_id: recurringExpenseId,
+        occurrence_year_month: yearMonth,
+        action: 'pay',
+        ...(amountOverride ? { amount_override: amountOverride } : {}),
+        ...(financialAccountId !== undefined ? { financial_account_id: financialAccountId || null } : {}),
+      }),
     })
     const json = await res.json()
-    if (!res.ok) { toast.error(json.error ?? 'Erro ao marcar pagamento.'); return }
+    if (!res.ok) { toast.error(json.error ?? 'Erro ao marcar pagamento.'); return false }
     const materialized = json as Expense
     setExpenses(prev => [materialized, ...prev])
     setAsideExpenses(prev => [
@@ -471,6 +520,7 @@ export default function Dashboard({
       ...prev.filter(e => !(e as VirtualExpense)._virtual || (e as VirtualExpense).recurring_expense_id !== recurringExpenseId || (e as VirtualExpense).occurrence_year_month !== yearMonth),
     ])
     fetchMonthlySummary(selectedMonth)
+    return true
   }
 
   const handleEndRecurrence = async (recurringExpenseId: string, yearMonth: string) => {
@@ -618,6 +668,7 @@ export default function Dashboard({
             selectedMonth={selectedMonth}
             onShiftMonth={shiftMonth}
             onCategoryClick={openCategoryAside}
+            onUnpaidClick={openUnpaidAside}
           />
         </div>
 
@@ -725,6 +776,16 @@ export default function Dashboard({
                 onClick={async () => {
                   if (!isValid) return
                   if (financialAccounts.length > 0 && !financialAccountId) { toast.error('Selecione uma conta.'); return }
+                  if ('_virtual' in exp) {
+                    const ok = await handleMaterializePaid(
+                      exp.recurring_expense_id,
+                      exp.occurrence_year_month,
+                      amountChanged ? newAmount : undefined,
+                      financialAccountId,
+                    )
+                    if (ok) setPendingPaidToggle(null)
+                    return
+                  }
                   const now = new Date().toISOString()
                   const updates: Record<string, unknown> = { paid_at: now }
                   if (amountChanged) updates.amount = newAmount
@@ -770,7 +831,7 @@ export default function Dashboard({
             open={true}
             onClose={() => setEditingExpense(null)}
             size="sm"
-            title="Editar lançamento"
+            title="Editar"
             showClose
           >
             <div className="space-y-4">
@@ -898,9 +959,8 @@ export default function Dashboard({
         onClose={() => setAsideCategory(null)}
         selectedMonth={selectedMonth}
         loading={asideLoading}
-        onTogglePaid={(exp) => togglePaid(exp as unknown as Expense)}
+        onTogglePaid={(exp) => togglePaid(exp as unknown as Expense | VirtualExpense)}
         onEdit={(exp) => openEditModal(exp as unknown as Expense)}
-        onMaterializePaid={handleMaterializePaid}
         onEndRecurrence={handleEndRecurrence}
         onMaterializeEdit={handleMaterializeEdit}
       />

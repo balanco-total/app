@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'Requisição inválida.' }, { status: 400 })
 
-  const { recurring_expense_id, occurrence_year_month, action, amount_override } =
+  const { recurring_expense_id, occurrence_year_month, action, amount_override, financial_account_id } =
     body as Record<string, unknown>
 
   if (!recurring_expense_id || typeof recurring_expense_id !== 'string')
@@ -61,9 +61,14 @@ export async function POST(request: Request) {
   const dateIso = `${occurrenceDate(ym, template.day_of_month)}T12:00:00.000Z`
 
   const resolvedAmount =
-    action === 'edit' && typeof amount_override === 'number' && amount_override > 0
+    typeof amount_override === 'number' && amount_override > 0
       ? amount_override
       : template.amount
+
+  const resolvedFinancialAccountId =
+    typeof financial_account_id === 'string'
+      ? (financial_account_id || null)
+      : template.financial_account_id
 
   const row = {
     account_id: profile.account_id,
@@ -71,7 +76,7 @@ export async function POST(request: Request) {
     description: template.description,
     amount: resolvedAmount,
     category_id: template.category_id,
-    financial_account_id: template.financial_account_id,
+    financial_account_id: resolvedFinancialAccountId,
     date: dateIso,
     paid_at: action === 'pay' ? now.toISOString() : null,
     skipped: action === 'skip',

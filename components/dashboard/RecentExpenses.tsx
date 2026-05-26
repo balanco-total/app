@@ -172,7 +172,7 @@ export default function RecentExpenses({
           const amountButton = isOwn ? (
             <button
               onClick={() => onEdit(exp)}
-              title="Editar lançamento"
+              title="Editar"
               className="font-bold text-gray-800 hover:text-red-600 transition underline underline-offset-2 decoration-dashed decoration-gray-400"
             >
               R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
