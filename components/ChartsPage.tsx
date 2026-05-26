@@ -62,9 +62,9 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
       )
       const virtuals = generateVirtualOccurrences(recurringTemplates, key, materializedKeys)
       const total = [...real, ...virtuals].reduce((s, e) => s + e.amount, 0)
-      return { key, label, total, isCurrent: key === nowKey }
+      return { key, label, total, isCurrent: key === selectedMonth }
     })
-  }, [expenses, recurringTemplates, nowKey, selMonthNum, selYear])
+  }, [expenses, recurringTemplates, selectedMonth, selMonthNum, selYear])
 
   const { categoryPieData, smallCategoryIds } = useMemo(() => {
     const data = categories
@@ -161,16 +161,16 @@ export default function ChartsPage({ profile, categories, expenses, account, fin
             />
           )}
           <MonthSelector selectedMonth={selectedMonth} onShift={shiftMonth} totalMonth={totalMonth} />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 gap-6 mb-6">
             <CategoryPieChart
               data={categoryPieData}
               onCategoryClick={id => setSelectedCategoryId(prev => prev === id ? null : id)}
             />
-            <UserBarChart data={userBarData} />
+            {/* <UserBarChart data={userBarData} /> */}
           </div>
-          {financialAccounts.length > 0 && (
+          {/* {financialAccounts.length > 0 && (
             <AccountPieChart data={accountPieData} />
-          )}
+          )} */}
           <MonthlyTrendChart data={monthlyTrend} />
         </div>
       </div>

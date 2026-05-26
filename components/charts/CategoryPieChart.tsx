@@ -26,8 +26,8 @@ export default function CategoryPieChart({
               data={data}
               cx="50%"
               cy="45%"
-              outerRadius={110}
-              innerRadius={50}
+              outerRadius={100}
+              innerRadius={0}
               dataKey="value"
               label={({ percent }: { percent?: number }) =>
                 (percent ?? 0) >= 0.05 ? `${((percent ?? 0) * 100).toFixed(0)}%` : ''
