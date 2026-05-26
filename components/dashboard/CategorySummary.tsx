@@ -1,6 +1,7 @@
 'use client'
 
-import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState } from 'react'
+import { Calendar, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react'
 import { MONTHS_PT } from './helpers'
 import type { CategoryWithTotal } from './types'
 
@@ -11,7 +12,6 @@ type Props = {
   selectedMonth: string
   onShiftMonth: (delta: number) => void
   onCategoryClick?: (cat: { id: string; name: string }) => void
-  onOthersClick?: (categoryIds: string[]) => void
 }
 
 export default function CategorySummary({
@@ -21,8 +21,8 @@ export default function CategorySummary({
   selectedMonth,
   onShiftMonth,
   onCategoryClick,
-  onOthersClick,
 }: Props) {
+  const [othersOpen, setOthersOpen] = useState(false)
   const [selYear, selMonthNum] = selectedMonth.split('-').map(Number)
   const categoriesWithExpenses = categorySummary.filter(cat => cat.total > 0)
 
@@ -129,31 +129,66 @@ export default function CategorySummary({
           )
         })}
         {smallCategories.length > 0 && (
-          <div
-            className={`p-3 bg-gray-50 rounded-lg ${onOthersClick ? 'cursor-pointer hover:bg-gray-100 transition-colors' : ''}`}
-            onClick={() => onOthersClick?.(smallCategories.map(c => c.id))}
-          >
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-gray-400" />
-                <span className="font-medium text-gray-700">Outros</span>
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <div
+              className="cursor-pointer"
+              onClick={() => setOthersOpen(o => !o)}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full bg-gray-400" />
+                  <span className="font-medium text-gray-700">Outros</span>
+                  <ChevronDown
+                    size={16}
+                    className={`text-gray-400 transition-transform ${othersOpen ? 'rotate-180' : ''}`}
+                  />
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-sm font-medium text-gray-500">
+                    {(totalMonth > 0 ? (othersTotal / totalMonth) * 100 : 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
+                  </span>
+                  <span className="font-bold text-gray-800 text-right">
+                    R$ {othersTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-sm font-medium text-gray-500">
-                  {(totalMonth > 0 ? (othersTotal / totalMonth) * 100 : 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
-                </span>
-                <span className="font-bold text-gray-800 text-right">
-                  R$ {othersTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
+              <div className={`w-full bg-gray-200 rounded-full h-1.5 ${othersOpen ? '' : 'mb-2'}`}>
+                <div
+                  className="bg-gray-400 h-1.5 rounded-full transition-all duration-500"
+                  style={{ width: `${totalMonth > 0 ? (othersTotal / totalMonth) * 100 : 0}%` }}
+                />
               </div>
+              {!othersOpen && (
+                <p className="text-xs text-gray-400 leading-snug">{othersDescription}</p>
+              )}
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2">
-              <div
-                className="bg-gray-400 h-1.5 rounded-full transition-all duration-500"
-                style={{ width: `${totalMonth > 0 ? (othersTotal / totalMonth) * 100 : 0}%` }}
-              />
-            </div>
-            <p className="text-xs text-gray-400 leading-snug">{othersDescription}</p>
+            {othersOpen && (
+              <div className="mt-3 space-y-2">
+                {smallCategories.map(cat => {
+                  const pct = totalMonth > 0 ? (cat.total / totalMonth) * 100 : 0
+                  return (
+                    <div
+                      key={cat.id}
+                      className={`flex items-center justify-between py-2 px-3 rounded-md ${onCategoryClick ? 'cursor-pointer hover:bg-gray-100 transition-colors' : ''}`}
+                      onClick={e => { e.stopPropagation(); onCategoryClick?.(cat) }}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${cat.color}`} />
+                        <span className="text-sm text-gray-700 truncate">{cat.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs font-medium text-gray-400">
+                          {pct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
+                        </span>
+                        <span className="text-sm font-semibold text-gray-700 text-right">
+                          R$ {cat.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>

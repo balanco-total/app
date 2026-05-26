@@ -218,33 +218,6 @@ export default function Dashboard({
     setAsideLoading(false)
   }
 
-  const openOthersAside = async (categoryIds: string[]) => {
-    const othersCategory = { id: '__others__', name: 'Outros' }
-    if (asideCategory?.id === '__others__') { setAsideCategory(null); return }
-    setAsideCategory(othersCategory)
-    setAsideExpenses([])
-    setAsideLoading(true)
-    const [y, m] = selectedMonth.split('-').map(Number)
-    const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
-    const { data } = await supabase
-      .from('expenses')
-      .select('id, description, amount, date, category_id, paid_at, user_id, financial_account_id, recurring_expense_id, occurrence_year_month, skipped, profiles(name)')
-      .eq('account_id', profile.account_id)
-      .in('category_id', categoryIds)
-      .gte('date', `${selectedMonth}-01`)
-      .lt('date', nextMonth)
-    const real = ((data ?? []) as unknown as Expense[]).filter(e => !e.skipped)
-    const materializedKeys = new Set(
-      real.filter(e => e.recurring_expense_id && e.occurrence_year_month)
-          .map(e => `${e.recurring_expense_id}:${e.occurrence_year_month}`)
-    )
-    const catIdSet = new Set(categoryIds)
-    const virtuals = generateVirtualOccurrences(recurringTemplatesRef.current, selectedMonth, materializedKeys)
-      .filter(v => v.category_id !== null && catIdSet.has(v.category_id))
-    setAsideExpenses([...virtuals, ...real])
-    setAsideLoading(false)
-  }
-
   const addExpense = async () => {
     if (!description.trim()) { toast.error('Descrição é obrigatória.'); return }
     const parsedAmount = parseMasked(amount)
@@ -645,7 +618,6 @@ export default function Dashboard({
             selectedMonth={selectedMonth}
             onShiftMonth={shiftMonth}
             onCategoryClick={openCategoryAside}
-            onOthersClick={openOthersAside}
           />
         </div>
 
