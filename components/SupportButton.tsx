@@ -70,9 +70,9 @@ export default function SupportButton() {
         onClick={() => setOpen(true)}
         aria-label="Enviar mensagem ao suporte"
         title="Falar comigo"
-        className={`fixed right-4 sm:right-6 z-50 h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-brand-500 text-white shadow-lg hover:bg-brand-600 transition-all flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${installVisible ? 'bottom-28 sm:bottom-28' : 'bottom-4 sm:bottom-6'}`}
+        className={`fixed right-2 z-50 h-10 w-10 rounded-full bg-brand-500 text-white shadow-lg hover:bg-brand-600 transition-all flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${installVisible ? 'bottom-28' : 'bottom-2'}`}
       >
-        <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />
+        <MessageCircle className="h-5 w-5" />
       </button>
 
       <Modal
