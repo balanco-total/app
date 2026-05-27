@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import InstallPrompt from '@/components/InstallPrompt'
+import InstallPromptLoader from '@/components/InstallPromptLoader'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {children}
-        <InstallPrompt />
+        <InstallPromptLoader />
         <Analytics />
         <SpeedInsights />
       </body>

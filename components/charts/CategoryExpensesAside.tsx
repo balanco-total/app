@@ -6,7 +6,7 @@ import { applyMask, parseMasked } from '@/lib/utils'
 import { MONTHS_PT } from './helpers'
 import type { VirtualExpense } from '@/lib/recurring'
 
-type AsideExpense = {
+export type AsideExpense = {
   id: string
   amount: number
   date: string

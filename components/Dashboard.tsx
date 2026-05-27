@@ -1,20 +1,23 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/utils/supabase/client'
 import { ChevronRight, Circle, CheckCircle2 } from 'lucide-react'
 import { useToast, Toasts, useConfirm, ConfirmModal } from './toast'
-import LoadingPage from './LoadingPage'
 import BillingBanner from './BillingBanner'
 import Button from './ui/Button'
 import Modal from './ui/Modal'
 
 // Sub-components
 import DashboardHeader from './dashboard/DashboardHeader'
-import ExpenseForm from './dashboard/ExpenseForm'
 import CategorySummary from './dashboard/CategorySummary'
-import RecentExpenses from './dashboard/RecentExpenses'
-import CategoryExpensesAside from './charts/CategoryExpensesAside'
+
+// Code-split: shipped as separate chunks to shrink the initial /app bundle.
+// CategoryExpensesAside only renders on interaction, so it can skip SSR entirely.
+const ExpenseForm = dynamic(() => import('./dashboard/ExpenseForm'))
+const RecentExpenses = dynamic(() => import('./dashboard/RecentExpenses'))
+const CategoryExpensesAside = dynamic(() => import('./charts/CategoryExpensesAside'), { ssr: false })
 
 // Shared helpers
 import {
@@ -23,7 +26,6 @@ import {
   parseDateDisplay,
   toLocalDateStr,
   toLocalDateDisplay,
-  DEFAULT_CATEGORIES,
   CATEGORY_COLORS,
   MONTHS_PT_LOWER,
 } from './dashboard/helpers'
@@ -46,6 +48,43 @@ import type {
 // Recurring helpers
 import { generateVirtualOccurrences } from '@/lib/recurring'
 
+import type { AsideExpense } from './charts/CategoryExpensesAside'
+
+// ─────────────────────────────────────────────
+// Monthly summary helpers
+// ─────────────────────────────────────────────
+
+type MonthExpenseRow = {
+  category_id: string | null
+  amount: number
+  paid_at: string | null
+  recurring_expense_id?: string | null
+  occurrence_year_month?: string | null
+  skipped?: boolean
+}
+
+/** Combines real month expenses with virtual recurring occurrences for the summary totals. */
+function buildMonthlyData(
+  monthExpenses: MonthExpenseRow[],
+  templates: RecurringExpense[],
+  month: string,
+): MonthExpenseRow[] {
+  const materializedKeys = new Set(
+    monthExpenses
+      .filter(e => e.recurring_expense_id && e.occurrence_year_month)
+      .map(e => `${e.recurring_expense_id}:${e.occurrence_year_month}`)
+  )
+  const virtualData = generateVirtualOccurrences(templates, month, materializedKeys).map(v => ({
+    category_id: v.category_id,
+    amount: v.amount,
+    paid_at: null,
+    recurring_expense_id: v.recurring_expense_id,
+    occurrence_year_month: v.occurrence_year_month,
+    skipped: false,
+  }))
+  return [...monthExpenses.filter(e => !e.skipped), ...virtualData]
+}
+
 // ─────────────────────────────────────────────
 // Dashboard
 // ─────────────────────────────────────────────
@@ -54,19 +93,32 @@ export default function Dashboard({
   user,
   profile,
   account,
+  initialCategories,
+  initialExpenses,
+  initialFinancialAccounts,
+  initialRecurring,
+  initialMonthExpenses,
+  initialMonth,
 }: {
   user: User
   profile: Profile
   account: Account
+  initialCategories: Category[]
+  initialExpenses: Expense[]
+  initialFinancialAccounts: FinancialAccount[]
+  initialRecurring: RecurringExpense[]
+  initialMonthExpenses: MonthExpenseRow[]
+  initialMonth: string
 }) {
   const supabase = createClient()
 
   // ── Core data ──────────────────────────────
-  const [categories, setCategories] = useState<Category[]>([])
-  const [expenses, setExpenses] = useState<Expense[]>([])
-  const [financialAccounts, setFinancialAccounts] = useState<FinancialAccount[]>([])
-  const [monthlyData, setMonthlyData] = useState<{ category_id: string | null; amount: number; paid_at: string | null; recurring_expense_id?: string | null; occurrence_year_month?: string | null; skipped?: boolean }[]>([])
-  const [loading, setLoading] = useState(true)
+  const [categories, setCategories] = useState<Category[]>(initialCategories)
+  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses)
+  const [financialAccounts] = useState<FinancialAccount[]>(initialFinancialAccounts)
+  const [monthlyData, setMonthlyData] = useState<MonthExpenseRow[]>(
+    () => buildMonthlyData(initialMonthExpenses, initialRecurring, initialMonth)
+  )
 
   // ── Form state ─────────────────────────────
   const [description, setDescription] = useState('')
@@ -75,11 +127,13 @@ export default function Dashboard({
   const [expenseDate, setExpenseDate] = useState(() => toLocalDateDisplay(new Date()))
   const [quantity, setQuantity] = useState('1')
   const [paid, setPaid] = useState(false)
-  const [selectedFinancialAccount, setSelectedFinancialAccount] = useState<string>('')
+  const [selectedFinancialAccount, setSelectedFinancialAccount] = useState<string>(
+    () => initialFinancialAccounts.find(a => a.is_default)?.id ?? ''
+  )
   const [isRecurring, setIsRecurring] = useState(false)
 
   // ── Month navigation ───────────────────────
-  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
+  const [selectedMonth, setSelectedMonth] = useState(initialMonth)
 
   // ── Modals ─────────────────────────────────
   const [pendingCategoryChange, setPendingCategoryChange] = useState<PendingCategoryChange | null>(null)
@@ -93,11 +147,11 @@ export default function Dashboard({
 
   const { toasts, toast, dismiss } = useToast()
   const { confirmState, showConfirm, handleConfirm, handleCancel } = useConfirm()
-  const hasLoadedRef = useRef(false)
+  const isFirstMonthEffect = useRef(true)
 
   // ── Data fetching ──────────────────────────
 
-  const recurringTemplatesRef = useRef<RecurringExpense[]>([])
+  const recurringTemplatesRef = useRef<RecurringExpense[]>(initialRecurring)
 
   const fetchMonthlySummary = useCallback(async (month: string) => {
     const [y, m] = month.split('-').map(Number)
@@ -110,80 +164,19 @@ export default function Dashboard({
       .eq('account_id', profile.account_id)
       .gte('date', `${month}-01`)
       .lt('date', nextMonth)
-    const real = data ?? []
-
-    const materializedKeys = new Set(
-      real
-        .filter(e => e.recurring_expense_id && e.occurrence_year_month)
-        .map(e => `${e.recurring_expense_id}:${e.occurrence_year_month}`)
-    )
-    const virtuals = generateVirtualOccurrences(recurringTemplatesRef.current, month, materializedKeys)
-    const virtualData = virtuals.map(v => ({
-      category_id: v.category_id,
-      amount: v.amount,
-      paid_at: null,
-      recurring_expense_id: v.recurring_expense_id,
-      occurrence_year_month: v.occurrence_year_month,
-      skipped: false,
-    }))
-
-    setMonthlyData([...real.filter(e => !e.skipped), ...virtualData])
+    setMonthlyData(buildMonthlyData((data ?? []) as MonthExpenseRow[], recurringTemplatesRef.current, month))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile.account_id])
 
+  // Initial month summary is computed server-side and passed in; only refetch on month change.
   useEffect(() => {
-    loadData()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    if (!hasLoadedRef.current) return
+    if (isFirstMonthEffect.current) {
+      isFirstMonthEffect.current = false
+      return
+    }
     fetchMonthlySummary(selectedMonth)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonth])
-
-  const loadData = async () => {
-    const [categoriesRes, expensesRes, finAccountsRes, recurringRes] = await Promise.all([
-      supabase.from('categories').select('*').eq('account_id', profile.account_id).order('name'),
-      supabase.from('expenses').select('*, profiles(name)').eq('account_id', profile.account_id).order('created_at', { ascending: false }).limit(50),
-      supabase.from('financial_accounts').select('id, name, is_default').eq('account_id', profile.account_id).order('created_at', { ascending: true }),
-      supabase.from('recurring_expenses').select('*').eq('account_id', profile.account_id).order('created_at', { ascending: true }),
-    ])
-
-    setExpenses(expensesRes.data ?? [])
-
-    const templates = (recurringRes.data ?? []) as RecurringExpense[]
-    recurringTemplatesRef.current = templates
-
-    // Seed default financial account if none exist
-    let accounts = finAccountsRes.data ?? []
-    if (accounts.length === 0) {
-      const { data: seeded } = await supabase
-        .from('financial_accounts')
-        .insert({ account_id: profile.account_id, name: 'Carteira', is_default: true })
-        .select('id, name, is_default')
-        .single()
-      if (seeded) accounts = [seeded]
-    }
-    setFinancialAccounts(accounts)
-    const defaultAcc = accounts.find(a => a.is_default)
-    if (defaultAcc) setSelectedFinancialAccount(defaultAcc.id)
-
-    // Seed default categories if none exist
-    let cats = categoriesRes.data ?? []
-    if (cats.length === 0) {
-      const { data: seeded } = await supabase
-        .from('categories')
-        .insert(DEFAULT_CATEGORIES.map(c => ({ ...c, account_id: profile.account_id })))
-        .select()
-      cats = seeded ?? []
-    }
-    setCategories(cats)
-
-    await fetchMonthlySummary(selectedMonth)
-    hasLoadedRef.current = true
-    setLoading(false)
-  }
 
   // ── Handlers ───────────────────────────────
 
@@ -616,10 +609,6 @@ export default function Dashboard({
     return { totalMonth: total, totalUnpaid: unpaid }
   }, [monthlyData])
 
-  // ── Loading ────────────────────────────────
-
-  if (loading) return <LoadingPage />
-
   // ── Render ─────────────────────────────────
 
   return (
@@ -955,7 +944,7 @@ export default function Dashboard({
 
       <CategoryExpensesAside
         category={asideCategory}
-        expenses={asideExpenses as Parameters<typeof CategoryExpensesAside>[0]['expenses']}
+        expenses={asideExpenses as AsideExpense[]}
         onClose={() => setAsideCategory(null)}
         selectedMonth={selectedMonth}
         loading={asideLoading}
