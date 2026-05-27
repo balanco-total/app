@@ -71,22 +71,22 @@ export default function PersonalInfoCard({ profile, email }: { profile: Profile;
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 space-y-6">
-      <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 space-y-6">
+      <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
         <User size={20} className="text-brand-500" />
         Informações pessoais
       </h2>
 
       <form onSubmit={saveName} className="space-y-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome</label>
           <div className="flex gap-2">
             <input
               type="text"
               value={name}
               onChange={e => setName(e.target.value.replace(FIELD_PATTERN, ''))}
               maxLength={60}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             />
             <Button
               type="submit"
@@ -106,15 +106,15 @@ export default function PersonalInfoCard({ profile, email }: { profile: Profile;
         )}
       </form>
 
-      <hr className="border-gray-100" />
+      <hr className="border-gray-100 dark:border-gray-700" />
 
       <form onSubmit={changePassword} className="space-y-3">
-        <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
           <Lock size={15} className="text-gray-400" />
           Alterar senha
         </h3>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Senha atual</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Senha atual</label>
           <PasswordInput
             value={currentPassword}
             onChange={e => setCurrentPassword(e.target.value)}
@@ -123,7 +123,7 @@ export default function PersonalInfoCard({ profile, email }: { profile: Profile;
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nova senha</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nova senha</label>
           <div className="flex gap-2">
             <PasswordInput
               value={newPassword}

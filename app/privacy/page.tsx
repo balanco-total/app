@@ -7,8 +7,8 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b border-gray-100 py-4 px-6">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
+      <header className="border-b border-gray-100 dark:border-gray-700 py-4 px-6">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <Link href="/"><Logo width={110} height={34} /></Link>
           <Link href="/signup" className="text-sm text-brand-500 font-semibold hover:underline">
@@ -18,13 +18,13 @@ export default function PrivacyPage() {
       </header>
 
       <main className="max-w-3xl mx-auto px-6 py-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Política de Privacidade</h1>
-        <p className="text-sm text-gray-400 mb-10">Última atualização: maio de 2026</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Política de Privacidade</h1>
+        <p className="text-sm text-gray-400 dark:text-gray-500 mb-10">Última atualização: maio de 2026</p>
 
-        <div className="prose prose-gray max-w-none space-y-8 text-gray-700 leading-relaxed">
+        <div className="prose prose-gray max-w-none space-y-8 text-gray-700 dark:text-gray-300 leading-relaxed">
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">1. Quem somos</h2>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3">1. Quem somos</h2>
             <p>
               O <strong>BalançoTotal</strong> é um serviço de gerenciamento financeiro pessoal e familiar
               operado por seus desenvolvedores (<strong>Controlador de Dados</strong>). Esta Política descreve
@@ -34,7 +34,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">2. Dados que coletamos</h2>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3">2. Dados que coletamos</h2>
             <ul className="list-disc pl-5 space-y-2">
               <li><strong>Cadastro:</strong> nome e endereço de e-mail fornecidos no momento do registro.</li>
               <li><strong>Dados financeiros:</strong> despesas, categorias e contas que você cadastra voluntariamente.</li>
@@ -45,16 +45,16 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">3. Finalidade e base legal</h2>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3">3. Finalidade e base legal</h2>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
-                <thead className="bg-gray-50">
+              <table className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                <thead className="bg-gray-50 dark:bg-gray-800">
                   <tr>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">Finalidade</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">Base legal (LGPD)</th>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">Finalidade</th>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">Base legal (LGPD)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   <tr>
                     <td className="px-4 py-3">Prestar o serviço de controle financeiro</td>
                     <td className="px-4 py-3">Execução de contrato (art. 7º, V)</td>
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">4. Compartilhamento com terceiros</h2>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3">4. Compartilhamento com terceiros</h2>
             <p>Seus dados são compartilhados apenas com os seguintes parceiros, estritamente para operar o serviço:</p>
             <ul className="list-disc pl-5 space-y-2 mt-2">
               <li><strong>Supabase</strong> — banco de dados e autenticação (servidores na nuvem).</li>
@@ -92,7 +92,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">5. Retenção de dados</h2>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3">5. Retenção de dados</h2>
             <p>
               Mantemos seus dados enquanto sua conta estiver ativa. Ao cancelar ou excluir sua conta,
               os dados pessoais e financeiros são removidos permanentemente de nossos sistemas em até
@@ -101,7 +101,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">6. Seus direitos como titular</h2>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3">6. Seus direitos como titular</h2>
             <p>Nos termos da LGPD, você tem direito a:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>Confirmar a existência de tratamento de seus dados.</li>
@@ -115,7 +115,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">7. Segurança</h2>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3">7. Segurança</h2>
             <p>
               Adotamos medidas técnicas e organizacionais adequadas para proteger seus dados, incluindo
               criptografia em trânsito (TLS), autenticação via JWT com validação server-side e controle
@@ -125,7 +125,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">8. Contato</h2>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3">8. Contato</h2>
             <p>
               Dúvidas, solicitações ou reclamações relacionadas a esta Política podem ser enviadas para:{' '}
               <a href="mailto:privacidade@balancototal.com.br" className="text-brand-500 underline">
@@ -135,7 +135,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">9. Alterações</h2>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3">9. Alterações</h2>
             <p>
               Podemos atualizar esta Política periodicamente. Alterações relevantes serão comunicadas
               por e-mail ou aviso no app com pelo menos 15 dias de antecedência. O uso continuado do
@@ -146,11 +146,11 @@ export default function PrivacyPage() {
         </div>
       </main>
 
-      <footer className="border-t border-gray-100 py-8 px-6 mt-8">
-        <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-400">
+      <footer className="border-t border-gray-100 dark:border-gray-700 py-8 px-6 mt-8">
+        <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-400 dark:text-gray-500">
           <div className="flex items-center gap-6">
-            <Link href="/privacy" className="hover:text-gray-600 transition">Privacidade</Link>
-            <Link href="/terms" className="hover:text-gray-600 transition">Termos de Uso</Link>
+            <Link href="/privacy" className="hover:text-gray-600 dark:hover:text-gray-300 transition">Privacidade</Link>
+            <Link href="/terms" className="hover:text-gray-600 dark:hover:text-gray-300 transition">Termos de Uso</Link>
           </div>
           <p className="text-xs">© {new Date().getFullYear()} BalançoTotal. Todos os direitos reservados.</p>
         </div>

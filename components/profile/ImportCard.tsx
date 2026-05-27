@@ -86,8 +86,8 @@ export default function ImportCard() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
-      <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+      <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2 mb-4">
         <Upload size={20} className="text-brand-500" />
         Importar lançamentos
       </h2>
@@ -105,52 +105,52 @@ export default function ImportCard() {
       ) : importRows.length > 0 ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               <span className="font-medium">{importRows.length}</span> lançamentos encontrados em{' '}
-              <span className="font-medium text-gray-700">{importFileName}</span>
+              <span className="font-medium text-gray-700 dark:text-gray-200">{importFileName}</span>
             </p>
-            <button onClick={resetImport} className="text-gray-400 hover:text-gray-600 transition">
+            <button onClick={resetImport} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
               <X size={16} />
             </button>
           </div>
 
-          <div className="overflow-x-auto rounded-lg border border-gray-100">
+          <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-gray-700">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Data</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Descrição</th>
-                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-500">Valor</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Categoria</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Data</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Descrição</th>
+                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">Valor</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Categoria</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
                 {importRows.slice(0, 10).map((row, i) => (
                   <tr key={i}>
-                    <td className="px-3 py-2 text-gray-500 whitespace-nowrap text-xs">{row.raw_date}</td>
-                    <td className="px-3 py-2 text-gray-800 max-w-[180px] truncate">{row.description}</td>
-                    <td className="px-3 py-2 text-gray-800 text-right whitespace-nowrap">
+                    <td className="px-3 py-2 text-gray-500 dark:text-gray-400 whitespace-nowrap text-xs">{row.raw_date}</td>
+                    <td className="px-3 py-2 text-gray-800 dark:text-gray-100 max-w-[180px] truncate">{row.description}</td>
+                    <td className="px-3 py-2 text-gray-800 dark:text-gray-100 text-right whitespace-nowrap">
                       {row.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </td>
                     <td className="px-3 py-2 max-w-[120px] truncate">
                       {row.category_name
-                        ? <span className="text-gray-600">{row.category_name}</span>
-                        : <span className="text-gray-300 italic text-xs">sem categoria</span>}
+                        ? <span className="text-gray-600 dark:text-gray-300">{row.category_name}</span>
+                        : <span className="text-gray-300 dark:text-gray-600 italic text-xs">sem categoria</span>}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
             {importRows.length > 10 && (
-              <p className="text-xs text-gray-400 text-center py-2 border-t border-gray-50">
+              <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-2 border-t border-gray-50 dark:border-gray-700">
                 e mais {importRows.length - 10} lançamentos
               </p>
             )}
           </div>
 
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             Categorias serão vinculadas pelo nome. As que não tiverem correspondência serão atribuídas à categoria{' '}
-            <strong className="text-gray-500">Outros</strong> (criada automaticamente se não existir).
+            <strong className="text-gray-500 dark:text-gray-400">Outros</strong> (criada automaticamente se não existir).
           </p>
 
           {importError && (
@@ -172,7 +172,7 @@ export default function ImportCard() {
             <button
               onClick={resetImport}
               disabled={importLoading}
-              className="px-5 py-2.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition font-medium"
+              className="px-5 py-2.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition font-medium"
             >
               Cancelar
             </button>
@@ -180,22 +180,22 @@ export default function ImportCard() {
         </div>
       ) : (
         <div>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
             Suporta arquivos <strong>CSV</strong> (exportados pelo BalançoTotal ou de outros sistemas) e{' '}
             <strong>OFX</strong> (extratos bancários). Categorias sem correspondência são atribuídas a <strong>Outros</strong>.
           </p>
           <label
             className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-8 cursor-pointer transition
-              ${isDragging ? 'border-brand-500 bg-green-50' : 'border-gray-200 hover:border-brand-500/40 hover:bg-gray-50'}`}
+              ${isDragging ? 'border-brand-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-brand-500/40 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
             onDragEnter={e => { e.preventDefault(); setIsDragging(true) }}
             onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
             onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false) }}
             onDrop={handleDrop}
           >
             <FileText size={32} className={isDragging ? 'text-brand-500' : 'text-gray-300'} />
-            <p className="mt-2 font-medium text-gray-600">Arraste um arquivo aqui</p>
-            <p className="text-sm text-gray-400">ou clique para selecionar</p>
-            <p className="text-xs text-gray-300 mt-1">.csv · .ofx</p>
+            <p className="mt-2 font-medium text-gray-600 dark:text-gray-300">Arraste um arquivo aqui</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500">ou clique para selecionar</p>
+            <p className="text-xs text-gray-300 dark:text-gray-600 mt-1">.csv · .ofx</p>
             <input
               type="file"
               accept=".csv,.ofx"

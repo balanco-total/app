@@ -4,6 +4,7 @@ import { useToast, Toasts } from './toast'
 import BillingBanner from './BillingBanner'
 import DashboardHeader from './dashboard/DashboardHeader'
 import PersonalInfoCard from './profile/PersonalInfoCard'
+import ThemeCard from './profile/ThemeCard'
 import ExportCard from './profile/ExportCard'
 import BankConnectionsCard from './profile/BankConnectionsCard'
 import ImportCard from './profile/ImportCard'
@@ -14,7 +15,7 @@ export default function ProfilePage({ profile, email, account }: { profile: Prof
   const { toasts, toast, dismiss } = useToast()
 
   return (
-    <div className="min-h-screen bg-white p-4">
+    <div className="min-h-screen bg-white dark:bg-gray-900 p-4">
       <div className="max-w-7xl mx-auto">
         <DashboardHeader profile={profile} />
         {account && (
@@ -25,11 +26,12 @@ export default function ProfilePage({ profile, email, account }: { profile: Prof
           />
         )}
         <div className="max-w-2xl mx-auto space-y-6">
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h1 className="text-2xl font-bold text-gray-800">Perfil</h1>
-            <p className="text-gray-500 text-sm mt-0.5">{email}</p>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Perfil</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">{email}</p>
           </div>
           <PersonalInfoCard profile={profile} email={email} />
+          <ThemeCard />
           <ExportCard accountId={profile.account_id} toast={toast} />
           <BankConnectionsCard role={profile.role} toast={toast} />
           <ImportCard />

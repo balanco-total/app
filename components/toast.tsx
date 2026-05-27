@@ -43,11 +43,11 @@ export function Toasts({ toasts, dismiss }: { toasts: Toast[]; dismiss: (id: num
       {toasts.map(t => (
         <div
           key={t.id}
-          className={`flex items-center gap-3 bg-white border border-l-4 ${STYLES[t.type].bar} border-gray-100 px-4 py-3 rounded-xl shadow-lg max-w-xs pointer-events-auto`}
+          className={`flex items-center gap-3 bg-white dark:bg-gray-800 border border-l-4 ${STYLES[t.type].bar} border-gray-100 dark:border-gray-700 px-4 py-3 rounded-xl shadow-lg max-w-xs pointer-events-auto`}
         >
           {STYLES[t.type].icon}
-          <span className="text-sm font-medium text-gray-700 flex-1 leading-snug">{t.msg}</span>
-          <button onClick={() => dismiss(t.id)} className="ml-1 text-gray-300 hover:text-gray-500 transition shrink-0">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-200 flex-1 leading-snug">{t.msg}</span>
+          <button onClick={() => dismiss(t.id)} className="ml-1 text-gray-300 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-300 transition shrink-0">
             <X size={13} />
           </button>
         </div>
@@ -91,8 +91,8 @@ export function ConfirmModal({
 }: ConfirmState & { onConfirm: () => void; onCancel: () => void }) {
   return (
     <Modal open={open} onClose={onCancel} size="sm">
-      <h3 className="text-lg font-bold text-gray-800 mb-1">{title}</h3>
-      {body && <p className="text-sm text-gray-500 mb-5">{body}</p>}
+      <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">{title}</h3>
+      {body && <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">{body}</p>}
       {!body && <div className="mb-5" />}
       <div className="flex gap-3">
         <Button variant="destructive" size="md" onClick={onConfirm} className="flex-1">

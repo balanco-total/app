@@ -98,8 +98,8 @@ export default function ExpenseForm({
   })()
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+      <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
         <PlusCircle size={24} className="text-red-600" />
         Nova despesa
       </h2>
@@ -107,33 +107,33 @@ export default function ExpenseForm({
       <div className="space-y-4">
         {/* Descrição */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Descrição</label>
           <input
             type="text"
             maxLength={60}
             value={description}
             onChange={e => setDescription(e.target.value.replace(FIELD_PATTERN, ''))}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
             placeholder="Ex: Supermercado"
           />
         </div>
 
         {/* Valor */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Valor (R$)</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Valor (R$)</label>
           <input
             type="text"
             inputMode="numeric"
             value={amount}
             onChange={e => setAmount(applyMask(e.target.value))}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
             placeholder="0,00"
           />
         </div>
 
         {/* Categoria */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Categoria</label>
           <div className="flex flex-wrap gap-2">
             {categories.map(cat => (
               <div
@@ -141,7 +141,7 @@ export default function ExpenseForm({
                 className={`flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-full text-sm font-medium transition ${
                   selectedCategory === cat.id
                     ? `${cat.color} text-white`
-                    : 'bg-gray-100 text-gray-700'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                 }`}
               >
                 <button onClick={() => setSelectedCategory(cat.id)}>
@@ -160,7 +160,7 @@ export default function ExpenseForm({
             ))}
 
             {/* Nova categoria inline */}
-            <div className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm bg-gray-50 border-2 border-dashed border-gray-300">
+            <div className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm bg-gray-50 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600">
               <input
                 type="text"
                 title="Digite e aperte Enter para cadastrar"
@@ -180,7 +180,7 @@ export default function ExpenseForm({
           <button
             type="button"
             onClick={() => setShowAdvanced(v => !v)}
-            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition w-full"
+            className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition w-full"
           >
             <ChevronDown
               size={14}
@@ -190,12 +190,12 @@ export default function ExpenseForm({
           </button>
 
           {showAdvanced && (
-            <div className="mt-3 pt-3 border-t border-gray-100 bg-gray-50 rounded-xl px-3 py-3 space-y-3">
+            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-xl px-3 py-3 space-y-3">
               {/* Recorrente */}
               <div className="flex items-center justify-between py-0.5">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Recorrente</label>
-                  <p className="text-xs text-gray-400">Aparece todo mês sem limite</p>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Recorrente</label>
+                  <p className="text-xs text-gray-400 dark:text-gray-400">Aparece todo mês sem limite</p>
                 </div>
                 <button
                   type="button"
@@ -218,7 +218,7 @@ export default function ExpenseForm({
 
               {/* Data */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   {isRecurring ? 'Dia de vencimento' : 'Data'}
                 </label>
                 <input
@@ -230,14 +230,14 @@ export default function ExpenseForm({
                       setExpenseDate(`${d}/${m}/${y}`)
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-700 text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-700 dark:bg-gray-700 dark:text-gray-100 text-sm"
                 />
               </div>
 
               {/* Quantidade (hidden when recurring) */}
               {!isRecurring && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Quantidade</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Quantidade</label>
                   <input
                     type="number"
                     value={quantity}
@@ -247,7 +247,7 @@ export default function ExpenseForm({
                     }}
                     min="1"
                     max="99"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm dark:bg-gray-700 dark:text-gray-100"
                   />
                   {installmentWarning ? (
                     <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
@@ -265,7 +265,7 @@ export default function ExpenseForm({
               {/* Pago (hidden when recurring) */}
               {!isRecurring && (
                 <div className="flex items-center justify-between py-0.5">
-                  <label className="text-sm font-medium text-gray-700">Pago</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Pago</label>
                   <button
                     type="button"
                     onClick={() => setPaid(v => !v)}
@@ -284,11 +284,11 @@ export default function ExpenseForm({
               {/* Conta */}
               {financialAccounts.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Conta</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Conta</label>
                   <select
                     value={selectedFinancialAccount}
                     onChange={e => setSelectedFinancialAccount(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm text-gray-700"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm text-gray-700 dark:bg-gray-700 dark:text-gray-100"
                   >
                     {financialAccounts.map(acc => (
                       <option key={acc.id} value={acc.id}>

@@ -154,7 +154,7 @@ export default function AccountsPage({ profile, account }: { profile: Profile; a
   if (loading) return <LoadingPage />
 
   return (
-    <div className="min-h-screen bg-white p-4">
+    <div className="min-h-screen bg-white dark:bg-gray-900 p-4">
       <div className="max-w-4xl mx-auto">
         <DashboardHeader profile={profile} />
         {account && (
@@ -165,9 +165,9 @@ export default function AccountsPage({ profile, account }: { profile: Profile; a
           />
         )}
 
-        <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
               <Landmark size={22} className="text-brand-500" />
               Contas
             </h2>

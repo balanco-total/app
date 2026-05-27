@@ -115,16 +115,16 @@ const planFeatures = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
 
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-100">
+      <nav className="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-100 dark:border-gray-700">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Logo width={145} height={45} />
           <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="text-sm font-medium text-gray-600 hover:text-brand-500 transition px-3 py-2"
+              className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-brand-500 transition px-3 py-2"
             >
               Entrar
             </Link>
@@ -139,17 +139,17 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 pt-20 pb-28 px-4 sm:px-6">
+      <section className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 pt-20 pb-28 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto text-center">
           <span className="inline-block bg-brand-500/10 text-brand-500 text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
             34 dias grátis · Sem cartão de crédito
           </span>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 leading-tight mb-6">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 dark:text-gray-100 leading-tight mb-6">
             Anote suas despesas e{' '}
             <span className="text-brand-500">saiba para onde</span>{' '}
             o dinheiro vai
           </h1>
-          <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-10 leading-relaxed">
             BalançoTotal é uma ferramenta de controle de despesas para uso pessoal e familiar.
             Simples, sem complicação — não é um sistema contábil nem um ERP.
           </p>
@@ -163,7 +163,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/login"
-              className="inline-flex items-center justify-center gap-2 bg-white text-gray-700 text-base font-semibold px-7 py-4 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition"
+              className="inline-flex items-center justify-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-base font-semibold px-7 py-4 rounded-xl border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
             >
               Já tenho conta
             </Link>
@@ -185,10 +185,10 @@ export default function LandingPage() {
       <section className="py-24 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-gray-100 mb-4">
               O que você encontra aqui
             </h2>
-            <p className="text-gray-500 text-lg max-w-xl mx-auto">
+            <p className="text-gray-500 dark:text-gray-400 text-lg max-w-xl mx-auto">
               Do lançamento manual à importação do extrato do banco — tudo focado em controle pessoal de gastos.
             </p>
           </div>
@@ -220,13 +220,13 @@ export default function LandingPage() {
             {features.map(({ icon: Icon, title, description }) => (
               <div
                 key={title}
-                className="bg-gray-50 rounded-2xl p-6 hover:bg-emerald-50 hover:shadow-md transition group"
+                className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 hover:bg-emerald-50 dark:hover:bg-gray-700 hover:shadow-md transition group"
               >
                 <div className="w-11 h-11 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-brand-500/15 transition">
                   <Icon className="w-5 h-5 text-brand-500" />
                 </div>
-                <h3 className="text-base font-bold text-gray-900 mb-2">{title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{description}</p>
+                <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-2">{title}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{description}</p>
               </div>
             ))}
           </div>
@@ -234,13 +234,13 @@ export default function LandingPage() {
       </section>
 
       {/* Para quem é */}
-      <section className="py-16 px-4 sm:px-6 bg-amber-50">
+      <section className="py-16 px-4 sm:px-6 bg-amber-50 dark:bg-gray-900">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-10 text-center">
+          <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-gray-100 mb-10 text-center">
             Para quem é o BalançoTotal?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl p-6 border border-emerald-100">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-emerald-100 dark:border-gray-700">
               <p className="text-xs font-bold text-emerald-700 uppercase tracking-widest mb-4">Serve para você se…</p>
               <ul className="space-y-3">
                 {[
@@ -252,7 +252,7 @@ export default function LandingPage() {
                   'Quer ver seus gastos organizados por categoria',
                   'É autônomo e quer controlar o fluxo pessoal',
                 ].map(item => (
-                  <li key={item} className="flex items-start gap-3 text-sm text-gray-700">
+                  <li key={item} className="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300">
                     <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <Check className="w-3 h-3 text-brand-500" />
                     </div>
@@ -261,7 +261,7 @@ export default function LandingPage() {
                 ))}
               </ul>
             </div>
-            <div className="bg-white rounded-2xl p-6 border border-red-100">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-red-100 dark:border-gray-700">
               <p className="text-xs font-bold text-red-600 uppercase tracking-widest mb-4">Não serve se você precisa de…</p>
               <ul className="space-y-3">
                 {[
@@ -272,7 +272,7 @@ export default function LandingPage() {
                   'Integração com sistemas fiscais',
                   'Múltiplas empresas ou CNPJs',
                 ].map(item => (
-                  <li key={item} className="flex items-start gap-3 text-sm text-gray-500">
+                  <li key={item} className="flex items-start gap-3 text-sm text-gray-500 dark:text-gray-400">
                     <div className="w-5 h-5 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <X className="w-3 h-3 text-red-400" />
                     </div>
@@ -286,13 +286,13 @@ export default function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section className="py-24 px-4 sm:px-6 bg-gray-50">
+      <section className="py-24 px-4 sm:px-6 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-gray-100 mb-4">
               Comece em 3 passos
             </h2>
-            <p className="text-gray-500 text-lg">Sem configuração complexa. Do zero ao controle financeiro em minutos.</p>
+            <p className="text-gray-500 dark:text-gray-400 text-lg">Sem configuração complexa. Do zero ao controle financeiro em minutos.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {steps.map(({ number, title, description }) => (
@@ -300,8 +300,8 @@ export default function LandingPage() {
                 <div className="w-14 h-14 bg-brand-500 text-white rounded-2xl flex items-center justify-center text-2xl font-black mx-auto mb-5 shadow-lg shadow-brand-500/20">
                   {number}
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{description}</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">{title}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{description}</p>
               </div>
             ))}
           </div>
@@ -316,16 +316,16 @@ export default function LandingPage() {
               <TrendingUp className="w-4 h-4" />
               Análise financeira
             </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-5">
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-gray-100 mb-5">
               Entenda para onde vai o seu dinheiro
             </h2>
-            <p className="text-gray-500 text-lg leading-relaxed mb-6">
+            <p className="text-gray-500 dark:text-gray-400 text-lg leading-relaxed mb-6">
               O dashboard mostra saldo do mês, categorias mais impactantes e tendência dos últimos 9 meses.
               Tudo atualizado em tempo real conforme você lança.
             </p>
             <ul className="space-y-3">
               {['Gráfico de pizza por categoria', 'Barras de gastos por usuário', 'Tendência mensal de 9 meses', 'Saldo de pagamentos x recebimentos'].map(item => (
-                <li key={item} className="flex items-center gap-3 text-gray-600 text-sm">
+                <li key={item} className="flex items-center gap-3 text-gray-600 dark:text-gray-300 text-sm">
                   <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                     <Check className="w-3 h-3 text-brand-500" />
                   </div>
@@ -372,15 +372,15 @@ export default function LandingPage() {
       </section>
 
       {/* Import highlight */}
-      <section className="py-24 px-4 sm:px-6 bg-gray-50">
+      <section className="py-24 px-4 sm:px-6 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="order-2 lg:order-1">
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden">
-              <div className="bg-gray-50 border-b border-gray-200 px-5 py-3 flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-xl overflow-hidden">
+              <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-5 py-3 flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-400" />
                 <div className="w-3 h-3 rounded-full bg-yellow-400" />
                 <div className="w-3 h-3 rounded-full bg-green-400" />
-                <span className="ml-2 text-xs text-gray-400">extrato.ofx</span>
+                <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">extrato.ofx</span>
               </div>
               <div className="p-5 space-y-3 text-sm">
                 {[
@@ -390,13 +390,13 @@ export default function LandingPage() {
                   { date: '15/05', desc: 'Farmácia', value: '-R$ 43,20', type: 'out' },
                   { date: '20/05', desc: 'Freelance', value: '+R$ 1.200,00', type: 'in' },
                 ].map(({ date, desc, value, type }) => (
-                  <div key={desc} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                  <div key={desc} className="flex items-center justify-between py-2 border-b border-gray-50 dark:border-gray-700 last:border-0">
                     <div className="flex items-center gap-3">
-                      <span className="text-gray-400 text-xs w-10">{date}</span>
-                      <div className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <span className="text-gray-400 dark:text-gray-500 text-xs w-10">{date}</span>
+                      <div className="w-7 h-7 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
                         <div className={`w-2 h-2 rounded-full ${type === 'in' ? 'bg-green-500' : 'bg-red-400'}`} />
                       </div>
-                      <span className="text-gray-700">{desc}</span>
+                      <span className="text-gray-700 dark:text-gray-300">{desc}</span>
                     </div>
                     <span className={`font-semibold ${type === 'in' ? 'text-green-600' : 'text-red-500'}`}>{value}</span>
                   </div>
@@ -414,16 +414,16 @@ export default function LandingPage() {
               <FileUp className="w-4 h-4" />
               Importação inteligente
             </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-5">
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-gray-100 mb-5">
               Importe o extrato do seu banco
             </h2>
-            <p className="text-gray-500 text-lg leading-relaxed mb-6">
+            <p className="text-gray-500 dark:text-gray-400 text-lg leading-relaxed mb-6">
               Suba o arquivo OFX ou CSV direto do internet banking. O sistema reconhece o formato,
               identifica categorias automaticamente e popula seus lançamentos em segundos.
             </p>
             <ul className="space-y-3">
               {['Suporte a OFX (Bradesco, Itaú, Nubank…)', 'Suporte a CSV com delimitador auto-detectado', 'Categorias identificadas por nome (case-insensitive)', 'Até 1.000 lançamentos por importação'].map(item => (
-                <li key={item} className="flex items-center gap-3 text-gray-600 text-sm">
+                <li key={item} className="flex items-center gap-3 text-gray-600 dark:text-gray-300 text-sm">
                   <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                     <Check className="w-3 h-3 text-blue-600" />
                   </div>
@@ -443,10 +443,10 @@ export default function LandingPage() {
               <RefreshCw className="w-4 h-4" />
               Conciliação bancária
             </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-5">
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-gray-100 mb-5">
               Conecte seu banco e sincronize automaticamente
             </h2>
-            <p className="text-gray-500 text-lg leading-relaxed mb-6">
+            <p className="text-gray-500 dark:text-gray-400 text-lg leading-relaxed mb-6">
               Via Pluggy e Open Finance regulamentado pelo Banco Central, você conecta sua conta bancária
               uma única vez e os lançamentos chegam automaticamente — sem baixar extrato, sem digitar nada.
             </p>
@@ -457,7 +457,7 @@ export default function LandingPage() {
                 'Transações importadas com categoria sugerida',
                 'Múltiplas contas em um só lugar',
               ].map(item => (
-                <li key={item} className="flex items-center gap-3 text-gray-600 text-sm">
+                <li key={item} className="flex items-center gap-3 text-gray-600 dark:text-gray-300 text-sm">
                   <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                     <Check className="w-3 h-3 text-brand-500" />
                   </div>
@@ -467,11 +467,11 @@ export default function LandingPage() {
             </ul>
           </div>
           <div>
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden">
-              <div className="bg-gray-50 border-b border-gray-200 px-5 py-3 flex items-center justify-between">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-xl overflow-hidden">
+              <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-5 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Landmark className="w-4 h-4 text-gray-400" />
-                  <span className="text-xs text-gray-500 font-medium">Contas conectadas</span>
+                  <Landmark className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Contas conectadas</span>
                 </div>
                 <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-xs font-semibold px-2 py-0.5 rounded-full">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -484,21 +484,21 @@ export default function LandingPage() {
                   { bank: 'Itaú', type: 'Conta corrente', balance: 'R$ 8.120,50', color: 'bg-orange-100 text-orange-700' },
                   { bank: 'Carteira', type: 'Dinheiro em espécie', balance: 'R$ 450,00', color: 'bg-gray-100 text-gray-600' },
                 ].map(({ bank, type, balance, color }) => (
-                  <div key={bank} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                  <div key={bank} className="flex items-center justify-between py-2 border-b border-gray-50 dark:border-gray-700 last:border-0">
                     <div className="flex items-center gap-3">
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black ${color}`}>
                         {bank.slice(0, 2)}
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-gray-800">{bank}</div>
-                        <div className="text-xs text-gray-400">{type}</div>
+                        <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">{bank}</div>
+                        <div className="text-xs text-gray-400 dark:text-gray-500">{type}</div>
                       </div>
                     </div>
-                    <span className="text-sm font-bold text-gray-700">{balance}</span>
+                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{balance}</span>
                   </div>
                 ))}
                 <div className="pt-2 space-y-2">
-                  <div className="text-xs text-gray-400 font-medium mb-1">Últimas transações sincronizadas</div>
+                  <div className="text-xs text-gray-400 dark:text-gray-500 font-medium mb-1">Últimas transações sincronizadas</div>
                   {[
                     { desc: 'Mercado Pago', value: '-R$ 67,90', type: 'out' },
                     { desc: 'Pix recebido', value: '+R$ 500,00', type: 'in' },
@@ -506,7 +506,7 @@ export default function LandingPage() {
                     <div key={desc} className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${type === 'in' ? 'bg-green-500' : 'bg-red-400'}`} />
-                        <span className="text-gray-600">{desc}</span>
+                        <span className="text-gray-600 dark:text-gray-300">{desc}</span>
                       </div>
                       <span className={`font-semibold ${type === 'in' ? 'text-green-600' : 'text-red-500'}`}>{value}</span>
                     </div>
@@ -546,26 +546,26 @@ export default function LandingPage() {
       <section id="planos" className="py-24 px-4 sm:px-6">
         <div className="max-w-lg mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-gray-100 mb-4">
               Um plano. Simples assim.
             </h2>
-            <p className="text-gray-500 text-lg">Tudo incluso. Sem surpresas na fatura.</p>
+            <p className="text-gray-500 dark:text-gray-400 text-lg">Tudo incluso. Sem surpresas na fatura.</p>
           </div>
-          <div className="relative bg-white border-2 border-brand-500 rounded-2xl p-8 shadow-2xl shadow-brand-500/10">
+          <div className="relative bg-white dark:bg-gray-800 border-2 border-brand-500 rounded-2xl p-8 shadow-2xl shadow-brand-500/10">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <span className="bg-accent text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide">
                 34 dias grátis
               </span>
             </div>
             <div className="text-center mb-8">
-              <div className="text-5xl font-black text-gray-900 mb-1">
+              <div className="text-5xl font-black text-gray-900 dark:text-gray-100 mb-1">
                 R$ 7<span className="text-3xl">,99</span>
               </div>
-              <div className="text-gray-400 text-sm">por mês · cobrado mensalmente</div>
+              <div className="text-gray-400 dark:text-gray-500 text-sm">por mês · cobrado mensalmente</div>
             </div>
             <ul className="space-y-3 mb-8">
               {planFeatures.map(feature => (
-                <li key={feature} className="flex items-center gap-3 text-gray-700 text-sm">
+                <li key={feature} className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-sm">
                   <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                     <Check className="w-3 h-3 text-brand-500" />
                   </div>
@@ -579,7 +579,7 @@ export default function LandingPage() {
             >
               Começar teste grátis
             </Link>
-            <p className="text-center text-xs text-gray-400 mt-4">
+            <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-4">
               Sem cartão de crédito para começar. Cancele quando quiser.
             </p>
           </div>
@@ -587,12 +587,12 @@ export default function LandingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-24 px-4 sm:px-6 bg-gradient-to-br from-emerald-50 to-green-100">
+      <section className="py-24 px-4 sm:px-6 bg-gradient-to-br from-emerald-50 to-green-100 dark:from-gray-900 dark:to-gray-800">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-5">
+          <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-gray-100 mb-5">
             Pronto para ter o controle?
           </h2>
-          <p className="text-gray-600 text-lg mb-8">
+          <p className="text-gray-600 dark:text-gray-300 text-lg mb-8">
             Crie sua conta agora e explore todos os recursos por 34 dias sem pagar nada.
           </p>
           <Link
@@ -606,16 +606,16 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 py-10 px-4 sm:px-6">
+      <footer className="border-t border-gray-100 dark:border-gray-700 py-10 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <Logo width={120} height={37} />
-          <div className="flex items-center gap-6 text-sm text-gray-400">
-            <Link href="/login" className="hover:text-gray-600 transition">Entrar</Link>
-            <Link href="/signup" className="hover:text-gray-600 transition">Cadastrar</Link>
-            <Link href="/privacy" className="hover:text-gray-600 transition">Privacidade</Link>
-            <Link href="/terms" className="hover:text-gray-600 transition">Termos</Link>
+          <div className="flex items-center gap-6 text-sm text-gray-400 dark:text-gray-500">
+            <Link href="/login" className="hover:text-gray-600 dark:hover:text-gray-300 transition">Entrar</Link>
+            <Link href="/signup" className="hover:text-gray-600 dark:hover:text-gray-300 transition">Cadastrar</Link>
+            <Link href="/privacy" className="hover:text-gray-600 dark:hover:text-gray-300 transition">Privacidade</Link>
+            <Link href="/terms" className="hover:text-gray-600 dark:hover:text-gray-300 transition">Termos</Link>
           </div>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             © {new Date().getFullYear()} BalançoTotal. Todos os direitos reservados.
           </p>
         </div>

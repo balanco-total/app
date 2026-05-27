@@ -13,23 +13,23 @@ export default function MonthSelector({
   const [selYear, selMonthNum] = selectedMonth.split('-').map(Number)
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-6">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 mb-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
         <div className="flex items-center justify-center gap-1">
-          <button onClick={() => onShift(-1)} className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500" title="Mês anterior">
+          <button onClick={() => onShift(-1)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="Mês anterior">
             <ChevronLeft size={18} />
           </button>
           <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg">
             <Calendar size={15} className="text-red-500 shrink-0" />
             <span className="text-sm font-semibold text-red-700 whitespace-nowrap">{MONTHS_PT[selMonthNum - 1]} {selYear}</span>
           </div>
-          <button onClick={() => onShift(1)} className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500" title="Próximo mês">
+          <button onClick={() => onShift(1)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="Próximo mês">
             <ChevronRight size={18} />
           </button>
         </div>
         <div className="flex items-center justify-center sm:justify-end gap-2 pt-2 sm:pt-0 sm:pl-3">
           <div className="text-center sm:text-right">
-            <p className="text-xs text-gray-500">Despesas do mês</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Despesas do mês</p>
             <p className="text-lg sm:text-xl font-bold text-red-600 whitespace-nowrap">{fmt(totalMonth)}</p>
           </div>
         </div>

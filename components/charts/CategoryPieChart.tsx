@@ -1,5 +1,8 @@
+'use client'
+
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts'
 import { PieTooltip } from './Tooltips'
+import { useTheme } from '@/contexts/ThemeContext'
 import type { PieEntry } from './types'
 
 export default function CategoryPieChart({
@@ -9,9 +12,12 @@ export default function CategoryPieChart({
   data: PieEntry[]
   onCategoryClick?: (id: string) => void
 }) {
+  const { theme } = useTheme()
+  const legendTextColor = theme === 'dark' ? '#d1d5db' : '#374151'
+
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-1">Despesas por categoria</h2>
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+      <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-1">Despesas por categoria</h2>
       {onCategoryClick && data.length > 0 && (
         <p className="text-xs text-gray-400 mb-3">Clique em uma categoria para ver as despesas</p>
       )}
@@ -44,7 +50,7 @@ export default function CategoryPieChart({
               ))}
             </Pie>
             <Tooltip content={<PieTooltip />} />
-            <Legend formatter={(value) => <span className="text-xs text-gray-700">{value}</span>} />
+            <Legend formatter={(value) => <span className="text-xs" style={{ color: legendTextColor }}>{value}</span>} />
           </PieChart>
         </ResponsiveContainer>
       )}

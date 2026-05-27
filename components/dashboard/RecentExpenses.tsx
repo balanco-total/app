@@ -66,16 +66,16 @@ export default function RecentExpenses({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
       {/* Header + Filters */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-        <h2 className="text-xl font-bold text-gray-800">Últimos lançamentos</h2>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Últimos lançamentos</h2>
         <div className="flex flex-wrap gap-2">
           {financialAccounts.length > 0 && (
             <select
               value={filterAccountId}
               onChange={e => changeFilter(setFilterAccountId, e.target.value)}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-gray-300 sm:w-44"
+              className="text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 sm:w-44"
             >
               <option value="">Todas as contas</option>
               <option value="__no_account__">Sem conta</option>
@@ -87,7 +87,7 @@ export default function RecentExpenses({
           <select
             value={filterCategoryId}
             onChange={e => changeFilter(setFilterCategoryId, e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-gray-300 sm:w-48"
+            className="text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 sm:w-48"
           >
             <option value="">Todas as categorias</option>
             <option value="__no_category__">Sem categoria</option>
@@ -129,7 +129,7 @@ export default function RecentExpenses({
               )}
 
               {editingCategoryId === exp.id && (
-                <div className="absolute right-0 top-full mt-1 z-20 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-[160px]">
+                <div className="absolute right-0 top-full mt-1 z-20 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 py-1 min-w-[160px]">
                   {categories.map(cat => (
                     <button
                       key={cat.id}
@@ -137,8 +137,8 @@ export default function RecentExpenses({
                         setEditingCategoryId(null)
                         onCategoryChange({ expenseId: exp.id, newCategoryId: cat.id })
                       }}
-                      className={`w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-sm text-left transition ${
-                        cat.id === exp.category_id ? 'font-semibold text-gray-900' : 'text-gray-700'
+                      className={`w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm text-left transition ${
+                        cat.id === exp.category_id ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'
                       }`}
                     >
                       <span className={`w-2 h-2 rounded-full ${cat.color} shrink-0`} />
@@ -173,12 +173,12 @@ export default function RecentExpenses({
             <button
               onClick={() => onEdit(exp)}
               title="Editar"
-              className="font-bold text-gray-800 hover:text-red-600 transition underline underline-offset-2 decoration-dashed decoration-gray-400"
+              className="font-bold text-gray-800 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-400 transition underline underline-offset-2 decoration-dashed decoration-gray-400 dark:decoration-gray-500"
             >
               R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </button>
           ) : (
-            <span className="font-bold text-gray-800">
+            <span className="font-bold text-gray-800 dark:text-gray-100">
               R$ {exp.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           )
@@ -186,17 +186,17 @@ export default function RecentExpenses({
           return (
             <div key={exp.id}>
               {/* Mobile card */}
-              <div className="sm:hidden p-4 bg-gray-50 rounded-xl">
+              <div className="sm:hidden p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <div className={`w-2 h-2 rounded-full shrink-0 mt-1.5 ${category?.color ?? 'bg-gray-400'}`} />
-                    <p className="font-medium text-gray-800 leading-snug">
+                    <p className="font-medium text-gray-800 dark:text-gray-100 leading-snug">
                       {exp.description} • {date.toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                   <div className="shrink-0 ml-2">{amountButton}</div>
                 </div>
-                <p className="text-xxs text-gray-500 mt-1 ml-4">
+                <p className="text-xxs text-gray-500 dark:text-gray-400 mt-1 ml-4">
                   {exp.profiles?.name} • {createdAt.toLocaleDateString('pt-BR')} às{' '}
                   {createdAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                 </p>
@@ -217,7 +217,7 @@ export default function RecentExpenses({
                       </span>
                     )}
                     {editingCategoryId === exp.id && (
-                      <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-[160px]">
+                      <div className="absolute left-0 top-full mt-1 z-20 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 py-1 min-w-[160px]">
                         {categories.map(cat => (
                           <button
                             key={cat.id}
@@ -225,8 +225,8 @@ export default function RecentExpenses({
                               setEditingCategoryId(null)
                               onCategoryChange({ expenseId: exp.id, newCategoryId: cat.id })
                             }}
-                            className={`w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-sm text-left transition ${
-                              cat.id === exp.category_id ? 'font-semibold text-gray-900' : 'text-gray-700'
+                            className={`w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm text-left transition ${
+                              cat.id === exp.category_id ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'
                             }`}
                           >
                             <span className={`w-2 h-2 rounded-full ${cat.color} shrink-0`} />
@@ -241,14 +241,14 @@ export default function RecentExpenses({
               </div>
 
               {/* Desktop row */}
-              <div className="hidden sm:flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+              <div className="hidden sm:flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition">
                 <div className="flex items-center gap-4 flex-1">
                   <div className={`w-2 h-2 rounded-full ${category?.color ?? 'bg-gray-400'}`} />
                   <div className="flex-1">
-                    <p className="font-medium text-gray-800">
+                    <p className="font-medium text-gray-800 dark:text-gray-100">
                       {exp.description} • {date.toLocaleDateString('pt-BR')}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       {exp.profiles?.name} • {createdAt.toLocaleDateString('pt-BR')} às{' '}
                       {createdAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       {financialAccount && <> • <span className="font-medium">{financialAccount.name}</span></>}
@@ -264,33 +264,33 @@ export default function RecentExpenses({
         })}
 
         {expenses.length === 0 && (
-          <p className="text-center text-gray-500 py-8">Nenhuma despesa cadastrada ainda.</p>
+          <p className="text-center text-gray-500 dark:text-gray-400 py-8">Nenhuma despesa cadastrada ainda.</p>
         )}
 
         {expenses.length > 0 && hasActiveFilter && filtered.length === 0 && (
-          <p className="text-center text-gray-500 py-8">Nenhum lançamento com este filtro.</p>
+          <p className="text-center text-gray-500 dark:text-gray-400 py-8">Nenhum lançamento com este filtro.</p>
         )}
       </div>
 
       {/* Pagination footer */}
       {filtered.length > 0 && (
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-          <p className="text-sm text-gray-500">
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} de {filtered.length} registro{filtered.length !== 1 ? 's' : ''}
           </p>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setPage(p => p - 1)}
               disabled={page === 0}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500 hover:text-gray-700 disabled:opacity-30 disabled:pointer-events-none"
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-30 disabled:pointer-events-none"
             >
               <ChevronLeft size={16} />
             </button>
-            <span className="text-sm text-gray-600 px-2">{page + 1} / {totalPages}</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400 px-2">{page + 1} / {totalPages}</span>
             <button
               onClick={() => setPage(p => p + 1)}
               disabled={page >= totalPages - 1}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500 hover:text-gray-700 disabled:opacity-30 disabled:pointer-events-none"
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-30 disabled:pointer-events-none"
             >
               <ChevronRight size={16} />
             </button>

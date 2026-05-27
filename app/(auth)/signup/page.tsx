@@ -53,10 +53,10 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
       <Card shadow="xl" padding="lg" className="max-w-md w-full">
         <div className="flex justify-center mb-4"><Logo /></div>
-        <p className="text-gray-500 text-center mb-8">Crie sua conta</p>
+        <p className="text-gray-500 dark:text-gray-400 text-center mb-8">Crie sua conta</p>
 
         <form onSubmit={handleSignup} className="space-y-4">
           {error && (
@@ -79,7 +79,7 @@ export default function SignupPage() {
             maxLength={MAX_EMAIL}
           />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Senha</label>
             <PasswordInput
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -89,7 +89,7 @@ export default function SignupPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Confirmar senha</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirmar senha</label>
             <PasswordInput
               value={confirm}
               onChange={e => setConfirm(e.target.value)}
@@ -106,22 +106,22 @@ export default function SignupPage() {
           >
             {loading ? 'Criando conta...' : 'Criar conta'}
           </Button>
-          <p className="text-xs text-gray-400 text-center">
+          <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
             Ao criar sua conta, você concorda com nossa{' '}
-            <Link href="/privacy" className="underline hover:text-gray-600">Política de Privacidade</Link>
+            <Link href="/privacy" className="underline hover:text-gray-600 dark:hover:text-gray-300">Política de Privacidade</Link>
             {' '}e{' '}
-            <Link href="/terms" className="underline hover:text-gray-600">Termos de Uso</Link>.
+            <Link href="/terms" className="underline hover:text-gray-600 dark:hover:text-gray-300">Termos de Uso</Link>.
           </p>
         </form>
 
-        <p className="mt-6 text-center text-gray-600">
+        <p className="mt-6 text-center text-gray-600 dark:text-gray-400">
           Já tem conta?{' '}
           <Link href="/login" className="text-brand-500 font-semibold hover:underline">
             Fazer login
           </Link>
         </p>
         <p className="mt-3 text-center">
-          <Link href="/" className="text-xs text-gray-400 hover:text-gray-600 hover:underline transition">
+          <Link href="/" className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:underline transition">
             Conheça o BalançoTotal
           </Link>
         </p>

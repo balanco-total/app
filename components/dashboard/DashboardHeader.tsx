@@ -32,7 +32,7 @@ export default function DashboardHeader({ profile }: Props) {
   }, [])
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6">
       <div className="flex justify-between items-center">
         <Link href="/app">
           <Logo height={40} width={130} />
@@ -41,34 +41,34 @@ export default function DashboardHeader({ profile }: Props) {
         <div className="flex items-center gap-3">
           <Link
             href="/app/charts"
-            className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+            className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
             title="Ver gráficos"
           >
-            <PieChart size={20} className="text-gray-600" />
-            <span className="text-gray-700 font-medium hidden sm:inline">Gráficos</span>
+            <PieChart size={20} className="text-gray-600 dark:text-gray-300" />
+            <span className="text-gray-700 dark:text-gray-300 font-medium hidden sm:inline">Gráficos</span>
           </Link>
 
           <Link
             href="/app/accounts"
-            className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+            className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
             title="Contas"
           >
-            <Landmark size={20} className="text-gray-600" />
-            <span className="text-gray-700 font-medium hidden sm:inline">Contas</span>
+            <Landmark size={20} className="text-gray-600 dark:text-gray-300" />
+            <span className="text-gray-700 dark:text-gray-300 font-medium hidden sm:inline">Contas</span>
           </Link>
 
           {profile.role === 'owner' ? (
             <Link
               href="/app/users"
-              className="hidden sm:flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+              className="hidden sm:flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
             >
-              <Users size={20} className="text-gray-600" />
-              <span className="text-gray-700 font-medium">Usuários</span>
+              <Users size={20} className="text-gray-600 dark:text-gray-300" />
+              <span className="text-gray-700 dark:text-gray-300 font-medium">Usuários</span>
             </Link>
           ) : (
-            <div className="hidden sm:flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg">
-              <Users size={20} className="text-gray-600" />
-              <span className="text-gray-700 font-medium">Usuários</span>
+            <div className="hidden sm:flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg">
+              <Users size={20} className="text-gray-600 dark:text-gray-300" />
+              <span className="text-gray-700 dark:text-gray-300 font-medium">Usuários</span>
             </div>
           )}
 
@@ -84,11 +84,11 @@ export default function DashboardHeader({ profile }: Props) {
             </button>
 
             {showAvatarMenu && (
-              <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+              <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 py-1 z-50">
                 <Link
                   href="/app/profile"
                   onClick={() => setShowAvatarMenu(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
+                  className="flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition text-sm"
                 >
                   <UserIcon size={16} className="text-gray-400" />
                   {profile.name}
@@ -97,7 +97,7 @@ export default function DashboardHeader({ profile }: Props) {
                 <Link
                   href="/app/plan"
                   onClick={() => setShowAvatarMenu(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
+                  className="flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition text-sm"
                 >
                   <CreditCard size={16} className="text-gray-400" />
                   Meu plano
@@ -106,7 +106,7 @@ export default function DashboardHeader({ profile }: Props) {
                 <Link
                   href="/app/accounts"
                   onClick={() => setShowAvatarMenu(false)}
-                  className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
+                  className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition text-sm"
                 >
                   <Landmark size={16} className="text-gray-400" />
                   Contas
@@ -116,19 +116,19 @@ export default function DashboardHeader({ profile }: Props) {
                   <Link
                     href="/app/users"
                     onClick={() => setShowAvatarMenu(false)}
-                    className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition text-sm"
+                    className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition text-sm"
                   >
                     <Users size={16} className="text-gray-400" />
                     Usuários
                   </Link>
                 ) : (
-                  <div className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-500 text-sm">
+                  <div className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-500 dark:text-gray-400 text-sm">
                     <Users size={16} className="text-gray-400" />
                     Usuários
                   </div>
                 )}
 
-                <hr className="border-gray-100" />
+                <hr className="border-gray-100 dark:border-gray-700" />
 
                 <button
                   onClick={signOut}

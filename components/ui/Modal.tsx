@@ -46,7 +46,7 @@ export default function Modal({
       role="presentation"
     >
       <div
-        className={`bg-white rounded-2xl p-6 ${SIZE_CLASSES[size]} w-full shadow-xl`}
+        className={`bg-white dark:bg-gray-800 rounded-2xl p-6 ${SIZE_CLASSES[size]} w-full shadow-xl`}
         onClick={e => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -54,13 +54,13 @@ export default function Modal({
       >
         {(title || showClose) && (
           <div className="flex items-center justify-between mb-4">
-            {title && <h3 className="text-lg font-bold text-gray-800">{title}</h3>}
+            {title && <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">{title}</h3>}
             {showClose && (
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Fechar"
-                className="text-gray-400 hover:text-gray-600 transition ml-auto"
+                className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition ml-auto"
               >
                 <X size={20} />
               </button>

@@ -22,14 +22,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const autoId = useId()
   const inputId = id ?? autoId
   const ring = error ? RING.danger : RING[variant]
-  const borderColor = error ? 'border-red-400' : 'border-gray-300'
+  const borderColor = error ? 'border-red-400' : 'border-gray-300 dark:border-gray-600'
 
   return (
     <div>
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-sm font-medium text-gray-700 mb-2"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
         >
           {label}
         </label>
@@ -37,7 +37,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       <input
         ref={ref}
         id={inputId}
-        className={`w-full px-4 py-2 border ${borderColor} rounded-lg focus:ring-2 ${ring} focus:border-transparent ${className}`.trim()}
+        className={`w-full px-4 py-2 border ${borderColor} dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 ${ring} focus:border-transparent ${className}`.trim()}
         {...rest}
       />
       {error && <p className="text-xs text-red-500 mt-1">{error}</p>}

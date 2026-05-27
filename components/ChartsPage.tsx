@@ -16,9 +16,9 @@ import type { RecurringExpense } from '@/lib/recurring'
 // so keep it out of the initial /app/charts bundle. Placeholders preserve height to avoid CLS.
 function ChartCardSkeleton({ height }: { height: number }) {
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
-      <div className="h-6 w-48 bg-gray-100 rounded mb-4 animate-pulse" />
-      <div className="bg-gray-50 rounded-xl animate-pulse" style={{ height }} />
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+      <div className="h-6 w-48 bg-gray-100 dark:bg-gray-900 rounded mb-4 animate-pulse" />
+      <div className="bg-gray-50 dark:bg-gray-900 rounded-xl animate-pulse" style={{ height }} />
     </div>
   )
 }
@@ -141,7 +141,7 @@ export default function ChartsPage({ profile, categories, expenses, account, rec
 
   return (
     <>
-      <div className="min-h-screen bg-white p-4">
+      <div className="min-h-screen bg-white dark:bg-gray-900 p-4">
         <div className="max-w-7xl mx-auto">
           <DashboardHeader profile={profile} />
           {account && (

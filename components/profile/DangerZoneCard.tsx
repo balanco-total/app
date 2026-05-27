@@ -58,12 +58,12 @@ export default function DangerZoneCard() {
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-red-100">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border-2 border-red-100 dark:border-red-900/50">
         <h2 className="text-lg font-bold text-red-600 flex items-center gap-2 mb-4">
           <Trash2 size={20} />
           Zona de perigo
         </h2>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Remove permanentemente <strong>todos os lançamentos</strong> da conta.
           Esta ação não pode ser desfeita.
         </p>
@@ -92,11 +92,11 @@ export default function DangerZoneCard() {
         onClose={deleteLoading ? () => {} : () => setShowDeleteModal(false)}
         size="md"
       >
-        <h3 className="text-xl font-bold text-gray-800 mb-2">Excluir todos os lançamentos</h3>
-        <p className="text-gray-600 text-sm mb-4">
+        <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Excluir todos os lançamentos</h3>
+        <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
           Esta ação é <strong>irreversível</strong> e removerá todos os lançamentos de todos os membros da conta.
         </p>
-        <p className="text-sm text-gray-700 mb-2">
+        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
           Digite <strong className="text-red-600">EXCLUIR</strong> para confirmar:
         </p>
         <Input
@@ -136,18 +136,18 @@ export default function DangerZoneCard() {
         onClose={deleteAccountLoading ? () => {} : () => setShowDeleteAccountModal(false)}
         size="md"
       >
-        <h3 className="text-xl font-bold text-red-700 mb-2">Apagar conta permanentemente</h3>
-        <p className="text-gray-600 text-sm mb-2">
+        <h3 className="text-xl font-bold text-red-700 dark:text-red-400 mb-2">Apagar conta permanentemente</h3>
+        <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">
           Esta ação é <strong>irreversível</strong> e irá remover:
         </p>
-        <ul className="text-sm text-gray-600 list-disc list-inside mb-4 space-y-1">
+        <ul className="text-sm text-gray-600 dark:text-gray-300 list-disc list-inside mb-4 space-y-1">
           <li>Todos os lançamentos</li>
           <li>Todas as categorias</li>
           <li>Todos os membros e seus acessos</li>
           <li>A conta inteira</li>
         </ul>
-        <p className="text-sm text-gray-700 mb-2">
-          Digite <strong className="text-red-700">APAGAR CONTA</strong> para confirmar:
+        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+          Digite <strong className="text-red-700 dark:text-red-400">APAGAR CONTA</strong> para confirmar:
         </p>
         <Input
           type="text"
