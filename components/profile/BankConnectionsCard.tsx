@@ -142,7 +142,7 @@ export default function BankConnectionsCard({ role, toast }: { role: string; toa
                 <button
                   onClick={() => handleSync(conn)}
                   disabled={!!syncing}
-                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-brand-500/10 text-brand-500 hover:bg-brand-500/20 transition disabled:opacity-40 font-medium"
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-brand-500/10 dark:bg-brand-200/10 text-brand-500 dark:text-brand-200 hover:bg-brand-500/20 transition disabled:opacity-40 font-medium"
                 >
                   {syncing === conn.item_id
                     ? <Loader2 size={13} className="animate-spin" />
@@ -153,7 +153,7 @@ export default function BankConnectionsCard({ role, toast }: { role: string; toa
                   <button
                     onClick={() => handleRemoveConnection(conn)}
                     disabled={!!syncing}
-                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition disabled:opacity-40 font-medium"
+                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-100 text-red-600 hover:bg-red-100 transition disabled:opacity-40 font-medium"
                   >
                     <Link2Off size={13} />
                     Remover
