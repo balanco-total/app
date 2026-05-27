@@ -1,17 +1,37 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import dynamic from 'next/dynamic'
 import BillingBanner from './BillingBanner'
 import DashboardHeader from './dashboard/DashboardHeader'
 import MonthSelector from './charts/MonthSelector'
-import CategoryPieChart from './charts/CategoryPieChart'
-import CategoryExpensesAside from './charts/CategoryExpensesAside'
-import MonthlyTrendChart from './charts/MonthlyTrendChart'
 import { useToast, Toasts } from './toast'
 import { COLOR_MAP, FALLBACK_COLORS, MONTHS_PT } from './charts/helpers'
 import type { Profile, Account, Category, Expense } from './charts/types'
+import type { AsideExpense } from './charts/CategoryExpensesAside'
 import { generateVirtualOccurrences } from '@/lib/recurring'
 import type { RecurringExpense } from '@/lib/recurring'
+
+// recharts is heavy and renders client-side only (ResponsiveContainer needs the DOM),
+// so keep it out of the initial /app/charts bundle. Placeholders preserve height to avoid CLS.
+function ChartCardSkeleton({ height }: { height: number }) {
+  return (
+    <div className="bg-white rounded-2xl shadow-lg p-6">
+      <div className="h-6 w-48 bg-gray-100 rounded mb-4 animate-pulse" />
+      <div className="bg-gray-50 rounded-xl animate-pulse" style={{ height }} />
+    </div>
+  )
+}
+
+const CategoryPieChart = dynamic(() => import('./charts/CategoryPieChart'), {
+  ssr: false,
+  loading: () => <ChartCardSkeleton height={320} />,
+})
+const MonthlyTrendChart = dynamic(() => import('./charts/MonthlyTrendChart'), {
+  ssr: false,
+  loading: () => <ChartCardSkeleton height={300} />,
+})
+const CategoryExpensesAside = dynamic(() => import('./charts/CategoryExpensesAside'), { ssr: false })
 
 export default function ChartsPage({ profile, categories, expenses, account, recurringTemplates: initialRecurringTemplates = [] }: {
   profile: Profile
@@ -148,7 +168,7 @@ export default function ChartsPage({ profile, categories, expenses, account, rec
 
       <CategoryExpensesAside
         category={selectedCategory}
-        expenses={asideExpenses as Parameters<typeof CategoryExpensesAside>[0]['expenses']}
+        expenses={asideExpenses as AsideExpense[]}
         onClose={() => setSelectedCategoryId(null)}
         selectedMonth={selectedMonth}
         onEndRecurrence={handleEndRecurrence}
