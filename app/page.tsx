@@ -273,7 +273,7 @@ export default function LandingPage() {
                   'Múltiplas empresas ou CNPJs',
                 ].map(item => (
                   <li key={item} className="flex items-start gap-3 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="w-5 h-5 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="w-5 h-5 rounded-full bg-red-50 dark:bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <X className="w-3 h-3 text-red-400" />
                     </div>
                     {item}
