@@ -101,7 +101,7 @@ export default function BankConnectionsCard({ role, toast }: { role: string; toa
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
       <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2 mb-4">
-        <Building2 size={20} className="text-brand-500" />
+        <Building2 size={20} className="text-brand-500 dark:text-brand-200" />
         Contas bancárias
       </h2>
 

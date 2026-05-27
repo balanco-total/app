@@ -27,7 +27,7 @@ export default function CancelSubscription() {
   return (
     <div className="border-t border-gray-100 dark:border-gray-700 pt-5">
       {cancelError && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2 mb-3">
+        <p className="text-sm text-red-600 bg-red-50 dark:bg-red-100 border border-red-200 rounded-lg px-4 py-2 mb-3">
           {cancelError}
         </p>
       )}

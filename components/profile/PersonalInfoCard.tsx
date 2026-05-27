@@ -73,7 +73,7 @@ export default function PersonalInfoCard({ profile, email }: { profile: Profile;
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 space-y-6">
       <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-        <User size={20} className="text-brand-500" />
+        <User size={20} className="text-brand-500 dark:text-brand-200" />
         Informações pessoais
       </h2>
 

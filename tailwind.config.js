@@ -23,6 +23,7 @@ module.exports = {
         accent: {
           DEFAULT: '#F5A623',
           hover:   '#e09510',
+          dark:    '#b87a0e',
         },
       },
       fontSize: {

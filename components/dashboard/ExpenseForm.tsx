@@ -254,7 +254,7 @@ export default function ExpenseForm({
                       <span>⚠</span> {installmentWarning}
                     </p>
                   ) : installmentPreview ? (
-                    <div className="mt-2 flex items-center gap-2.5 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                    <div className="mt-2 flex items-center gap-2.5 bg-red-50 dark:bg-red-100 border border-red-100 rounded-lg px-3 py-2">
                       <Repeat size={13} className="text-red-400 shrink-0" />
                       <p className="text-xs text-red-400">{installmentPreview}</p>
                     </div>

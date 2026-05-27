@@ -36,7 +36,7 @@ export default function PlanPage({ profile }: { profile: Profile }) {
             </h1>
 
             {loadError && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2 mb-4">
+              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-100 border border-red-200 rounded-lg px-4 py-2 mb-4">
                 {loadError}
               </p>
             )}

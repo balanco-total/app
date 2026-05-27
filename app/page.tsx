@@ -141,7 +141,7 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 pt-20 pb-28 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-block bg-brand-500/10 text-brand-500 text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
+          <span className="inline-block bg-brand-500/10 dark:bg-brand-200/10 text-brand-500 dark:text-brand-200 text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
             34 dias grátis · Sem cartão de crédito
           </span>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 dark:text-gray-100 leading-tight mb-6">
@@ -222,8 +222,8 @@ export default function LandingPage() {
                 key={title}
                 className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 hover:bg-emerald-50 dark:hover:bg-gray-700 hover:shadow-md transition group"
               >
-                <div className="w-11 h-11 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-brand-500/15 transition">
-                  <Icon className="w-5 h-5 text-brand-500" />
+                <div className="w-11 h-11 bg-brand-500/10 dark:bg-brand-200/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-brand-500/15 dark:group-hover:bg-brand-200/15 transition">
+                  <Icon className="w-5 h-5 text-brand-500 dark:text-brand-200" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-2">{title}</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{description}</p>

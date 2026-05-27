@@ -35,16 +35,16 @@ export default function AccountList({ financialAccounts, showForm, onCreate, onE
       {financialAccounts.map(acc => (
         <div
           key={acc.id}
-          className={`p-4 rounded-xl border transition ${acc.is_default ? 'border-green-200 bg-green-50' : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+          className={`p-4 rounded-xl border transition ${acc.is_default ? 'border-green-200 bg-green-100' : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${acc.is_default ? 'bg-green-100' : 'bg-gray-200 dark:bg-gray-700'}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${acc.is_default ? 'bg-green-200' : 'bg-gray-200 dark:bg-gray-700'}`}>
                 <Landmark size={16} className={acc.is_default ? 'text-green-600' : 'text-gray-500 dark:text-gray-400'} />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-gray-800 dark:text-gray-100">{acc.name}</span>
+                  <span className={`font-semibold ${acc.is_default ? 'text-gray-800 dark:text-gray' : 'text-gray dark:text-white' } `}>{acc.name}</span>
                   {acc.is_default && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
                       <Star size={10} />
@@ -55,7 +55,7 @@ export default function AccountList({ financialAccounts, showForm, onCreate, onE
                 {acc.description && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{acc.description}</p>
                 )}
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mt-1">
+                <p className={`text-sm font-semibold ${acc.is_default ? 'text-gray-700 dark:text-gray' : 'text-gray dark:text-white' } mt-1`}>
                   R$ {acc.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>

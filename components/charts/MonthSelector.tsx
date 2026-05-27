@@ -19,7 +19,7 @@ export default function MonthSelector({
           <button onClick={() => onShift(-1)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="Mês anterior">
             <ChevronLeft size={18} />
           </button>
-          <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex flex-1 sm:flex-none items-center gap-2 px-4 py-1.5 bg-red-50 dark:bg-red-100 border border-red-200 rounded-lg sm:min-w-[160px] justify-center">
             <Calendar size={15} className="text-red-500 shrink-0" />
             <span className="text-sm font-semibold text-red-700 whitespace-nowrap">{MONTHS_PT[selMonthNum - 1]} {selYear}</span>
           </div>

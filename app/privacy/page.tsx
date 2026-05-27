@@ -11,7 +11,7 @@ export default function PrivacyPage() {
       <header className="border-b border-gray-100 dark:border-gray-700 py-4 px-6">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <Link href="/"><Logo width={110} height={34} /></Link>
-          <Link href="/signup" className="text-sm text-brand-500 font-semibold hover:underline">
+          <Link href="/signup" className="text-sm text-brand-500 dark:text-brand-200 font-semibold hover:underline">
             Criar conta
           </Link>
         </div>
@@ -128,7 +128,7 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3">8. Contato</h2>
             <p>
               Dúvidas, solicitações ou reclamações relacionadas a esta Política podem ser enviadas para:{' '}
-              <a href="mailto:privacidade@balancototal.com.br" className="text-brand-500 underline">
+              <a href="mailto:privacidade@balancototal.com.br" className="text-brand-500 dark:text-brand-200 underline">
                 privacidade@balancototal.com.br
               </a>
             </p>

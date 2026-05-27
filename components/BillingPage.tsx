@@ -62,7 +62,7 @@ export default function BillingPage({ profile, account }: { profile: Profile; ac
 
         {/* Status banner */}
         {isExpired ? (
-          <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+          <div className="flex items-start gap-3 bg-red-50 dark:bg-red-100 border border-red-200 rounded-xl p-4 mb-6">
             <AlertCircle size={20} className="text-red-500 mt-0.5 shrink-0" />
             <div>
               <p className="font-semibold text-red-700">Período de teste encerrado</p>
@@ -115,7 +115,7 @@ export default function BillingPage({ profile, account }: { profile: Profile; ac
         </div>
 
         {error && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2 mb-4">
+          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-100 border border-red-200 rounded-lg px-4 py-2 mb-4">
             {error}
           </p>
         )}
@@ -149,7 +149,7 @@ export default function BillingPage({ profile, account }: { profile: Profile; ac
         {isExpired && isOwner && (
           <div className="mt-6 border-t border-gray-100 dark:border-gray-700 pt-5">
             {deleteError && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2 mb-3">
+              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-100 border border-red-200 rounded-lg px-4 py-2 mb-3">
                 {deleteError}
               </p>
             )}

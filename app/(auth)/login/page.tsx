@@ -187,7 +187,7 @@ function LoginForm() {
 
             <p className="mt-6 text-center text-gray-600 dark:text-gray-400">
               Não tem conta?{' '}
-              <Link href="/signup" className="text-brand-500 font-semibold hover:underline">
+              <Link href="/signup" className="text-brand-500 dark:text-brand-200 font-semibold hover:underline">
                 Cadastre-se
               </Link>
             </p>

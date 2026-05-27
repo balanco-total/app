@@ -60,7 +60,7 @@ export default function CategorySummary({
           >
             <ChevronLeft size={18} />
           </button>
-          <div className="flex flex-1 sm:flex-none items-center gap-2 px-4 py-1.5 bg-red-50 border border-red-200 rounded-lg sm:min-w-[160px] justify-center">
+          <div className="flex flex-1 sm:flex-none items-center gap-2 px-4 py-1.5 bg-red-50 dark:bg-red-100 border border-red-200 rounded-lg sm:min-w-[160px] justify-center">
             <Calendar size={15} className="text-red-500 shrink-0" />
             <span className="text-sm font-semibold text-red-700">
               {MONTHS_PT[selMonthNum - 1]} {selYear}
@@ -77,9 +77,9 @@ export default function CategorySummary({
       </div>
 
       {/* Totals */}
-      <div className="bg-red-50 rounded-lg p-4 mb-4 flex justify-between items-start gap-4">
+      <div className="bg-red-50 dark:bg-red-100 rounded-lg p-4 mb-4 flex justify-between items-start gap-4">
         <div>
-          <p className="text-sm text-gray-600 dark:text-gray-300">Despesas do mês</p>
+          <p className="text-sm text-gray-600 dark:text-gray-600">Despesas do mês</p>
           <p className="sm:text-3xl text-xl font-bold text-red-600">
             R$ {totalMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
@@ -89,9 +89,9 @@ export default function CategorySummary({
             type="button"
             onClick={onUnpaidClick}
             disabled={!onUnpaidClick}
-            className={`text-right rounded-lg -m-1 p-1 transition-colors ${onUnpaidClick ? 'cursor-pointer hover:bg-orange-100' : ''}`}
+            className={`text-right rounded-lg -m-1 p-1 transition-colors ${onUnpaidClick ? 'cursor-pointer hover:bg-orange-200' : ''}`}
           >
-            <p className="text-sm text-gray-600 dark:text-gray-300">Não pagos</p>
+            <p className="text-sm text-gray-600 dark:text-gray-600">Não pagos</p>
             <p className="sm:text-xl text-sm font-bold text-orange-500">
               R$ {totalUnpaid.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
