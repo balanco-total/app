@@ -163,7 +163,7 @@ function LoginForm() {
                     type="button"
                     onClick={switchToRecovery}
                     tabIndex={-1}
-                    className="text-xs text-brand-500 hover:text-brand-600 hover:underline transition"
+                    className="text-xs text-brand-500 dark:text-brand-200 hover:text-brand-600 hover:underline transition"
                   >
                     Esqueceu a senha?
                   </button>
