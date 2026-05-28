@@ -54,7 +54,7 @@ export default function BillingPage({ profile, account }: { profile: Profile; ac
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white dark:bg-dm-surface flex items-center justify-center p-4">
       <Card shadow="lg" padding="lg" className="max-w-md w-full">
         <div className="flex justify-center mb-6">
           <Logo height={40} width={130} />
@@ -62,7 +62,7 @@ export default function BillingPage({ profile, account }: { profile: Profile; ac
 
         {/* Status banner */}
         {isExpired ? (
-          <div className="flex items-start gap-3 bg-red-50 dark:bg-red-100 border border-red-200 rounded-xl p-4 mb-6">
+          <div className="flex items-start gap-3 bg-red-50 dark:bg-red-900/30 border border-red-200 rounded-xl p-4 mb-6">
             <AlertCircle size={20} className="text-red-500 mt-0.5 shrink-0" />
             <div>
               <p className="font-semibold text-red-700">Período de teste encerrado</p>
@@ -91,15 +91,15 @@ export default function BillingPage({ profile, account }: { profile: Profile; ac
         <div className="border-2 border-emerald-500 rounded-xl p-5 mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">Plano Mensal</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Acesso completo para toda a conta</p>
+              <h2 className="text-lg font-bold text-gray-800 dark:text-dm-text">Plano Mensal</h2>
+              <p className="text-sm text-gray-500 dark:text-dm-muted">Acesso completo para toda a conta</p>
             </div>
             <div className="text-right">
               <span className="text-2xl font-bold text-emerald-600">R$ 7,99</span>
-              <span className="text-sm text-gray-400 dark:text-gray-500">/mês</span>
+              <span className="text-sm text-gray-400 dark:text-dm-faint">/mês</span>
             </div>
           </div>
-          <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+          <ul className="space-y-2 text-sm text-gray-600 dark:text-dm-muted">
             {[
               [Zap, 'Lançamentos ilimitados'],
               [Users, 'Múltiplos usuários na conta'],
@@ -115,7 +115,7 @@ export default function BillingPage({ profile, account }: { profile: Profile; ac
         </div>
 
         {error && (
-          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-100 border border-red-200 rounded-lg px-4 py-2 mb-4">
+          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/30 border border-red-200 rounded-lg px-4 py-2 mb-4">
             {error}
           </p>
         )}
@@ -132,7 +132,7 @@ export default function BillingPage({ profile, account }: { profile: Profile; ac
         ) : (
           <button
             disabled
-            className="w-full flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 font-semibold py-3 rounded-xl cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 bg-gray-100 dark:bg-dm-field text-gray-400 dark:text-dm-faint font-semibold py-3 rounded-xl cursor-not-allowed"
           >
             Somente o responsável pode assinar
           </button>
@@ -140,16 +140,16 @@ export default function BillingPage({ profile, account }: { profile: Profile; ac
 
         <button
           onClick={() => router.push('/')}
-          className="w-full mt-3 text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition py-2"
+          className="w-full mt-3 text-sm text-gray-400 hover:text-gray-600 dark:hover:text-dm-muted transition py-2"
         >
           Voltar ao painel
         </button>
 
         {/* Delete account — shown only when trial expired, owner only */}
         {isExpired && isOwner && (
-          <div className="mt-6 border-t border-gray-100 dark:border-gray-700 pt-5">
+          <div className="mt-6 border-t border-gray-100 dark:border-white/[0.08] pt-5">
             {deleteError && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-100 border border-red-200 rounded-lg px-4 py-2 mb-3">
+              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/30 border border-red-200 rounded-lg px-4 py-2 mb-3">
                 {deleteError}
               </p>
             )}

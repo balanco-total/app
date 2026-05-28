@@ -20,14 +20,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <meta name="theme-color" content="#1B4332" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#0a1d11" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="#0b0f14" media="(prefers-color-scheme: dark)" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="BalançoTotal" />
         <link rel="apple-touch-icon" href="/icon.svg" />
       </head>
-      <body className="bg-white dark:bg-gray-900">
+      <body className="bg-white dark:bg-dm-surface">
         <ThemeProvider>
           {children}
           <InstallPromptLoader />

@@ -25,6 +25,13 @@ module.exports = {
           hover:   '#e09510',
           dark:    '#b87a0e',
         },
+        'dm-surface': '#0b0f14',
+        'dm-card':    '#11161d',
+        'dm-field':   '#171d27',
+        'dm-hover':   '#1c2334',
+        'dm-text':    '#f5f7fa',
+        'dm-muted':   '#a8b0ba',
+        'dm-faint':   '#8b95a1',
       },
       fontSize: {
         'xxs': '0.625rem', // 10px

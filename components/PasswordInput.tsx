@@ -15,14 +15,14 @@ export default function PasswordInput({ wrapperClassName = 'w-full', className =
       <input
         {...props}
         type={show ? 'text' : 'password'}
-        className={`w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${className}`}
+        className={`w-full px-4 py-2 pr-10 border border-gray-300 dark:border-white/[0.14] rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white dark:bg-dm-field text-gray-900 dark:text-dm-text ${className}`}
       />
       <button
         type="button"
         onClick={() => setShow(v => !v)}
         tabIndex={-1}
         aria-label={show ? 'Ocultar senha' : 'Mostrar senha'}
-        className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+        className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 dark:hover:text-dm-muted transition-colors"
       >
         {show ? <EyeOff size={18} /> : <Eye size={18} />}
       </button>

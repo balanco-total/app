@@ -77,7 +77,7 @@ function InviteForm() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-dm-surface flex items-center justify-center">
         <Logo />
       </div>
     )
@@ -85,10 +85,10 @@ function InviteForm() {
 
   if (!isValid) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-white dark:bg-dm-surface flex items-center justify-center p-4">
         <Card shadow="xl" padding="lg" className="max-w-md w-full text-center">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-3">Convite inválido</h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-dm-text mb-3">Convite inválido</h1>
+          <p className="text-gray-500 dark:text-dm-muted mb-6">
             Este link de convite é inválido, já foi utilizado ou expirou.
           </p>
           <Link href="/login" className="text-brand-500 font-semibold hover:underline">
@@ -100,12 +100,12 @@ function InviteForm() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white dark:bg-dm-surface flex items-center justify-center p-4">
       <Card shadow="xl" padding="lg" className="max-w-md w-full">
         <div className="flex justify-center mb-4"><Logo /></div>
-        <p className="text-gray-500 dark:text-gray-400 text-center mb-1">Você foi convidado!</p>
-        <p className="text-center text-sm text-gray-400 dark:text-gray-500 mb-8">
-          Conta vinculada a <span className="font-medium text-gray-600 dark:text-gray-300">{ownerEmail}</span>
+        <p className="text-gray-500 dark:text-dm-muted text-center mb-1">Você foi convidado!</p>
+        <p className="text-center text-sm text-gray-400 dark:text-dm-faint mb-8">
+          Conta vinculada a <span className="font-medium text-gray-600 dark:text-dm-muted">{ownerEmail}</span>
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -123,7 +123,7 @@ function InviteForm() {
             placeholder="Como quer ser chamado"
           />
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Senha</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-2">Senha</label>
             <PasswordInput
               value={password}
               onChange={e => setPassword(e.target.value)}

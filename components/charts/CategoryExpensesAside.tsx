@@ -103,20 +103,20 @@ export default function CategoryExpensesAside({
 
       {/* panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white dark:bg-gray-800 shadow-2xl z-[45] flex flex-col transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white dark:bg-dm-card shadow-2xl z-[45] flex flex-col transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         {/* header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-white/[0.08]">
           <div>
-            <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">{category?.name ?? ''}</h2>
+            <h2 className="text-lg font-bold text-gray-800 dark:text-dm-text">{category?.name ?? ''}</h2>
             <p className="text-xs text-gray-400 mt-0.5">{monthLabel}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dm-field transition-colors"
             aria-label="Fechar"
           >
-            <X size={20} className="text-gray-500 dark:text-gray-400" />
+            <X size={20} className="text-gray-500 dark:text-dm-muted" />
           </button>
         </div>
 
@@ -127,28 +127,28 @@ export default function CategoryExpensesAside({
         ) : (
           <>
             {/* total */}
-            <div className="px-5 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-700">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Total: </span>
-              <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">{fmtAmount(total)}</span>
+            <div className="px-5 py-3 bg-gray-50 dark:bg-dm-surface border-b border-gray-100 dark:border-white/[0.08]">
+              <span className="text-sm text-gray-500 dark:text-dm-muted">Total: </span>
+              <span className="text-sm font-semibold text-gray-800 dark:text-dm-text">{fmtAmount(total)}</span>
               <span className="text-xs text-gray-400 ml-2">({sorted.length} despesa{sorted.length !== 1 ? 's' : ''})</span>
             </div>
 
             {/* list */}
             <div className="flex-1 overflow-y-auto">
               {sorted.length === 0 ? (
-                <div className="flex items-center justify-center h-40 text-gray-400 dark:text-gray-400 text-sm">
+                <div className="flex items-center justify-center h-40 text-gray-400 dark:text-dm-muted text-sm">
                   Nenhuma despesa neste mês.
                 </div>
               ) : (
-                <ul className="divide-y divide-gray-50 dark:divide-gray-700">
+                <ul className="divide-y divide-gray-50 dark:divide-white/[0.08]">
                   {sorted.map(exp => {
                     const isVirtual = exp._virtual === true
                     return (
-                      <li key={exp.id} className="px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                      <li key={exp.id} className="px-5 py-3 hover:bg-gray-50 dark:hover:bg-dm-field transition-colors">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">
+                              <p className="text-sm font-medium text-gray-800 dark:text-dm-text truncate">
                                 {exp.description ?? '—'}
                               </p>
                               {isVirtual && (
@@ -164,7 +164,7 @@ export default function CategoryExpensesAside({
                                 <span className="text-xs text-gray-400">· {exp.profiles.name}</span>
                               )}
                               {exp.categoryName && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-dm-field text-gray-600 dark:text-dm-muted">
                                   <span className={`w-2 h-2 rounded-full ${exp.categoryColor ?? 'bg-gray-400'}`} />
                                   {exp.categoryName}
                                 </span>
@@ -186,7 +186,7 @@ export default function CategoryExpensesAside({
                                   <button
                                     onClick={() => onTogglePaid(exp)}
                                     title="Marcar como pago"
-                                    className="text-gray-300 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-300 transition"
+                                    className="text-gray-300 dark:text-dm-faint hover:text-gray-500 dark:hover:text-dm-muted transition"
                                   >
                                     <Circle size={18} />
                                   </button>
@@ -216,7 +216,7 @@ export default function CategoryExpensesAside({
                                   <button
                                     onClick={() => onTogglePaid(exp)}
                                     title={exp.paid_at ? 'Desmarcar pagamento' : 'Marcar como pago'}
-                                    className={`transition ${exp.paid_at ? 'text-green-500 hover:text-green-700' : 'text-gray-300 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-300'}`}
+                                    className={`transition ${exp.paid_at ? 'text-green-500 hover:text-green-700' : 'text-gray-300 dark:text-dm-faint hover:text-gray-500 dark:hover:text-dm-muted'}`}
                                   >
                                     {exp.paid_at ? <CheckCircle2 size={18} /> : <Circle size={18} />}
                                   </button>
@@ -255,18 +255,18 @@ export default function CategoryExpensesAside({
         return (
           <div className="fixed inset-0 z-[50] flex items-center justify-center px-4">
             <div className="absolute inset-0 bg-black/40" onClick={() => setEditingVirtual(null)} />
-            <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm">
-              <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">Editar valor</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Despesa recorrente</p>
+            <div className="relative bg-white dark:bg-dm-card rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+              <h3 className="text-lg font-bold text-gray-800 dark:text-dm-text mb-1">Editar valor</h3>
+              <p className="text-sm text-gray-500 dark:text-dm-muted mb-4">Despesa recorrente</p>
               <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Valor (R$)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Valor (R$)</label>
                 <input
                   type="text"
                   inputMode="numeric"
                   autoFocus
                   value={editingVirtual.amountDisplay}
                   onChange={e => setEditingVirtual(prev => prev ? { ...prev, amountDisplay: applyMask(e.target.value) } : null)}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm bg-white dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 ${!amountValid && editingVirtual.amountDisplay ? 'border-red-400' : 'border-gray-300 dark:border-gray-600'}`}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm bg-white dark:bg-dm-field dark:text-dm-text dark:border-white/[0.14] ${!amountValid && editingVirtual.amountDisplay ? 'border-red-400' : 'border-gray-300 dark:border-white/[0.14]'}`}
                 />
               </div>
               <div className="flex flex-col gap-2">
@@ -280,7 +280,7 @@ export default function CategoryExpensesAside({
                 <button
                   disabled={!amountValid}
                   onClick={() => handleEditVirtualConfirm('future')}
-                  className="w-full px-4 py-2.5 rounded-lg font-semibold text-sm bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  className="w-full px-4 py-2.5 rounded-lg font-semibold text-sm bg-gray-100 dark:bg-dm-surface text-gray-700 dark:text-dm-muted hover:bg-gray-200 dark:hover:bg-dm-field disabled:opacity-50 disabled:cursor-not-allowed transition"
                 >
                   Neste mês e em todos os futuros
                 </button>
@@ -303,9 +303,9 @@ export default function CategoryExpensesAside({
         return (
           <div className="fixed inset-0 z-[50] flex items-center justify-center px-4">
             <div className="absolute inset-0 bg-black/40" onClick={() => setConfirmEnd(null)} />
-            <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm">
-              <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">Encerrar recorrência?</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+            <div className="relative bg-white dark:bg-dm-card rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+              <h3 className="text-lg font-bold text-gray-800 dark:text-dm-text mb-2">Encerrar recorrência?</h3>
+              <p className="text-sm text-gray-500 dark:text-dm-muted mb-5">
                 A despesa deixará de aparecer a partir de <strong>{label}</strong>. O histórico anterior é preservado.
               </p>
               <div className="flex gap-3">
@@ -320,7 +320,7 @@ export default function CategoryExpensesAside({
                 </button>
                 <button
                   onClick={() => setConfirmEnd(null)}
-                  className="flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                  className="flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm bg-gray-100 dark:bg-dm-surface text-gray-700 dark:text-dm-muted hover:bg-gray-200 dark:hover:bg-dm-field transition"
                 >
                   Cancelar
                 </button>

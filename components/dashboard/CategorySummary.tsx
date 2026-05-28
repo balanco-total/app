@@ -43,24 +43,24 @@ export default function CategorySummary({
     .join(', ')
 
   return (
-    <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+    <div className="lg:col-span-2 bg-white dark:bg-dm-card rounded-2xl shadow-lg p-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Despesa por categoria</h2>
+          <h2 className="text-xl font-bold text-gray-800 dark:text-dm-text">Despesa por categoria</h2>
           {onCategoryClick && categoriesWithExpenses.length > 0 && (
-            <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">Clique em uma categoria para ver as despesas</p>
+            <p className="text-xs text-gray-400 dark:text-dm-muted mt-0.5">Clique em uma categoria para ver as despesas</p>
           )}
         </div>
         <div className="flex items-center gap-1 sm:self-auto mt-2 sm:mt-0">
           <button
             onClick={() => onShiftMonth(-1)}
-            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-dm-field transition text-gray-500 dark:text-dm-muted hover:text-gray-700 dark:hover:text-dm-muted"
             title="Mês anterior"
           >
             <ChevronLeft size={18} />
           </button>
-          <div className="flex flex-1 sm:flex-none items-center gap-2 px-4 py-1.5 bg-red-50 dark:bg-red-100 border border-red-200 rounded-lg sm:min-w-[160px] justify-center">
+          <div className="flex flex-1 sm:flex-none items-center gap-2 px-4 py-1.5 bg-red-50 dark:bg-red-900/30 border border-red-200 rounded-lg sm:min-w-[160px] justify-center">
             <Calendar size={15} className="text-red-500 shrink-0" />
             <span className="text-sm font-semibold text-red-700">
               {MONTHS_PT[selMonthNum - 1]} {selYear}
@@ -68,7 +68,7 @@ export default function CategorySummary({
           </div>
           <button
             onClick={() => onShiftMonth(1)}
-            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-dm-field transition text-gray-500 dark:text-dm-muted hover:text-gray-700 dark:hover:text-dm-muted"
             title="Próximo mês"
           >
             <ChevronRight size={18} />
@@ -77,9 +77,9 @@ export default function CategorySummary({
       </div>
 
       {/* Totals */}
-      <div className="bg-red-50 dark:bg-red-100 rounded-lg p-4 mb-4 flex justify-between items-start gap-4">
+      <div className="bg-red-50 dark:bg-red-900/30 rounded-lg p-4 mb-4 flex justify-between items-start gap-4">
         <div>
-          <p className="text-sm text-gray-600 dark:text-gray-600">Despesas do mês</p>
+          <p className="text-sm text-gray-600 dark:text-dm-faint">Despesas do mês</p>
           <p className="sm:text-3xl text-xl font-bold text-red-600">
             R$ {totalMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
@@ -91,7 +91,7 @@ export default function CategorySummary({
             disabled={!onUnpaidClick}
             className={`text-right rounded-lg -m-1 p-1 transition-colors ${onUnpaidClick ? 'cursor-pointer hover:bg-orange-200' : ''}`}
           >
-            <p className="text-sm text-gray-600 dark:text-gray-600">Não pagos</p>
+            <p className="text-sm text-gray-600 dark:text-dm-faint">Não pagos</p>
             <p className="sm:text-xl text-sm font-bold text-orange-500">
               R$ {totalUnpaid.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
@@ -102,31 +102,31 @@ export default function CategorySummary({
       {/* Category list */}
       <div className="space-y-3">
         {categoriesWithExpenses.length === 0 && (
-          <p className="text-center text-gray-500 dark:text-gray-400 py-4">Nenhuma despesa neste mês.</p>
+          <p className="text-center text-gray-500 dark:text-dm-muted py-4">Nenhuma despesa neste mês.</p>
         )}
         {mainCategories.map(cat => {
           const pct = totalMonth > 0 ? (cat.total / totalMonth) * 100 : 0
           return (
             <div
               key={cat.id}
-              className={`p-3 bg-gray-50 dark:bg-gray-700 rounded-lg ${onCategoryClick ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors' : ''}`}
+              className={`p-3 bg-gray-50 dark:bg-dm-field rounded-lg ${onCategoryClick ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-dm-hover transition-colors' : ''}`}
               onClick={() => onCategoryClick?.(cat)}
             >
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-3">
                   <div className={`w-3 h-3 rounded-full ${cat.color}`} />
-                  <span className="font-medium text-gray-700 dark:text-gray-300">{cat.name}</span>
+                  <span className="font-medium text-gray-700 dark:text-dm-muted">{cat.name}</span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  <span className="text-sm font-medium text-gray-500 dark:text-dm-muted">
                     {pct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
                   </span>
-                  <span className="font-bold text-gray-800 dark:text-gray-100 text-right">
+                  <span className="font-bold text-gray-800 dark:text-dm-text text-right">
                     R$ {cat.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
+              <div className="w-full bg-gray-200 dark:bg-dm-hover rounded-full h-1.5">
                 <div
                   className={`${cat.color} h-1.5 rounded-full transition-all duration-500`}
                   style={{ width: `${pct}%` }}
@@ -136,7 +136,7 @@ export default function CategorySummary({
           )
         })}
         {smallCategories.length > 0 && (
-          <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+          <div className="p-3 bg-gray-50 dark:bg-dm-field rounded-lg">
             <div
               className="cursor-pointer"
               onClick={() => setOthersOpen(o => !o)}
@@ -144,29 +144,29 @@ export default function CategorySummary({
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full bg-gray-400" />
-                  <span className="font-medium text-gray-700 dark:text-gray-300">Outros</span>
+                  <span className="font-medium text-gray-700 dark:text-dm-muted">Outros</span>
                   <ChevronDown
                     size={16}
-                    className={`text-gray-400 dark:text-gray-400 transition-transform ${othersOpen ? 'rotate-180' : ''}`}
+                    className={`text-gray-400 dark:text-dm-muted transition-transform ${othersOpen ? 'rotate-180' : ''}`}
                   />
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  <span className="text-sm font-medium text-gray-500 dark:text-dm-muted">
                     {(totalMonth > 0 ? (othersTotal / totalMonth) * 100 : 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
                   </span>
-                  <span className="font-bold text-gray-800 dark:text-gray-100 text-right">
+                  <span className="font-bold text-gray-800 dark:text-dm-text text-right">
                     R$ {othersTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
-              <div className={`w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 ${othersOpen ? '' : 'mb-2'}`}>
+              <div className={`w-full bg-gray-200 dark:bg-dm-hover rounded-full h-1.5 ${othersOpen ? '' : 'mb-2'}`}>
                 <div
                   className="bg-gray-400 h-1.5 rounded-full transition-all duration-500"
                   style={{ width: `${totalMonth > 0 ? (othersTotal / totalMonth) * 100 : 0}%` }}
                 />
               </div>
               {!othersOpen && (
-                <p className="text-xs text-gray-400 dark:text-gray-400 leading-snug">{othersDescription}</p>
+                <p className="text-xs text-gray-400 dark:text-dm-muted leading-snug">{othersDescription}</p>
               )}
             </div>
             {othersOpen && (
@@ -176,18 +176,18 @@ export default function CategorySummary({
                   return (
                     <div
                       key={cat.id}
-                      className={`flex items-center justify-between py-2 px-3 rounded-md ${onCategoryClick ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors' : ''}`}
+                      className={`flex items-center justify-between py-2 px-3 rounded-md ${onCategoryClick ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-dm-hover transition-colors' : ''}`}
                       onClick={e => { e.stopPropagation(); onCategoryClick?.(cat) }}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className={`w-2 h-2 rounded-full shrink-0 ${cat.color}`} />
-                        <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{cat.name}</span>
+                        <span className="text-sm text-gray-700 dark:text-dm-muted truncate">{cat.name}</span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-xs font-medium text-gray-400 dark:text-gray-400">
+                        <span className="text-xs font-medium text-gray-400 dark:text-dm-muted">
                           {pct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
                         </span>
-                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 text-right">
+                        <span className="text-sm font-semibold text-gray-700 dark:text-dm-muted text-right">
                           R$ {cat.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>

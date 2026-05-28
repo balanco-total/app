@@ -15,7 +15,7 @@ export default function ProfilePage({ profile, email, account }: { profile: Prof
   const { toasts, toast, dismiss } = useToast()
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 p-4">
+    <div className="min-h-screen bg-white dark:bg-dm-surface p-4">
       <div className="max-w-7xl mx-auto">
         <DashboardHeader profile={profile} />
         {account && (
@@ -26,9 +26,9 @@ export default function ProfilePage({ profile, email, account }: { profile: Prof
           />
         )}
         <div className="max-w-2xl mx-auto space-y-6">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Perfil</h1>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">{email}</p>
+          <div className="bg-white dark:bg-dm-card rounded-2xl shadow-lg p-6">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-dm-text">Perfil</h1>
+            <p className="text-gray-500 dark:text-dm-muted text-sm mt-0.5">{email}</p>
           </div>
           <PersonalInfoCard profile={profile} email={email} />
           <ThemeCard />

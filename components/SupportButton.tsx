@@ -99,12 +99,12 @@ export default function SupportButton() {
         {sent ? (
           <div className="flex flex-col items-center text-center py-4 gap-3">
             <CheckCircle2 size={48} className="text-emerald-500" />
-            <p className="text-gray-700 dark:text-gray-300">Recebemos sua mensagem! Responderemos no seu e-mail em breve.</p>
+            <p className="text-gray-700 dark:text-dm-muted">Recebemos sua mensagem! Responderemos no seu e-mail em breve.</p>
           </div>
         ) : (
           <div className="space-y-4">
             <div>
-              <label htmlFor="support-category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label htmlFor="support-category" className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">
                 Categoria
               </label>
               <select
@@ -112,7 +112,7 @@ export default function SupportButton() {
                 value={category}
                 onChange={e => setCategory(e.target.value as Category)}
                 disabled={loading}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-700"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-white/[0.14] rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm text-gray-700 dark:text-dm-text bg-white dark:bg-dm-field"
               >
                 {CATEGORIES.map(c => (
                   <option key={c} value={c}>{c}</option>
@@ -121,7 +121,7 @@ export default function SupportButton() {
             </div>
 
             <div>
-              <label htmlFor="support-message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label htmlFor="support-message" className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">
                 Mensagem
               </label>
               <textarea
@@ -132,9 +132,9 @@ export default function SupportButton() {
                 rows={5}
                 maxLength={MAX_MESSAGE}
                 placeholder="Conte para a gente..."
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-700 resize-none"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-white/[0.14] rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm text-gray-700 dark:text-dm-text bg-white dark:bg-dm-field resize-none"
               />
-              <div className="text-right text-xs text-gray-400 dark:text-gray-500">
+              <div className="text-right text-xs text-gray-400 dark:text-dm-faint">
                 {message.length}/{MAX_MESSAGE}
               </div>
             </div>

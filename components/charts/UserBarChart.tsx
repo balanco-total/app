@@ -15,8 +15,8 @@ export default function UserBarChart({ data }: { data: UserBarEntry[] }) {
   const tickFill = theme === 'dark' ? '#9ca3af' : '#6b7280'
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-      <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Lançamentos por usuário</h2>
+    <div className="bg-white dark:bg-dm-card rounded-2xl shadow-lg p-6">
+      <h2 className="text-xl font-bold text-gray-800 dark:text-dm-text mb-4">Lançamentos por usuário</h2>
       {data.length === 0 ? (
         <div className="flex items-center justify-center h-72 text-gray-400 text-sm">
           Nenhuma despesa neste mês.

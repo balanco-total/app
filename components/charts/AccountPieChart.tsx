@@ -10,8 +10,8 @@ export default function AccountPieChart({ data }: { data: PieEntry[] }) {
   const legendTextColor = theme === 'dark' ? '#d1d5db' : '#374151'
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6">
-      <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Lançamentos por conta</h2>
+    <div className="bg-white dark:bg-dm-card rounded-2xl shadow-lg p-6 mb-6">
+      <h2 className="text-xl font-bold text-gray-800 dark:text-dm-text mb-4">Lançamentos por conta</h2>
       {data.length === 0 ? (
         <div className="flex items-center justify-center h-72 text-gray-400 text-sm">
           Nenhuma despesa neste mês.

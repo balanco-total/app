@@ -612,7 +612,7 @@ export default function Dashboard({
   // ── Render ─────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 p-4">
+    <div className="min-h-screen bg-white dark:bg-dm-surface p-4">
       <div className="max-w-7xl mx-auto">
 
         <DashboardHeader profile={profile} />
@@ -682,13 +682,13 @@ export default function Dashboard({
           : undefined
         return (
           <Modal open={true} onClose={() => setPendingCategoryChange(null)} size="sm">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">Alterar categoria</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 truncate">{exp?.description}</p>
+            <h3 className="text-lg font-bold text-gray-800 dark:text-dm-text mb-1">Alterar categoria</h3>
+            <p className="text-sm text-gray-500 dark:text-dm-muted mb-4 truncate">{exp?.description}</p>
             <div className="flex items-center gap-3 mb-6">
               <span className={`px-3 py-1 rounded-full text-xs font-medium ${from?.color ?? 'bg-gray-400'} text-white`}>
                 {from?.name ?? 'Sem categoria'}
               </span>
-              <ChevronRight size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
+              <ChevronRight size={16} className="text-gray-400 dark:text-dm-faint shrink-0" />
               <span className={`px-3 py-1 rounded-full text-xs font-medium ${to?.color ?? 'bg-gray-400'} text-white`}>
                 {to?.name ?? 'Sem categoria'}
               </span>
@@ -727,26 +727,26 @@ export default function Dashboard({
         const accountChanged = financialAccountId !== (exp.financial_account_id ?? '')
         return (
           <Modal open={true} onClose={() => setPendingPaidToggle(null)} size="sm">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">Marcar como pago?</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 truncate">{exp.description}</p>
+            <h3 className="text-lg font-bold text-gray-800 dark:text-dm-text mb-1">Marcar como pago?</h3>
+            <p className="text-sm text-gray-500 dark:text-dm-muted mb-4 truncate">{exp.description}</p>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Valor (R$)</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Valor (R$)</label>
               <input
                 type="text"
                 inputMode="numeric"
                 value={amountDisplay}
                 onChange={e => setPendingPaidToggle(prev => prev ? { ...prev, amountDisplay: applyMask(e.target.value) } : null)}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 ${!isValid && amountDisplay ? 'border-red-400' : 'border-gray-300'}`}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-dm-field dark:text-dm-text dark:border-white/[0.14] ${!isValid && amountDisplay ? 'border-red-400' : 'border-gray-300'}`}
               />
               {!isValid && amountDisplay && <p className="text-xs text-red-500 mt-1">Valor inválido.</p>}
             </div>
             {financialAccounts.length > 0 && (
               <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Conta</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Conta</label>
                 <select
                   value={financialAccountId}
                   onChange={e => setPendingPaidToggle(prev => prev ? { ...prev, financialAccountId: e.target.value } : null)}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 ${!financialAccountId ? 'text-gray-400' : 'text-gray-700'} border-gray-300`}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm dark:bg-dm-field dark:text-dm-text dark:border-white/[0.14] ${!financialAccountId ? 'text-gray-400' : 'text-gray-700'} border-gray-300`}
                 >
                   <option value="">Selecione uma conta</option>
                   {financialAccounts.map(acc => (
@@ -825,34 +825,34 @@ export default function Dashboard({
           >
             <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Descrição</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Descrição</label>
                   <input
                     type="text"
                     maxLength={60}
                     value={editDesc}
                     onChange={e => setEditingExpense(prev => prev ? { ...prev, description: e.target.value } : null)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm dark:bg-gray-700 dark:text-gray-100"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-white/[0.14] rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm dark:bg-dm-field dark:text-dm-text"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Valor (R$)</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Valor (R$)</label>
                   <input
                     type="text"
                     inputMode="numeric"
                     value={amountDisplay}
                     onChange={e => setEditingExpense(prev => prev ? { ...prev, amountDisplay: applyMask(e.target.value) } : null)}
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 ${!amountValid && amountDisplay ? 'border-red-400' : 'border-gray-300'}`}
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm dark:bg-dm-field dark:text-dm-text dark:border-white/[0.14] ${!amountValid && amountDisplay ? 'border-red-400' : 'border-gray-300'}`}
                   />
                   {!amountValid && amountDisplay && <p className="text-xs text-red-500 mt-1">Valor inválido.</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Categoria</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Categoria</label>
                   <select
                     value={categoryId}
                     onChange={e => setEditingExpense(prev => prev ? { ...prev, categoryId: e.target.value } : null)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm text-gray-700 dark:bg-gray-700 dark:text-gray-100"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-white/[0.14] rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm text-gray-700 dark:bg-dm-field dark:text-dm-text"
                   >
                     <option value="">Sem categoria</option>
                     {categories.map(cat => (
@@ -862,7 +862,7 @@ export default function Dashboard({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Data</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Data</label>
                   <input
                     type="date"
                     value={parseDateDisplay(dateDisplay) || ''}
@@ -874,13 +874,13 @@ export default function Dashboard({
                         setEditingExpense(prev => prev ? { ...prev, dateDisplay: '' } : null)
                       }
                     }}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 ${showDateError ? 'border-red-400' : 'border-gray-300'}`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm dark:bg-dm-field dark:text-dm-text dark:border-white/[0.14] ${showDateError ? 'border-red-400' : 'border-gray-300'}`}
                   />
                   {showDateError && <p className="text-xs text-red-500 mt-1">Data inválida.</p>}
                 </div>
 
                 <div className="flex items-center justify-between py-0.5">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Pago</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-dm-muted">Pago</label>
                   <button
                     type="button"
                     onClick={() => setEditingExpense(prev => prev ? { ...prev, paid: !prev.paid } : null)}
@@ -893,11 +893,11 @@ export default function Dashboard({
 
                 {financialAccounts.length > 0 && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Conta</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Conta</label>
                     <select
                       value={financialAccountId}
                       onChange={e => setEditingExpense(prev => prev ? { ...prev, financialAccountId: e.target.value } : null)}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm text-gray-700 dark:bg-gray-700 dark:text-gray-100"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-white/[0.14] rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm text-gray-700 dark:bg-dm-field dark:text-dm-text"
                     >
                       <option value="">Selecione uma conta</option>
                       {financialAccounts.map(acc => (

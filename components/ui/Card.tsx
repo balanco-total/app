@@ -32,7 +32,7 @@ export default function Card({
 }: CardProps) {
   return (
     <div
-      className={`bg-white dark:bg-gray-800 rounded-2xl ${SHADOW[shadow]} ${PADDING[padding]} ${className}`.trim()}
+      className={`bg-white dark:bg-dm-card rounded-2xl ${SHADOW[shadow]} ${PADDING[padding]} ${className}`.trim()}
       {...rest}
     >
       {children}

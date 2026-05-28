@@ -50,8 +50,8 @@ export default function InviteModal({ onClose, onGenerateLink, onInvited }: Prop
 
   return (
     <Modal open={true} onClose={onClose} size="md">
-      <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-1">Convidar usuário</h3>
-      <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+      <h3 className="text-xl font-bold text-gray-800 dark:text-dm-text mb-1">Convidar usuário</h3>
+      <p className="text-gray-500 dark:text-dm-muted text-sm mb-6">
         O convidado terá acesso aos mesmos dados da sua conta.
       </p>
 
@@ -94,9 +94,9 @@ export default function InviteModal({ onClose, onGenerateLink, onInvited }: Prop
         </form>
       ) : (
         <div className="space-y-4">
-          <p className="text-sm text-gray-600 dark:text-gray-300">Copie e envie este link para o convidado:</p>
-          <div className="flex items-start gap-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2">
-            <span className="flex-1 text-xs text-gray-700 dark:text-gray-300 break-all">{inviteLink}</span>
+          <p className="text-sm text-gray-600 dark:text-dm-muted">Copie e envie este link para o convidado:</p>
+          <div className="flex items-start gap-2 bg-gray-50 dark:bg-dm-field border border-gray-200 dark:border-white/[0.14] rounded-lg px-3 py-2">
+            <span className="flex-1 text-xs text-gray-700 dark:text-dm-muted break-all">{inviteLink}</span>
             <button
               onClick={() => copyLink(inviteLink)}
               className="text-red-600 hover:text-red-800 transition shrink-0 mt-0.5"

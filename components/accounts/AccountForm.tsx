@@ -27,8 +27,8 @@ export default function AccountForm({ editingAccount, saving, onSave, onCancel }
   }
 
   return (
-    <div className="mb-6 p-5 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
-      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
+    <div className="mb-6 p-5 bg-gray-50 dark:bg-dm-surface rounded-xl border border-gray-200 dark:border-white/[0.08]">
+      <h3 className="text-sm font-semibold text-gray-700 dark:text-dm-muted mb-4">
         {editingAccount ? 'Editar conta' : 'Nova conta'}
       </h3>
       <div className="space-y-3">

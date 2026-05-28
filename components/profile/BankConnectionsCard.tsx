@@ -99,21 +99,21 @@ export default function BankConnectionsCard({ role, toast }: { role: string; toa
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-      <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2 mb-4">
+    <div className="bg-white dark:bg-dm-card rounded-2xl shadow-lg p-6">
+      <h2 className="text-lg font-bold text-gray-800 dark:text-dm-text flex items-center gap-2 mb-4">
         <Building2 size={20} className="text-brand-500 dark:text-brand-200" />
         Contas bancárias
       </h2>
 
       {connectionsLoading ? (
-        <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500 text-sm py-2">
+        <div className="flex items-center gap-2 text-gray-400 dark:text-dm-faint text-sm py-2">
           <Loader2 size={16} className="animate-spin" />
           Carregando conexões...
         </div>
       ) : connections.length > 0 ? (
         <div className="space-y-3 mb-4">
           {connections.map(conn => (
-            <div key={conn.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+            <div key={conn.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-xl border border-gray-100 dark:border-white/[0.08] bg-gray-50 dark:bg-dm-field">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 {conn.connector_logo ? (
                   <Image
@@ -122,16 +122,16 @@ export default function BankConnectionsCard({ role, toast }: { role: string; toa
                     width={32}
                     height={32}
                     unoptimized
-                    className="w-8 h-8 rounded-full object-contain bg-white dark:bg-gray-600 border border-gray-100 dark:border-gray-600 shrink-0"
+                    className="w-8 h-8 rounded-full object-contain bg-white dark:bg-dm-hover border border-gray-100 dark:border-white/[0.14] shrink-0"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center shrink-0">
-                    <Building2 size={16} className="text-gray-400 dark:text-gray-400" />
+                  <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-dm-hover flex items-center justify-center shrink-0">
+                    <Building2 size={16} className="text-gray-400 dark:text-dm-muted" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-800 dark:text-gray-100 text-sm truncate">{conn.connector_name ?? 'Banco'}</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                  <p className="font-medium text-gray-800 dark:text-dm-text text-sm truncate">{conn.connector_name ?? 'Banco'}</p>
+                  <p className="text-xs text-gray-400 dark:text-dm-faint">
                     {conn.last_synced_at
                       ? `Sincronizado ${new Date(conn.last_synced_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}`
                       : 'Nunca sincronizado'}
@@ -153,7 +153,7 @@ export default function BankConnectionsCard({ role, toast }: { role: string; toa
                   <button
                     onClick={() => handleRemoveConnection(conn)}
                     disabled={!!syncing}
-                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-100 text-red-600 hover:bg-red-100 transition disabled:opacity-40 font-medium"
+                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 hover:bg-red-100 transition disabled:opacity-40 font-medium"
                   >
                     <Link2Off size={13} />
                     Remover
@@ -164,7 +164,7 @@ export default function BankConnectionsCard({ role, toast }: { role: string; toa
           ))}
         </div>
       ) : (
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+        <p className="text-sm text-gray-500 dark:text-dm-muted mb-4">
           Nenhuma conta bancária conectada. Conecte seu banco para importar transações automaticamente via Open Finance.
         </p>
       )}

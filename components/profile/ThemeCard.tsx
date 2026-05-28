@@ -12,18 +12,18 @@ export default function ThemeCard() {
   ]
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 space-y-4">
-      <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+    <div className="bg-white dark:bg-dm-card rounded-2xl shadow-lg p-6 space-y-4">
+      <h2 className="text-lg font-bold text-gray-800 dark:text-dm-text flex items-center gap-2">
         <Palette size={20} className="text-brand-500 dark:text-brand-200" />
         Aparência
       </h2>
-      <p className="text-sm text-gray-500 dark:text-gray-400">
+      <p className="text-sm text-gray-500 dark:text-dm-muted">
         Escolha o tema da interface. A preferência fica salva neste dispositivo.
       </p>
       <div
         role="radiogroup"
         aria-label="Tema"
-        className="grid grid-cols-2 gap-2 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg"
+        className="grid grid-cols-2 gap-2 p-1 bg-gray-100 dark:bg-dm-field rounded-lg"
       >
         {options.map(({ value, label, icon: Icon }) => {
           const active = theme === value
@@ -36,8 +36,8 @@ export default function ThemeCard() {
               onClick={() => setTheme(value)}
               className={`flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition ${
                 active
-                  ? 'bg-white dark:bg-gray-800 text-brand-500 dark:text-brand-300 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                  ? 'bg-white dark:bg-dm-card text-brand-500 dark:text-brand-300 shadow-sm'
+                  : 'text-gray-600 dark:text-dm-muted hover:text-gray-800 dark:hover:text-dm-text'
               }`}
             >
               <Icon size={16} />

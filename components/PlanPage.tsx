@@ -24,25 +24,25 @@ export default function PlanPage({ profile }: { profile: Profile }) {
     && !data?.cancelAtPeriodEnd
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 p-4">
+    <div className="min-h-screen bg-white dark:bg-dm-surface p-4">
       <div className="max-w-7xl mx-auto">
         <DashboardHeader profile={profile} />
 
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 mb-4">
-            <h1 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-5 flex items-center gap-2">
+          <div className="bg-white dark:bg-dm-card rounded-2xl shadow-lg p-4 sm:p-6 mb-4">
+            <h1 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-dm-text mb-5 flex items-center gap-2">
               <CreditCard size={20} className="text-emerald-600 shrink-0" />
               Meu plano
             </h1>
 
             {loadError && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-100 border border-red-200 rounded-lg px-4 py-2 mb-4">
+              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/30 border border-red-200 rounded-lg px-4 py-2 mb-4">
                 {loadError}
               </p>
             )}
 
             {!data && !loadError && (
-              <div className="py-8 text-center text-gray-400 dark:text-gray-400 text-sm">Carregando...</div>
+              <div className="py-8 text-center text-gray-400 dark:text-dm-muted text-sm">Carregando...</div>
             )}
 
             {data && (

@@ -6,11 +6,11 @@ export default function PlanSummary({ data }: { data: BillingData }) {
   const StatusIcon = statusInfo.icon
 
   return (
-    <div className="border border-gray-100 dark:border-gray-700 rounded-xl p-4 mb-6">
+    <div className="border border-gray-100 dark:border-white/[0.08] rounded-xl p-4 mb-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Plano atual</p>
-          <p className="font-semibold text-gray-800 dark:text-gray-100">Plano Mensal — R$ 7,99/mês</p>
+          <p className="text-xs text-gray-500 dark:text-dm-muted mb-0.5">Plano atual</p>
+          <p className="font-semibold text-gray-800 dark:text-dm-text">Plano Mensal — R$ 7,99/mês</p>
         </div>
         <div className="flex flex-row sm:flex-col sm:items-end items-center gap-2 sm:gap-1">
           <span className={`flex items-center gap-1.5 text-sm font-medium ${statusInfo.color}`}>

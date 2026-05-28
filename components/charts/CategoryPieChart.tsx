@@ -16,8 +16,8 @@ export default function CategoryPieChart({
   const legendTextColor = theme === 'dark' ? '#d1d5db' : '#374151'
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-      <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-1">Despesas por categoria</h2>
+    <div className="bg-white dark:bg-dm-card rounded-2xl shadow-lg p-6">
+      <h2 className="text-xl font-bold text-gray-800 dark:text-dm-text mb-1">Despesas por categoria</h2>
       {onCategoryClick && data.length > 0 && (
         <p className="text-xs text-gray-400 mb-3">Clique em uma categoria para ver as despesas</p>
       )}

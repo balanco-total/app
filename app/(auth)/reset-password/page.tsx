@@ -61,18 +61,18 @@ export default function ResetPasswordPage() {
 
   if (status === 'waiting') {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-xl text-gray-600 dark:text-gray-400">Verificando link...</div>
+      <div className="min-h-screen bg-white dark:bg-dm-surface flex items-center justify-center">
+        <div className="text-xl text-gray-600 dark:text-dm-muted">Verificando link...</div>
       </div>
     )
   }
 
   if (status === 'invalid') {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-white dark:bg-dm-surface flex items-center justify-center p-4">
         <Card shadow="xl" padding="lg" className="max-w-md w-full text-center">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-3">Link inválido ou expirado</h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-dm-text mb-3">Link inválido ou expirado</h1>
+          <p className="text-gray-500 dark:text-dm-muted mb-6">
             Este link de recuperação é inválido ou já expirou. Solicite um novo.
           </p>
           <Link href="/login" className="text-brand-500 font-semibold hover:underline">
@@ -84,17 +84,17 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white dark:bg-dm-surface flex items-center justify-center p-4">
       <Card shadow="xl" padding="lg" className="max-w-md w-full">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2 text-center">BalançoTotal</h1>
-        <p className="text-gray-500 dark:text-gray-400 text-center mb-6">Criar nova senha</p>
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-dm-text mb-2 text-center">BalançoTotal</h1>
+        <p className="text-gray-500 dark:text-dm-muted text-center mb-6">Criar nova senha</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">{error}</div>
           )}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nova senha</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-2">Nova senha</label>
             <PasswordInput
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -105,7 +105,7 @@ export default function ResetPasswordPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirmar nova senha</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-2">Confirmar nova senha</label>
             <PasswordInput
               value={confirm}
               onChange={e => setConfirm(e.target.value)}

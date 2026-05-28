@@ -21,15 +21,15 @@ export default async function ConfirmPage({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-dm-surface px-4">
+      <div className="max-w-md w-full bg-white dark:bg-dm-card rounded-2xl shadow-sm border border-gray-100 dark:border-white/[0.08] p-8 text-center">
         {confirmed ? (
           <>
             <div className="flex justify-center my-8">
               <Logo />
             </div>
-            <h1 className="text-2xl text-gray-900 dark:text-gray-100 mb-2">Conta confirmada!</h1>
-            <p className="text-gray-500 dark:text-gray-400 mb-8">
+            <h1 className="text-2xl text-gray-900 dark:text-dm-text mb-2">Conta confirmada!</h1>
+            <p className="text-gray-500 dark:text-dm-muted mb-8">
               Seu e-mail foi verificado com sucesso. Você já pode começar a usar o BalançoTotal.
             </p>
             <Link
@@ -44,8 +44,8 @@ export default async function ConfirmPage({
             <div className="flex justify-center my-8">
               <Logo />
             </div>
-            <h1 className="text-2xl text-gray-900 dark:text-gray-100 mb-2">Link inválido ou expirado</h1>
-            <p className="text-gray-500 dark:text-gray-400 mb-8">
+            <h1 className="text-2xl text-gray-900 dark:text-dm-text mb-2">Link inválido ou expirado</h1>
+            <p className="text-gray-500 dark:text-dm-muted mb-8">
               Este link de confirmação não é válido ou já expirou. Tente criar uma nova conta.
             </p>
             <Link

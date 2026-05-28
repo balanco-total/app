@@ -52,12 +52,12 @@ export default function ExportCard({ accountId, toast }: { accountId: string; to
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-      <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2 mb-4">
+    <div className="bg-white dark:bg-dm-card rounded-2xl shadow-lg p-6">
+      <h2 className="text-lg font-bold text-gray-800 dark:text-dm-text flex items-center gap-2 mb-4">
         <Download size={20} className="text-brand-500 dark:text-brand-200" />
         Exportar dados
       </h2>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+      <p className="text-sm text-gray-500 dark:text-dm-muted mb-4">
         Baixe todos os lançamentos da conta em formato CSV (compatível com Excel).
         Colunas: data, valor, descrição, categoria, usuário.
       </p>

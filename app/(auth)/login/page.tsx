@@ -74,13 +74,13 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white dark:bg-dm-surface flex items-center justify-center p-4">
       <Card shadow="xl" padding="lg" className="max-w-md w-full">
         <div className="flex justify-center mb-4"><Logo /></div>
 
         {view === 'recovery' ? (
           <>
-            <p className="text-gray-500 dark:text-gray-400 text-center mb-6">Recuperar senha</p>
+            <p className="text-gray-500 dark:text-dm-muted text-center mb-6">Recuperar senha</p>
 
             {recoverySent ? (
               <div className="text-center space-y-4">
@@ -89,8 +89,8 @@ function LoginForm() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <p className="text-gray-700 dark:text-gray-300 font-medium">E-mail enviado</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-gray-700 dark:text-dm-muted font-medium">E-mail enviado</p>
+                <p className="text-sm text-gray-500 dark:text-dm-muted">
                   Se este e-mail estiver cadastrado, você receberá um link em breve. Verifique sua caixa de entrada e a pasta de spam.
                 </p>
                 <button
@@ -122,7 +122,7 @@ function LoginForm() {
                 <button
                   type="button"
                   onClick={() => setView('login')}
-                  className="w-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm transition"
+                  className="w-full text-gray-500 dark:text-dm-muted hover:text-gray-700 dark:hover:text-dm-text text-sm transition"
                 >
                   Voltar ao login
                 </button>
@@ -131,7 +131,7 @@ function LoginForm() {
           </>
         ) : (
           <>
-            <p className="text-gray-500 dark:text-gray-400 text-center mb-6">Faça login</p>
+            <p className="text-gray-500 dark:text-dm-muted text-center mb-6">Faça login</p>
 
             {message === 'confirm-email' && (
               <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm mb-6">
@@ -158,7 +158,7 @@ function LoginForm() {
               />
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Senha</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted">Senha</label>
                   <button
                     type="button"
                     onClick={switchToRecovery}
@@ -185,14 +185,14 @@ function LoginForm() {
               </Button>
             </form>
 
-            <p className="mt-6 text-center text-gray-600 dark:text-gray-400">
+            <p className="mt-6 text-center text-gray-600 dark:text-dm-muted">
               Não tem conta?{' '}
               <Link href="/signup" className="text-brand-500 dark:text-brand-200 font-semibold hover:underline">
                 Cadastre-se
               </Link>
             </p>
             <p className="mt-3 text-center">
-              <a href="https://balancototal.com.br" className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:underline transition">
+              <a href="https://balancototal.com.br" className="text-xs text-gray-400 dark:text-dm-faint hover:text-gray-600 dark:hover:text-dm-muted hover:underline transition">
                 Conheça o BalançoTotal
               </a>
             </p>

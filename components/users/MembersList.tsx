@@ -19,8 +19,8 @@ export default function MembersList({
   onDelete,
 }: Props) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6">
-      <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
+    <div className="bg-white dark:bg-dm-card rounded-2xl shadow-lg p-6 mb-6">
+      <h2 className="text-lg font-bold text-gray-800 dark:text-dm-text mb-4 flex items-center gap-2">
         <Users size={20} className="text-brand-500 dark:text-brand-200" />
         Membros
       </h2>
@@ -35,12 +35,12 @@ export default function MembersList({
             <div
               key={m.id}
               className={`flex items-center justify-between p-3 rounded-lg ${
-                m.is_disabled ? 'bg-red-50 dark:bg-red-900/20' : 'bg-gray-50 dark:bg-gray-700'
+                m.is_disabled ? 'bg-red-50 dark:bg-red-900/20' : 'bg-gray-50 dark:bg-dm-field'
               }`}
             >
               <div>
                 <div className="flex items-center gap-2">
-                  <p className={`font-medium ${m.is_disabled ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-100'}`}>
+                  <p className={`font-medium ${m.is_disabled ? 'text-gray-400 dark:text-dm-faint line-through' : 'text-gray-800 dark:text-dm-text'}`}>
                     {m.name}
                   </p>
                   {m.is_disabled && (
@@ -49,7 +49,7 @@ export default function MembersList({
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-500 dark:text-dm-muted">
                   {isOwner ? 'Proprietário' : 'Membro'} •{' '}
                   desde {new Date(m.created_at).toLocaleDateString('pt-BR')}
                 </p>

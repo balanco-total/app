@@ -160,7 +160,7 @@ export default function UsersPage({
   // ── Render ─────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 p-4">
+    <div className="min-h-screen bg-white dark:bg-dm-surface p-4">
       <div className="max-w-7xl mx-auto">
 
         <DashboardHeader profile={profile} />
@@ -174,9 +174,9 @@ export default function UsersPage({
         )}
 
         {/* Page bar: member count + invite button */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6">
+        <div className="bg-white dark:bg-dm-card rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex items-center justify-between gap-4">
-            <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">
+            <p className="text-gray-600 dark:text-dm-muted text-sm sm:text-base">
               {members.length} membro(s) na conta
             </p>
             <Button
