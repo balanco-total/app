@@ -36,7 +36,7 @@ export default function DangerZoneCard() {
     setShowDeleteModal(false)
     setDeleteConfirm('')
     setDeleteLoading(false)
-    router.push('/app')
+    router.push('/')
     router.refresh()
   }
 

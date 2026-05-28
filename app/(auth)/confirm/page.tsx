@@ -33,7 +33,7 @@ export default async function ConfirmPage({
               Seu e-mail foi verificado com sucesso. Você já pode começar a usar o BalançoTotal.
             </p>
             <Link
-              href="/app"
+              href="/"
               className="inline-block w-full bg-brand-500 hover:bg-[#14532d] text-white font-semibold py-3 px-6 rounded-xl transition-colors"
             >
               Dashboard

@@ -139,7 +139,7 @@ export default function BillingPage({ profile, account }: { profile: Profile; ac
         )}
 
         <button
-          onClick={() => router.push('/app')}
+          onClick={() => router.push('/')}
           className="w-full mt-3 text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition py-2"
         >
           Voltar ao painel

@@ -4,8 +4,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Landing estática: trata redirects do callback de auth do Supabase
-  // (antes recebidos via searchParams em app/page.tsx) sem precisar SSR.
+  // O callback de auth do Supabase pode chegar em / com code/error nos searchParams.
   if (pathname === '/') {
     const error = request.nextUrl.searchParams.get('error')
     const code = request.nextUrl.searchParams.get('code')
@@ -15,7 +14,7 @@ export async function middleware(request: NextRequest) {
       url.searchParams.set('code', code)
       return NextResponse.redirect(url)
     }
-    return NextResponse.next()
+    // sem code/error: cai no guard de auth + billing abaixo (/ agora é o dashboard)
   }
 
   let supabaseResponse = NextResponse.next({ request: { headers: request.headers } })
@@ -48,8 +47,6 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/signup') ||
     pathname.startsWith('/confirm') ||
     pathname.startsWith('/invite') ||
-    pathname.startsWith('/privacy') ||
-    pathname.startsWith('/terms') ||
     pathname.startsWith('/api/')
 
   // Routes where an already-authenticated user should be sent to the app instead
@@ -70,12 +67,12 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!user && !isPublicRoute) return redirectTo('/login')
-  if (user && isLoginRoute) return redirectTo('/app')
+  if (user && isLoginRoute) return redirectTo('/')
 
-  // Billing guard: block access to /app/* (except /app/billing) when trial expired and no active subscription
+  // Billing guard: block access to protected app routes (except /billing) when trial expired and no active subscription
   const isProtectedAppRoute =
-    pathname.startsWith('/app') &&
-    !pathname.startsWith('/app/billing')
+    !isPublicRoute &&
+    !pathname.startsWith('/billing')
 
   if (user && isProtectedAppRoute) {
     const { data: billingData } = await supabase
@@ -88,7 +85,7 @@ export async function middleware(request: NextRequest) {
     if (acc) {
       const trialActive = acc.subscription_status === 'trialing' && new Date(acc.trial_ends_at) > new Date()
       const subscribed = acc.subscription_status === 'active'
-      if (!trialActive && !subscribed) return redirectTo('/app/billing')
+      if (!trialActive && !subscribed) return redirectTo('/billing')
     }
   }
 

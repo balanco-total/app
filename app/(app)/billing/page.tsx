@@ -1,9 +1,9 @@
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import UsersPage from '@/components/UsersPage'
+import BillingPage from '@/components/BillingPage'
 
-export default async function Page() {
+export default async function AppBillingPage() {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
@@ -12,12 +12,11 @@ export default async function Page() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, name, account_id, role, created_at, is_disabled')
+    .select('id, name, account_id, role')
     .eq('id', user.id)
     .single()
 
-  if (!profile) redirect('/login')
-  if (profile.role !== 'owner') redirect('/app')
+  if (!profile) redirect('/api/auth/signout')
 
   const { data: account } = await supabase
     .from('accounts')
@@ -25,5 +24,10 @@ export default async function Page() {
     .eq('id', profile.account_id)
     .single()
 
-  return <UsersPage profile={profile} account={account ?? null} />
+  if (!account) redirect('/api/auth/signout')
+
+  // Already active — send to app
+  if (account.subscription_status === 'active') redirect('/')
+
+  return <BillingPage profile={profile} account={account} />
 }

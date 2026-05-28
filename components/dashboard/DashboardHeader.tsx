@@ -34,13 +34,13 @@ export default function DashboardHeader({ profile }: Props) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6">
       <div className="flex justify-between items-center">
-        <Link href="/app">
+        <Link href="/">
           <Logo height={40} width={130} />
         </Link>
 
         <div className="flex items-center gap-3">
           <Link
-            href="/app/charts"
+            href="/charts"
             className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
             title="Ver gráficos"
           >
@@ -49,7 +49,7 @@ export default function DashboardHeader({ profile }: Props) {
           </Link>
 
           <Link
-            href="/app/accounts"
+            href="/accounts"
             className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
             title="Contas"
           >
@@ -59,7 +59,7 @@ export default function DashboardHeader({ profile }: Props) {
 
           {profile.role === 'owner' ? (
             <Link
-              href="/app/users"
+              href="/users"
               className="hidden sm:flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
             >
               <Users size={20} className="text-gray-600 dark:text-gray-300" />
@@ -86,7 +86,7 @@ export default function DashboardHeader({ profile }: Props) {
             {showAvatarMenu && (
               <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 py-1 z-50">
                 <Link
-                  href="/app/profile"
+                  href="/profile"
                   onClick={() => setShowAvatarMenu(false)}
                   className="flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition text-sm"
                 >
@@ -95,7 +95,7 @@ export default function DashboardHeader({ profile }: Props) {
                 </Link>
 
                 <Link
-                  href="/app/plan"
+                  href="/plan"
                   onClick={() => setShowAvatarMenu(false)}
                   className="flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition text-sm"
                 >
@@ -104,7 +104,7 @@ export default function DashboardHeader({ profile }: Props) {
                 </Link>
 
                 <Link
-                  href="/app/accounts"
+                  href="/accounts"
                   onClick={() => setShowAvatarMenu(false)}
                   className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition text-sm"
                 >
@@ -114,7 +114,7 @@ export default function DashboardHeader({ profile }: Props) {
 
                 {profile.role === 'owner' ? (
                   <Link
-                    href="/app/users"
+                    href="/users"
                     onClick={() => setShowAvatarMenu(false)}
                     className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition text-sm"
                   >

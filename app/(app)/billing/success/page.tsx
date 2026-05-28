@@ -20,7 +20,7 @@ export default async function BillingSuccessPage() {
           Pode levar alguns instantes para atualizar.
         </p>
         <Link
-          href="/app"
+          href="/"
           className="inline-block bg-emerald-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-emerald-700 transition"
         >
           Ir para o painel

@@ -108,9 +108,9 @@ export default function SignupPage() {
           </Button>
           <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
             Ao criar sua conta, você concorda com nossa{' '}
-            <Link href="/privacy" className="underline hover:text-gray-600 dark:hover:text-gray-300">Política de Privacidade</Link>
+            <a href="https://balancototal.com.br/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600 dark:hover:text-gray-300">Política de Privacidade</a>
             {' '}e{' '}
-            <Link href="/terms" className="underline hover:text-gray-600 dark:hover:text-gray-300">Termos de Uso</Link>.
+            <a href="https://balancototal.com.br/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600 dark:hover:text-gray-300">Termos de Uso</a>.
           </p>
         </form>
 
@@ -121,9 +121,9 @@ export default function SignupPage() {
           </Link>
         </p>
         <p className="mt-3 text-center">
-          <Link href="/" className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:underline transition">
+          <a href="https://balancototal.com.br" className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:underline transition">
             Conheça o BalançoTotal
-          </Link>
+          </a>
         </p>
       </Card>
     </div>

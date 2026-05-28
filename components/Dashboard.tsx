@@ -13,7 +13,7 @@ import Modal from './ui/Modal'
 import DashboardHeader from './dashboard/DashboardHeader'
 import CategorySummary from './dashboard/CategorySummary'
 
-// Code-split: shipped as separate chunks to shrink the initial /app bundle.
+// Code-split: shipped as separate chunks to shrink the initial dashboard bundle.
 // CategoryExpensesAside only renders on interaction, so it can skip SSR entirely.
 const ExpenseForm = dynamic(() => import('./dashboard/ExpenseForm'))
 const RecentExpenses = dynamic(() => import('./dashboard/RecentExpenses'))

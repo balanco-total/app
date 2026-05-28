@@ -50,11 +50,11 @@ describe('<BillingBanner>', () => {
     expect(screen.queryByRole('button', { name: /Assinar/i })).not.toBeInTheDocument()
   })
 
-  it('navigates to /app/billing when "Assinar" is clicked', async () => {
+  it('navigates to /billing when "Assinar" is clicked', async () => {
     const inFive = new Date(FIXED_NOW + 5 * 24 * 60 * 60 * 1000).toISOString()
     render(<BillingBanner subscriptionStatus="trialing" trialEndsAt={inFive} isOwner />)
     await userEvent.click(screen.getByRole('button', { name: /Assinar/i }))
-    expect(pushMock).toHaveBeenCalledWith('/app/billing')
+    expect(pushMock).toHaveBeenCalledWith('/billing')
   })
 
   it('can be dismissed by clicking the X (when not expired)', async () => {

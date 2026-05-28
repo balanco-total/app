@@ -16,7 +16,7 @@ export default function CancelSubscription() {
       const res = await fetch('/api/billing/cancel', { method: 'POST' })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error ?? 'Erro desconhecido')
-      router.push('/app/billing')
+      router.push('/billing')
     } catch (e: unknown) {
       setCancelError(e instanceof Error ? e.message : 'Erro ao cancelar.')
       setCanceling(false)

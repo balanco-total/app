@@ -13,7 +13,7 @@ import { generateVirtualOccurrences } from '@/lib/recurring'
 import type { RecurringExpense } from '@/lib/recurring'
 
 // recharts is heavy and renders client-side only (ResponsiveContainer needs the DOM),
-// so keep it out of the initial /app/charts bundle. Placeholders preserve height to avoid CLS.
+// so keep it out of the initial /charts bundle. Placeholders preserve height to avoid CLS.
 function ChartCardSkeleton({ height }: { height: number }) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">

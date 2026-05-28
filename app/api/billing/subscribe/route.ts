@@ -40,8 +40,8 @@ export async function POST() {
     line_items: [{ price: priceId, quantity: 1 }],
     client_reference_id: profile.account_id,
     customer_email: user.email,
-    success_url: `${appUrl}/app/billing/success`,
-    cancel_url: `${appUrl}/app/billing`,
+    success_url: `${appUrl}/billing/success`,
+    cancel_url: `${appUrl}/billing`,
     locale: 'pt-BR',
   })
 

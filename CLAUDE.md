@@ -28,22 +28,21 @@ npm run lint     # ESLint
 
 ```
 app/
-  page.tsx                           → / (landing page, public)
-  layout.tsx                         → root layout (global)
-  (auth)/login/page.tsx              → /login (public)
-  (auth)/signup/page.tsx             → /signup (public)
-  (auth)/invite/page.tsx             → /invite (public, invite acceptance)
-  (auth)/reset-password/page.tsx     → /reset-password (public)
-  (app)/app/layout.tsx               → auth guard for /app/*
-  (app)/app/page.tsx                 → /app (dashboard, passes user+profile+account to Dashboard)
-  (app)/app/charts/page.tsx          → /app/charts
-  (app)/app/users/page.tsx           → /app/users (owner only)
-  (app)/app/profile/page.tsx         → /app/profile
-  (app)/app/billing/page.tsx         → /app/billing (subscription page, accessible when trial expired)
-  (app)/app/billing/success/page.tsx → /app/billing/success (post-payment confirmation)
+  layout.tsx                       → root layout (global)
+  (auth)/login/page.tsx            → /login (public)
+  (auth)/signup/page.tsx           → /signup (public)
+  (auth)/invite/page.tsx           → /invite (public, invite acceptance)
+  (auth)/reset-password/page.tsx   → /reset-password (public)
+  (app)/layout.tsx                 → auth guard for the app routes
+  (app)/page.tsx                   → / (dashboard, passes user+profile+account to Dashboard)
+  (app)/charts/page.tsx            → /charts
+  (app)/users/page.tsx             → /users (owner only)
+  (app)/profile/page.tsx           → /profile
+  (app)/billing/page.tsx           → /billing (subscription page, accessible when trial expired)
+  (app)/billing/success/page.tsx   → /billing/success (post-payment confirmation)
 ```
 
-Route groups `(auth)` and `(app)` are invisible in URLs. `/` is the public landing page; the app lives under `/app`. Middleware handles auth redirects first; `(app)/app/layout.tsx` is a belt-and-suspenders server-side guard.
+Route groups `(auth)` and `(app)` are invisible in URLs. The app lives at the root: `/` is the (auth-protected) dashboard. The marketing landing page is a separate repo/deploy. Middleware handles auth redirects first; `(app)/layout.tsx` is a belt-and-suspenders server-side guard.
 
 ### Components
 
@@ -65,7 +64,7 @@ Route groups `(auth)` and `(app)` are invisible in URLs. `/` is the public landi
 - `utils/supabase/client.ts` — browser client (use in client components)
 - `utils/supabase/server.ts` — server client (takes awaited `cookies()` as param)
 - `utils/supabase/middleware.ts` — not used by middleware.ts; kept for reference
-- `middleware.ts` — inlines Supabase client creation to refresh sessions, enforce auth redirects, and block expired/unsubscribed accounts (redirects to `/app/billing`)
+- `middleware.ts` — inlines Supabase client creation to refresh sessions, enforce auth redirects, and block expired/unsubscribed accounts (redirects to `/billing`)
 
 ### Database Migrations (`supabase/migrations/`)
 
@@ -94,10 +93,10 @@ Four tables: `accounts`, `profiles` (extends `auth.users`), `categories`, `expen
 
 ### Auth Flow
 
-1. Signup → `supabase.auth.signUp()` with `options.data.name` → trigger creates account + profile → client seeds default categories → redirect `/app`
-2. Invite → owner generates token (RPC `create_invite`) → guest visits `/invite?token=...` → creates account as member → redirect `/app`
-3. Login → `supabase.auth.signInWithPassword()` → redirect `/app`
-4. All `/app/*` requests: middleware calls `getUser()` (validates JWT server-side) → redirects to `/login` if unauthenticated; `(app)/app/layout.tsx` also checks `is_disabled` and signs out banned users
+1. Signup → `supabase.auth.signUp()` with `options.data.name` → trigger creates account + profile → client seeds default categories → redirect `/`
+2. Invite → owner generates token (RPC `create_invite`) → guest visits `/invite?token=...` → creates account as member → redirect `/`
+3. Login → `supabase.auth.signInWithPassword()` → redirect `/`
+4. All protected requests: middleware calls `getUser()` (validates JWT server-side) → redirects to `/login` if unauthenticated; `(app)/layout.tsx` also checks `is_disabled` and signs out banned users
 
 ### Key Constraints
 
@@ -204,14 +203,14 @@ The project has a minimal design system in `components/ui/`. **Use the primitive
   ```
 - **Wrap derived data in `useMemo`** when it traverses a list (filter/map/reduce/sort) and the source list isn't trivially small. `Dashboard.tsx` is the canonical example — see `categorySummary`, `totalMonth`, `totalUnpaid`.
 - New images sourced from URLs should use `next/image` (with `unoptimized` when the host is a third-party CDN like Pluggy whose domain isn't allowlisted in `next.config.js`).
-- **Fetch initial data server-side, pass as props — don't fetch on mount.** Mobile FCP/LCP were "Poor" (~4.4s/4.95s) because `Dashboard.tsx` started with `loading=true` and ran its Supabase queries in a `useEffect` on mount: the server only rendered a spinner, and real content waited for JS download → hydration → round-trips. The server component (`app/(app)/app/page.tsx`) now fetches everything in one `Promise.all` and passes `initial*` props; the client component initializes `useState` from those props (`loading` removed entirely) so the server renders real content into the HTML. **When adding a new `/app/*` page, follow this pattern: fetch in the server `page.tsx`, seed defaults server-side, and hydrate client state from props instead of fetching on mount.** Keep `useEffect` fetches only for data that changes after mount (e.g. `fetchMonthlySummary` on month change — guarded by a first-render ref so it doesn't refetch the server-provided initial month).
-- **Code-split interaction-only and heavy client components with `next/dynamic`** to shrink the initial route bundle. In `Dashboard.tsx`, `ExpenseForm`/`RecentExpenses` load as separate chunks (SSR kept) and `CategoryExpensesAside` uses `{ ssr: false }` (it only renders when a category is clicked). `recharts` is heavy and isolated to `/app/charts` — never import chart components into the dashboard path.
+- **Fetch initial data server-side, pass as props — don't fetch on mount.** Mobile FCP/LCP were "Poor" (~4.4s/4.95s) because `Dashboard.tsx` started with `loading=true` and ran its Supabase queries in a `useEffect` on mount: the server only rendered a spinner, and real content waited for JS download → hydration → round-trips. The server component (`app/(app)/page.tsx`) now fetches everything in one `Promise.all` and passes `initial*` props; the client component initializes `useState` from those props (`loading` removed entirely) so the server renders real content into the HTML. **When adding a new app page, follow this pattern: fetch in the server `page.tsx`, seed defaults server-side, and hydrate client state from props instead of fetching on mount.** Keep `useEffect` fetches only for data that changes after mount (e.g. `fetchMonthlySummary` on month change — guarded by a first-render ref so it doesn't refetch the server-provided initial month).
+- **Code-split interaction-only and heavy client components with `next/dynamic`** to shrink the initial route bundle. In `Dashboard.tsx`, `ExpenseForm`/`RecentExpenses` load as separate chunks (SSR kept) and `CategoryExpensesAside` uses `{ ssr: false }` (it only renders when a category is clicked). `recharts` is heavy and isolated to `/charts` — never import chart components into the dashboard path.
 - **Keep global client JS off the critical path.** `InstallPrompt` (PWA prompt) loads via `components/InstallPromptLoader.tsx`, a thin `'use client'` wrapper that does `dynamic(..., { ssr: false })` — needed because `ssr: false` dynamic imports aren't allowed directly in the Server Component root layout.
 
 ### Billing Flow (Stripe)
 
 - `accounts` table has `trial_ends_at`, `subscription_status` (`trialing` | `active` | `past_due` | `canceled`), `stripe_subscription_id`
-- Middleware blocks all `/app/*` routes (except `/app/billing`) when trial expired AND not `active`
+- Middleware blocks all protected app routes (except `/billing`) when trial expired AND not `active`
 - `POST /api/billing/subscribe` — creates a Stripe Checkout Session (`mode: 'subscription'`), passes `client_reference_id: account_id` and `customer_email`; returns hosted checkout URL
 - `POST /api/billing/webhook` — receives Stripe events; verifies `stripe-signature` header with `stripe.webhooks.constructEvent()`; uses admin client to update `accounts`
   - `checkout.session.completed` → `active`, stores `stripe_subscription_id`

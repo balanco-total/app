@@ -52,7 +52,7 @@ export default function BillingBanner({ subscriptionStatus, trialEndsAt, isOwner
       <div className="flex items-center gap-2 shrink-0">
         {isOwner && (
           <button
-            onClick={() => router.push('/app/billing')}
+            onClick={() => router.push('/billing')}
             className="flex items-center gap-1.5 text-sm font-semibold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition"
           >
             <CreditCard size={14} />
