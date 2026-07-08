@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { isValidFieldText } from '@/utils/validation'
 import { checkRateLimit } from '@/utils/rateLimit'
+import { invoiceCycleForDate, type InvoiceCycle } from '@/lib/credit-card'
 
 const MAX_DESCRIPTION = 60
 const MAX_AMOUNT = 1_000_000
@@ -16,8 +17,9 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'Requisição inválida.' }, { status: 400 })
 
-  const { description, amount, category_id, date, quantity: rawQty, paid: paidRaw, financial_account_id } = body as Record<string, unknown>
+  const { description, amount, category_id, date, quantity: rawQty, paid: paidRaw, financial_account_id, credit_card_id } = body as Record<string, unknown>
   const wantPaid = !!paidRaw
+  const isCard = !!credit_card_id
 
   if (!description || String(description).trim().length === 0)
     return NextResponse.json({ error: 'Descrição é obrigatória.' }, { status: 400 })
@@ -96,24 +98,108 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Muitas requisições. Tente novamente em 1 minuto.' }, { status: 429 })
 
   const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-  if (!financial_account_id || typeof financial_account_id !== 'string')
-    return NextResponse.json({ error: 'Conta é obrigatória.' }, { status: 400 })
 
-  const rows = installmentISOs.map(iso => ({
-    account_id: profile.account_id,
-    user_id: profile.id,
-    description: String(description).trim(),
-    amount,
-    category_id,
-    date: iso,
-    paid_at: wantPaid && iso.slice(0, 7) <= currentYearMonth ? now.toISOString() : null,
-    financial_account_id: financial_account_id as string,
-  }))
+  // A lançamento targets EITHER a bank account OR a credit card, never both.
+  if (isCard && financial_account_id)
+    return NextResponse.json({ error: 'Selecione uma conta ou um cartão, não ambos.' }, { status: 400 })
+  if (!isCard && (!financial_account_id || typeof financial_account_id !== 'string'))
+    return NextResponse.json({ error: 'Conta é obrigatória.' }, { status: 400 })
+  if (isCard && typeof credit_card_id !== 'string')
+    return NextResponse.json({ error: 'Cartão inválido.' }, { status: 400 })
+
+  type ExpenseInsert = {
+    account_id: string
+    user_id: string
+    description: string
+    amount: number
+    category_id: unknown
+    date: string
+    paid_at: string | null
+    financial_account_id: string | null
+    credit_card_invoice_id?: string | null
+  }
+
+  let rows: ExpenseInsert[]
+
+  if (isCard) {
+    // Resolve the card's billing cycle for each installment and find-or-create
+    // the matching monthly invoice. Card lançamentos never touch a bank balance:
+    // financial_account_id and paid_at stay null.
+    const { data: card, error: cardError } = await supabase
+      .from('credit_cards')
+      .select('id, closing_day, due_day')
+      .eq('id', credit_card_id as string)
+      .single()
+
+    if (cardError || !card)
+      return NextResponse.json({ error: 'Cartão não encontrado.' }, { status: 404 })
+
+    const cycles = installmentISOs.map(iso => invoiceCycleForDate(iso, card.closing_day, card.due_day))
+
+    const uniqueRefs = new Map<string, InvoiceCycle>()
+    for (const c of cycles) if (!uniqueRefs.has(c.reference_month)) uniqueRefs.set(c.reference_month, c)
+    const refMonths = Array.from(uniqueRefs.keys())
+
+    const { data: existing } = await supabase
+      .from('credit_card_invoices')
+      .select('id, reference_month')
+      .eq('credit_card_id', card.id)
+      .in('reference_month', refMonths)
+
+    const invoiceByRef = new Map<string, string>()
+    for (const inv of existing ?? []) invoiceByRef.set(inv.reference_month, inv.id)
+
+    const toCreate = refMonths
+      .filter(r => !invoiceByRef.has(r))
+      .map(r => {
+        const c = uniqueRefs.get(r) as InvoiceCycle
+        return {
+          account_id: profile.account_id,
+          credit_card_id: card.id,
+          reference_month: r,
+          closing_date: c.closing_date,
+          due_date: c.due_date,
+          status: 'open',
+        }
+      })
+
+    if (toCreate.length > 0) {
+      const { data: created, error: invError } = await supabase
+        .from('credit_card_invoices')
+        .insert(toCreate)
+        .select('id, reference_month')
+      if (invError) return NextResponse.json({ error: 'Erro ao criar fatura.' }, { status: 500 })
+      for (const inv of created ?? []) invoiceByRef.set(inv.reference_month, inv.id)
+    }
+
+    rows = cycles.map((c, i) => ({
+      account_id: profile.account_id,
+      user_id: profile.id,
+      description: String(description).trim(),
+      amount,
+      category_id,
+      date: installmentISOs[i],
+      paid_at: null,
+      financial_account_id: null,
+      credit_card_invoice_id: invoiceByRef.get(c.reference_month) as string,
+    }))
+  } else {
+    rows = installmentISOs.map(iso => ({
+      account_id: profile.account_id,
+      user_id: profile.id,
+      description: String(description).trim(),
+      amount,
+      category_id,
+      date: iso,
+      paid_at: wantPaid && iso.slice(0, 7) <= currentYearMonth ? now.toISOString() : null,
+      financial_account_id: financial_account_id as string,
+    }))
+  }
 
   const { data, error } = await supabase
     .from('expenses')
     .insert(rows)
-    .select('*, profiles(name)')
+    .select('*, profiles(name), credit_card_invoices(credit_card_id)')
 
   if (error) return NextResponse.json({ error: 'Erro ao adicionar despesa.' }, { status: 500 })
 

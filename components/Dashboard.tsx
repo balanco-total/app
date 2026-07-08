@@ -37,6 +37,7 @@ import type {
   Category,
   Expense,
   FinancialAccount,
+  CreditCardOption,
   EditingExpenseState,
   PendingCategoryChange,
   PendingPaidToggle,
@@ -44,6 +45,7 @@ import type {
   RecurringExpense,
   VirtualExpense,
 } from './dashboard/types'
+import { parseSource } from './dashboard/AccountSelect'
 
 // Recurring helpers
 import { generateVirtualOccurrences } from '@/lib/recurring'
@@ -58,6 +60,7 @@ type MonthExpenseRow = {
   category_id: string | null
   amount: number
   paid_at: string | null
+  credit_card_invoice_id?: string | null
   recurring_expense_id?: string | null
   occurrence_year_month?: string | null
   skipped?: boolean
@@ -78,6 +81,7 @@ function buildMonthlyData(
     category_id: v.category_id,
     amount: v.amount,
     paid_at: null,
+    credit_card_invoice_id: null,
     recurring_expense_id: v.recurring_expense_id,
     occurrence_year_month: v.occurrence_year_month,
     skipped: false,
@@ -96,6 +100,7 @@ export default function Dashboard({
   initialCategories,
   initialExpenses,
   initialFinancialAccounts,
+  initialCreditCards,
   initialRecurring,
   initialMonthExpenses,
   initialMonth,
@@ -106,6 +111,7 @@ export default function Dashboard({
   initialCategories: Category[]
   initialExpenses: Expense[]
   initialFinancialAccounts: FinancialAccount[]
+  initialCreditCards: CreditCardOption[]
   initialRecurring: RecurringExpense[]
   initialMonthExpenses: MonthExpenseRow[]
   initialMonth: string
@@ -116,9 +122,18 @@ export default function Dashboard({
   const [categories, setCategories] = useState<Category[]>(initialCategories)
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses)
   const [financialAccounts] = useState<FinancialAccount[]>(initialFinancialAccounts)
+  const [creditCards] = useState<CreditCardOption[]>(initialCreditCards)
   const [monthlyData, setMonthlyData] = useState<MonthExpenseRow[]>(
     () => buildMonthlyData(initialMonthExpenses, initialRecurring, initialMonth)
   )
+
+  // Default expense source: the default bank account, else first bank, else first card.
+  const defaultSource = (() => {
+    const bank = initialFinancialAccounts.find(a => a.is_default) ?? initialFinancialAccounts[0]
+    if (bank) return `bank:${bank.id}`
+    if (initialCreditCards[0]) return `card:${initialCreditCards[0].id}`
+    return ''
+  })()
 
   // ── Form state ─────────────────────────────
   const [description, setDescription] = useState('')
@@ -127,9 +142,7 @@ export default function Dashboard({
   const [expenseDate, setExpenseDate] = useState(() => toLocalDateDisplay(new Date()))
   const [quantity, setQuantity] = useState('1')
   const [paid, setPaid] = useState(false)
-  const [selectedFinancialAccount, setSelectedFinancialAccount] = useState<string>(
-    () => initialFinancialAccounts.find(a => a.is_default)?.id ?? ''
-  )
+  const [selectedSource, setSelectedSource] = useState<string>(defaultSource)
   const [isRecurring, setIsRecurring] = useState(false)
 
   // ── Month navigation ───────────────────────
@@ -160,7 +173,7 @@ export default function Dashboard({
       : `${y}-${String(m + 1).padStart(2, '0')}-01`
     const { data } = await supabase
       .from('expenses')
-      .select('category_id, amount, paid_at, recurring_expense_id, occurrence_year_month, skipped')
+      .select('category_id, amount, paid_at, credit_card_invoice_id, recurring_expense_id, occurrence_year_month, skipped')
       .eq('account_id', profile.account_id)
       .gte('date', `${month}-01`)
       .lt('date', nextMonth)
@@ -195,7 +208,7 @@ export default function Dashboard({
     const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
     const { data } = await supabase
       .from('expenses')
-      .select('id, description, amount, date, category_id, paid_at, user_id, financial_account_id, recurring_expense_id, occurrence_year_month, skipped, profiles(name)')
+      .select('id, description, amount, date, category_id, paid_at, user_id, financial_account_id, credit_card_invoice_id, credit_card_invoices(credit_card_id), recurring_expense_id, occurrence_year_month, skipped, profiles(name)')
       .eq('account_id', profile.account_id)
       .eq('category_id', cat.id)
       .gte('date', `${selectedMonth}-01`)
@@ -226,7 +239,7 @@ export default function Dashboard({
     const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
     const { data } = await supabase
       .from('expenses')
-      .select('id, description, amount, date, category_id, paid_at, user_id, financial_account_id, recurring_expense_id, occurrence_year_month, skipped, profiles(name)')
+      .select('id, description, amount, date, category_id, paid_at, user_id, financial_account_id, credit_card_invoice_id, credit_card_invoices(credit_card_id), recurring_expense_id, occurrence_year_month, skipped, profiles(name)')
       .eq('account_id', profile.account_id)
       .gte('date', `${selectedMonth}-01`)
       .lt('date', nextMonth)
@@ -236,7 +249,7 @@ export default function Dashboard({
           .map(e => `${e.recurring_expense_id}:${e.occurrence_year_month}`)
     )
     const virtuals = generateVirtualOccurrences(recurringTemplatesRef.current, selectedMonth, materializedKeys)
-    const realUnpaid = real.filter(e => !e.paid_at)
+    const realUnpaid = real.filter(e => !e.paid_at && !e.credit_card_invoice_id)
     setAsideExpenses([...virtuals, ...realUnpaid].map(withCategory))
     setAsideLoading(false)
   }
@@ -246,7 +259,11 @@ export default function Dashboard({
     const parsedAmount = parseMasked(amount)
     if (parsedAmount <= 0) { toast.error('Valor deve ser maior que zero.'); return }
     if (!selectedCategory) { toast.error('Selecione uma categoria.'); return }
-    if (financialAccounts.length > 0 && !selectedFinancialAccount) { toast.error('Selecione uma conta.'); return }
+    const { kind: sourceKind, id: sourceId } = parseSource(selectedSource)
+    const isCard = sourceKind === 'card'
+    if ((financialAccounts.length > 0 || creditCards.length > 0) && !sourceId) {
+      toast.error('Selecione uma conta ou cartão.'); return
+    }
 
     const today = new Date()
     const todayInternal = toLocalDateStr(today)
@@ -278,7 +295,7 @@ export default function Dashboard({
       }
     }
 
-    if (isRecurring) {
+    if (isRecurring && !isCard) {
       const [ry, rm, rd] = (parseDateDisplay(expenseDate) || toLocalDateStr(new Date())).split('-').map(Number)
       const startYm = `${ry}-${String(rm).padStart(2, '0')}`
       const res = await fetch('/api/recurring/create', {
@@ -288,7 +305,7 @@ export default function Dashboard({
           description,
           amount: parsedAmount,
           category_id: selectedCategory,
-          financial_account_id: selectedFinancialAccount,
+          financial_account_id: sourceId,
           day_of_month: rd,
           start_year_month: startYm,
         }),
@@ -307,8 +324,12 @@ export default function Dashboard({
       }
       if (internalDate !== todayInternal) body.date = internalDate
       if (qty > 1) body.quantity = qty
-      if (paid) body.paid = true
-      if (selectedFinancialAccount) body.financial_account_id = selectedFinancialAccount
+      if (isCard) {
+        body.credit_card_id = sourceId
+      } else {
+        if (paid) body.paid = true
+        if (sourceId) body.financial_account_id = sourceId
+      }
 
       const res = await fetch('/api/expenses', {
         method: 'POST',
@@ -332,8 +353,7 @@ export default function Dashboard({
     setQuantity('1')
     setPaid(false)
     setIsRecurring(false)
-    const defaultAcc = financialAccounts.find(a => a.is_default)
-    setSelectedFinancialAccount(defaultAcc?.id ?? '')
+    setSelectedSource(defaultSource)
   }
 
   const deleteExpense = (expenseId: string) => {
@@ -353,6 +373,8 @@ export default function Dashboard({
   }
 
   const togglePaid = (exp: Expense | VirtualExpense) => {
+    // Card lançamentos have no individual paid state — payment happens at the invoice level.
+    if ((exp as Expense).credit_card_invoice_id) return
     if ((exp as VirtualExpense)._virtual === true) {
       setPendingPaidToggle({
         expense: exp,
@@ -385,6 +407,7 @@ export default function Dashboard({
 
   const openEditModal = (exp: Expense) => {
     const parts = exp.date.slice(0, 10).split('-')
+    const cardId = exp.credit_card_invoices?.credit_card_id
     setEditingExpense({
       expense: exp,
       description: exp.description,
@@ -393,6 +416,8 @@ export default function Dashboard({
       dateDisplay: `${parts[2]}/${parts[1]}/${parts[0]}`,
       paid: !!exp.paid_at,
       financialAccountId: exp.financial_account_id ?? '',
+      isCard: !!exp.credit_card_invoice_id,
+      cardName: cardId ? cardMap.get(cardId)?.description : undefined,
     })
   }
 
@@ -415,18 +440,22 @@ export default function Dashboard({
     const minDate = new Date(today.getFullYear() - 10, today.getMonth(), today.getDate())
     const maxDate = new Date(today.getFullYear() + 10, today.getMonth(), today.getDate())
     if (parsedDate < minDate || parsedDate > maxDate) { toast.error('Data fora do intervalo permitido.'); return }
-    if (financialAccounts.length > 0 && !editingExpense.financialAccountId) { toast.error('Selecione uma conta.'); return }
+    if (!editingExpense.isCard && financialAccounts.length > 0 && !editingExpense.financialAccountId) { toast.error('Selecione uma conta.'); return }
 
     const updates: Record<string, unknown> = {
       description: editingExpense.description.trim(),
       amount: parsedAmount,
       category_id: editingExpense.categoryId || null,
       date: internalDate,
-      financial_account_id: editingExpense.financialAccountId || null,
     }
 
-    if (editingExpense.paid && !exp.paid_at) updates.paid_at = new Date().toISOString()
-    else if (!editingExpense.paid && exp.paid_at) updates.paid_at = null
+    // Card lançamentos keep credit_card_invoice_id and never touch a bank account
+    // or paid_at — those concepts live on the invoice, not the lançamento.
+    if (!editingExpense.isCard) {
+      updates.financial_account_id = editingExpense.financialAccountId || null
+      if (editingExpense.paid && !exp.paid_at) updates.paid_at = new Date().toISOString()
+      else if (!editingExpense.paid && exp.paid_at) updates.paid_at = null
+    }
 
     const { error } = await supabase.from('expenses').update(updates).eq('id', exp.id)
     if (error) { toast.error('Erro ao atualizar lançamento.'); return }
@@ -436,7 +465,7 @@ export default function Dashboard({
       amount: updates.amount as number,
       category_id: updates.category_id as string | null,
       date: updates.date as string,
-      financial_account_id: updates.financial_account_id as string | null,
+      ...(editingExpense.isCard ? {} : { financial_account_id: updates.financial_account_id as string | null }),
       paid_at: 'paid_at' in updates ? (updates.paid_at as string | null) : exp.paid_at,
     }
     setExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, ...editedFields } : e))
@@ -583,6 +612,11 @@ export default function Dashboard({
     [categories],
   )
 
+  const cardMap = useMemo(
+    () => new Map(creditCards.map(c => [c.id, c])),
+    [creditCards],
+  )
+
   const expenseMap = useMemo(
     () => new Map(expenses.map(e => [e.id, e])),
     [expenses],
@@ -604,7 +638,8 @@ export default function Dashboard({
     let unpaid = 0
     for (const e of monthlyData) {
       total += e.amount
-      if (!e.paid_at) unpaid += e.amount
+      // Card lançamentos count toward the month total but are not "unpaid bills".
+      if (!e.paid_at && !e.credit_card_invoice_id) unpaid += e.amount
     }
     return { totalMonth: total, totalUnpaid: unpaid }
   }, [monthlyData])
@@ -629,6 +664,7 @@ export default function Dashboard({
           <ExpenseForm
             categories={categories}
             financialAccounts={financialAccounts}
+            creditCards={creditCards}
             description={description}
             setDescription={setDescription}
             amount={amount}
@@ -641,8 +677,8 @@ export default function Dashboard({
             setQuantity={setQuantity}
             paid={paid}
             setPaid={setPaid}
-            selectedFinancialAccount={selectedFinancialAccount}
-            setSelectedFinancialAccount={setSelectedFinancialAccount}
+            selectedSource={selectedSource}
+            setSelectedSource={setSelectedSource}
             isRecurring={isRecurring}
             setIsRecurring={setIsRecurring}
             onAdd={addExpense}
@@ -665,6 +701,7 @@ export default function Dashboard({
           expenses={expenses}
           categories={categories}
           financialAccounts={financialAccounts}
+          creditCards={creditCards}
           user={user}
           onTogglePaid={togglePaid}
           onDelete={deleteExpense}
@@ -810,7 +847,7 @@ export default function Dashboard({
 
       {/* ── Modal: Edit expense ───────────────────── */}
       {editingExpense && (() => {
-        const { description: editDesc, amountDisplay, categoryId, dateDisplay, paid: editPaid, financialAccountId } = editingExpense
+        const { description: editDesc, amountDisplay, categoryId, dateDisplay, paid: editPaid, financialAccountId, isCard: editIsCard, cardName: editCardName } = editingExpense
         const parsedAmount = parseMasked(amountDisplay)
         const amountValid = parsedAmount > 0 && parsedAmount <= 1_000_000
         const showDateError = dateDisplay !== '' && parseDateDisplay(dateDisplay) === ''
@@ -879,19 +916,26 @@ export default function Dashboard({
                   {showDateError && <p className="text-xs text-red-500 mt-1">Data inválida.</p>}
                 </div>
 
-                <div className="flex items-center justify-between py-0.5">
-                  <label className="text-sm font-medium text-gray-700 dark:text-dm-muted">Pago</label>
-                  <button
-                    type="button"
-                    onClick={() => setEditingExpense(prev => prev ? { ...prev, paid: !prev.paid } : null)}
-                    className={`flex items-center gap-1.5 text-sm font-medium transition ${editPaid ? 'text-green-600' : 'text-gray-400'}`}
-                  >
-                    {editPaid ? <CheckCircle2 size={16} /> : <Circle size={16} />}
-                    <span>{editPaid ? 'Sim' : 'Não'}</span>
-                  </button>
-                </div>
+                {!editIsCard && (
+                  <div className="flex items-center justify-between py-0.5">
+                    <label className="text-sm font-medium text-gray-700 dark:text-dm-muted">Pago</label>
+                    <button
+                      type="button"
+                      onClick={() => setEditingExpense(prev => prev ? { ...prev, paid: !prev.paid } : null)}
+                      className={`flex items-center gap-1.5 text-sm font-medium transition ${editPaid ? 'text-green-600' : 'text-gray-400'}`}
+                    >
+                      {editPaid ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                      <span>{editPaid ? 'Sim' : 'Não'}</span>
+                    </button>
+                  </div>
+                )}
 
-                {financialAccounts.length > 0 && (
+                {editIsCard ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Cartão</label>
+                    <p className="text-sm text-gray-700 dark:text-dm-text">{editCardName ?? 'Cartão de crédito'}</p>
+                  </div>
+                ) : financialAccounts.length > 0 && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Conta</label>
                     <select

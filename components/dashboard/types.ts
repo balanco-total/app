@@ -15,6 +15,8 @@ export type Expense = {
   amount: number
   category_id: string | null
   financial_account_id: string | null
+  credit_card_invoice_id?: string | null
+  credit_card_invoices?: { credit_card_id: string } | null
   date: string
   paid_at: string | null
   created_at: string
@@ -24,6 +26,14 @@ export type Expense = {
   skipped?: boolean
 }
 export type FinancialAccount = { id: string; name: string; is_default: boolean }
+export type CreditCardOption = {
+  id: string
+  description: string
+  credit_limit: number
+  closing_day: number
+  due_day: number
+  used: number
+}
 
 export type CategoryWithTotal = Category & { total: number }
 
@@ -35,6 +45,8 @@ export type EditingExpenseState = {
   dateDisplay: string
   paid: boolean
   financialAccountId: string
+  isCard: boolean
+  cardName?: string
 }
 
 export type PendingCategoryChange = {

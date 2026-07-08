@@ -4,16 +4,19 @@ import { useState } from 'react'
 import { PlusCircle, ChevronDown, Repeat, Circle, CheckCircle2, X } from 'lucide-react'
 import {
   applyMask,
+  parseMasked,
   parseDateDisplay,
   toLocalDateStr,
   FIELD_PATTERN,
   MONTHS_PT_LOWER,
 } from './helpers'
-import type { Category, FinancialAccount } from './types'
+import type { Category, FinancialAccount, CreditCardOption } from './types'
+import AccountSelect, { parseSource } from './AccountSelect'
 
 type Props = {
   categories: Category[]
   financialAccounts: FinancialAccount[]
+  creditCards: CreditCardOption[]
   description: string
   setDescription: (v: string) => void
   amount: string
@@ -26,8 +29,8 @@ type Props = {
   setQuantity: (v: string) => void
   paid: boolean
   setPaid: (v: boolean | ((prev: boolean) => boolean)) => void
-  selectedFinancialAccount: string
-  setSelectedFinancialAccount: (v: string) => void
+  selectedSource: string
+  setSelectedSource: (v: string) => void
   isRecurring: boolean
   setIsRecurring: (v: boolean) => void
   onAdd: () => void
@@ -38,6 +41,7 @@ type Props = {
 export default function ExpenseForm({
   categories,
   financialAccounts,
+  creditCards,
   description,
   setDescription,
   amount,
@@ -50,8 +54,8 @@ export default function ExpenseForm({
   setQuantity,
   paid,
   setPaid,
-  selectedFinancialAccount,
-  setSelectedFinancialAccount,
+  selectedSource,
+  setSelectedSource,
   isRecurring,
   setIsRecurring,
   onAdd,
@@ -95,6 +99,24 @@ export default function ExpenseForm({
     const fmt = (dd: number, mm: number, yy: number) =>
       `${String(dd).padStart(2, '0')}/${String(mm).padStart(2, '0')}/${yy}`
     return `${fmt(d, m, y)} à ${fmt(last.getDate(), last.getMonth() + 1, last.getFullYear())}`
+  })()
+
+  // Source: bank account vs credit card
+  const { kind: sourceKind, id: sourceId } = parseSource(selectedSource)
+  const isCardSelected = sourceKind === 'card'
+  const selectedCard = isCardSelected ? creditCards.find(c => c.id === sourceId) : undefined
+  const hasSources = financialAccounts.length > 0 || creditCards.length > 0
+
+  // Credit-limit warning (does not block — just informs)
+  const limitWarning = (() => {
+    if (!selectedCard) return null
+    const parsed = parseMasked(amount)
+    if (parsed <= 0) return null
+    if (selectedCard.used + parsed > selectedCard.credit_limit) {
+      const available = Math.max(0, selectedCard.credit_limit - selectedCard.used)
+      return `Este lançamento ultrapassa o limite disponível (R$ ${available.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}).`
+    }
+    return null
   })()
 
   return (
@@ -191,23 +213,25 @@ export default function ExpenseForm({
 
           {showAdvanced && (
             <div className="mt-3 pt-3 border-t border-gray-100 dark:border-white/[0.08] bg-gray-50 dark:bg-dm-field/50 rounded-xl px-3 py-3 space-y-3">
-              {/* Recorrente */}
-              <div className="flex items-center justify-between py-0.5">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-dm-muted">Recorrente</label>
-                  <p className="text-xs text-gray-400 dark:text-dm-muted">Aparece todo mês sem limite</p>
+              {/* Recorrente (não disponível para cartão) */}
+              {!isCardSelected && (
+                <div className="flex items-center justify-between py-0.5">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 dark:text-dm-muted">Recorrente</label>
+                    <p className="text-xs text-gray-400 dark:text-dm-muted">Aparece todo mês sem limite</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsRecurring(!isRecurring)}
+                    className={`flex items-center gap-1.5 text-sm font-medium transition ${isRecurring ? 'text-blue-600' : 'text-gray-400'}`}
+                  >
+                    {isRecurring ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                    <span>{isRecurring ? 'Sim' : 'Não'}</span>
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsRecurring(!isRecurring)}
-                  className={`flex items-center gap-1.5 text-sm font-medium transition ${isRecurring ? 'text-blue-600' : 'text-gray-400'}`}
-                >
-                  {isRecurring ? <CheckCircle2 size={16} /> : <Circle size={16} />}
-                  <span>{isRecurring ? 'Sim' : 'Não'}</span>
-                </button>
-              </div>
+              )}
 
-              {isRecurring && (
+              {!isCardSelected && isRecurring && (
                 <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
                   <Repeat size={13} className="text-blue-400 shrink-0 mt-0.5" />
                   <p className="text-xs text-blue-500">
@@ -262,8 +286,8 @@ export default function ExpenseForm({
                 </div>
               )}
 
-              {/* Pago (hidden when recurring) */}
-              {!isRecurring && (
+              {/* Pago (hidden when recurring or credit card) */}
+              {!isRecurring && !isCardSelected && (
                 <div className="flex items-center justify-between py-0.5">
                   <label className="text-sm font-medium text-gray-700 dark:text-dm-muted">Pago</label>
                   <button
@@ -277,25 +301,32 @@ export default function ExpenseForm({
                 </div>
               )}
 
-              {paid && qty > 1 && !isRecurring && (
+              {paid && qty > 1 && !isRecurring && !isCardSelected && (
                 <p className="text-xs text-amber-500">Parcelas futuras serão salvas como não pagas.</p>
               )}
 
-              {/* Conta */}
-              {financialAccounts.length > 0 && (
+              {/* Conta ou cartão */}
+              {hasSources && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Conta</label>
-                  <select
-                    value={selectedFinancialAccount}
-                    onChange={e => setSelectedFinancialAccount(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-white/[0.14] rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm text-gray-700 dark:bg-dm-field dark:text-dm-text"
-                  >
-                    {financialAccounts.map(acc => (
-                      <option key={acc.id} value={acc.id}>
-                        {acc.name}{acc.is_default ? ' (padrão)' : ''}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">
+                    Conta ou cartão
+                  </label>
+                  <AccountSelect
+                    banks={financialAccounts}
+                    cards={creditCards}
+                    value={selectedSource}
+                    onChange={setSelectedSource}
+                  />
+                  {selectedCard && (
+                    <p className="mt-1.5 text-xs text-gray-400 dark:text-dm-muted">
+                      Fatura fecha dia {selectedCard.closing_day}, vence dia {selectedCard.due_day}.
+                    </p>
+                  )}
+                  {limitWarning && (
+                    <p className="mt-1.5 text-xs text-amber-600 flex items-center gap-1">
+                      <span>⚠</span> {limitWarning}
+                    </p>
+                  )}
                 </div>
               )}
             </div>

@@ -5,12 +5,13 @@ import { Trash2, ChevronDown, Circle, CheckCircle2, ChevronLeft, ChevronRight } 
 
 const PAGE_SIZE = 10
 import type { User } from '@supabase/supabase-js'
-import type { Category, Expense, FinancialAccount, PendingCategoryChange } from './types'
+import type { Category, Expense, FinancialAccount, CreditCardOption, PendingCategoryChange } from './types'
 
 type Props = {
   expenses: Expense[]
   categories: Category[]
   financialAccounts: FinancialAccount[]
+  creditCards: CreditCardOption[]
   user: User
   onTogglePaid: (exp: Expense) => void
   onDelete: (id: string) => void
@@ -22,6 +23,7 @@ export default function RecentExpenses({
   expenses,
   categories,
   financialAccounts,
+  creditCards,
   user,
   onTogglePaid,
   onDelete,
@@ -40,6 +42,10 @@ export default function RecentExpenses({
   const accountMap = useMemo(
     () => new Map(financialAccounts.map(a => [a.id, a])),
     [financialAccounts],
+  )
+  const cardMap = useMemo(
+    () => new Map(creditCards.map(c => [c.id, c])),
+    [creditCards],
   )
 
   const filtered = useMemo(
@@ -108,6 +114,12 @@ export default function RecentExpenses({
         {paginated.map(exp => {
           const category = exp.category_id ? categoryMap.get(exp.category_id) : undefined
           const financialAccount = exp.financial_account_id ? accountMap.get(exp.financial_account_id) : undefined
+          const isCard = !!exp.credit_card_invoice_id
+          const cardId = exp.credit_card_invoices?.credit_card_id
+          const card = cardId ? cardMap.get(cardId) : undefined
+          const sourceLabel = isCard
+            ? (card?.description ? `Cartão ${card.description}` : 'Cartão')
+            : financialAccount?.name
           const date = new Date(exp.date)
           const createdAt = new Date(exp.created_at)
           const isOwn = exp.user_id === user.id
@@ -152,13 +164,15 @@ export default function RecentExpenses({
 
           const actions = isOwn && (
             <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={() => onTogglePaid(exp)}
-                title={exp.paid_at ? 'Desmarcar pagamento' : 'Marcar como pago'}
-                className={`transition ${exp.paid_at ? 'text-green-500 hover:text-green-700' : 'text-gray-300 hover:text-gray-500'}`}
-              >
-                {exp.paid_at ? <CheckCircle2 size={18} /> : <Circle size={18} />}
-              </button>
+              {!isCard && (
+                <button
+                  onClick={() => onTogglePaid(exp)}
+                  title={exp.paid_at ? 'Desmarcar pagamento' : 'Marcar como pago'}
+                  className={`transition ${exp.paid_at ? 'text-green-500 hover:text-green-700' : 'text-gray-300 hover:text-gray-500'}`}
+                >
+                  {exp.paid_at ? <CheckCircle2 size={18} /> : <Circle size={18} />}
+                </button>
+              )}
               <button
                 onClick={() => onDelete(exp.id)}
                 title="Excluir lançamento"
@@ -251,7 +265,7 @@ export default function RecentExpenses({
                     <p className="text-xs text-gray-500 dark:text-dm-muted">
                       {exp.profiles?.name} • {createdAt.toLocaleDateString('pt-BR')} às{' '}
                       {createdAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                      {financialAccount && <> • <span className="font-medium">{financialAccount.name}</span></>}
+                      {sourceLabel && <> • <span className="font-medium">{sourceLabel}</span></>}
                     </p>
                   </div>
                   {categoryPill}

@@ -26,14 +26,16 @@ export default async function AppPage() {
     ? `${y + 1}-01-01`
     : `${y}-${String(m + 1).padStart(2, '0')}-01`
 
-  const [accountRes, categoriesRes, expensesRes, finAccountsRes, recurringRes, monthExpensesRes] =
+  const [accountRes, categoriesRes, expensesRes, finAccountsRes, cardsRes, cardInvoicesRes, recurringRes, monthExpensesRes] =
     await Promise.all([
       supabase.from('accounts').select('id, trial_ends_at, subscription_status').eq('id', accountId).single(),
       supabase.from('categories').select('*').eq('account_id', accountId).order('name'),
-      supabase.from('expenses').select('*, profiles(name)').eq('account_id', accountId).order('created_at', { ascending: false }).limit(50),
+      supabase.from('expenses').select('*, profiles(name), credit_card_invoices(credit_card_id)').eq('account_id', accountId).order('created_at', { ascending: false }).limit(50),
       supabase.from('financial_accounts').select('id, name, is_default').eq('account_id', accountId).order('created_at', { ascending: true }),
+      supabase.from('credit_cards').select('id, description, credit_limit, closing_day, due_day').eq('account_id', accountId).order('created_at', { ascending: true }),
+      supabase.from('credit_card_invoices').select('credit_card_id, total').eq('account_id', accountId).is('paid_at', null),
       supabase.from('recurring_expenses').select('*').eq('account_id', accountId).order('created_at', { ascending: true }),
-      supabase.from('expenses').select('category_id, amount, paid_at, recurring_expense_id, occurrence_year_month, skipped').eq('account_id', accountId).gte('date', `${month}-01`).lt('date', nextMonth),
+      supabase.from('expenses').select('category_id, amount, paid_at, credit_card_invoice_id, recurring_expense_id, occurrence_year_month, skipped').eq('account_id', accountId).gte('date', `${month}-01`).lt('date', nextMonth),
     ])
 
   // Seed defaults for brand-new accounts (matches the previous client-side seeding)
@@ -56,6 +58,16 @@ export default async function AppPage() {
     if (seeded) financialAccounts = [seeded]
   }
 
+  // Used limit per card = sum of totals of its unpaid invoices.
+  const usedByCard = new Map<string, number>()
+  for (const inv of cardInvoicesRes.data ?? []) {
+    usedByCard.set(inv.credit_card_id, (usedByCard.get(inv.credit_card_id) ?? 0) + inv.total)
+  }
+  const creditCards = (cardsRes.data ?? []).map(c => ({
+    ...c,
+    used: usedByCard.get(c.id) ?? 0,
+  }))
+
   return (
     <Dashboard
       user={user}
@@ -64,6 +76,7 @@ export default async function AppPage() {
       initialCategories={categories}
       initialExpenses={expensesRes.data ?? []}
       initialFinancialAccounts={financialAccounts}
+      initialCreditCards={creditCards}
       initialRecurring={recurringRes.data ?? []}
       initialMonthExpenses={monthExpensesRes.data ?? []}
       initialMonth={month}

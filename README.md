@@ -36,6 +36,8 @@ app/
   (app)/app/layout.tsx               → guard de auth para /app
   (app)/app/page.tsx                 → /app (dashboard)
   (app)/app/charts/page.tsx          → /app/charts
+  (app)/app/cards/page.tsx           → /app/cards (cartões de crédito)
+  (app)/app/cards/[cardId]/page.tsx  → /app/cards/:id (faturas do cartão)
   (app)/app/users/page.tsx           → /app/users (somente owner)
   (app)/app/profile/page.tsx         → /app/profile
   (app)/app/billing/page.tsx         → /app/billing (assinatura; acessível mesmo com trial expirado)
@@ -114,10 +116,12 @@ app/
 - Tipo (pagamento | recebimento)
 - Valor total (máx. R$ 1.000.000,00)
 - Categoria (opcional)
-- Conta financeira (opcional; ex.: Carteira, Nubank)
+- **Origem: conta financeira OU cartão de crédito** (ex.: Carteira, Nubank, ou o cartão "Inter")
 - Data de emissão (opcional; aceita de 1 ano atrás até 90 dias no futuro)
 - Quantidade de parcelas (1–99)
-- Status de pagamento (pago | pendente)
+- Status de pagamento (pago | pendente) — **indisponível para lançamentos de cartão**
+
+Ao escolher um **cartão** no formulário, os campos "Pago" e "Recorrente" somem: a compra entra na fatura do cartão (o pagamento acontece no nível da fatura). Parcelas em cartão caem em faturas mensais consecutivas. Veja **Cartões de crédito**.
 
 ### Parcelamento
 - Valor dividido igualmente entre as parcelas.
@@ -161,6 +165,20 @@ app/
 - Uma conta "Carteira" é criada automaticamente no cadastro.
 - O saldo de cada conta financeira é mantido em sincronia por trigger: atualizado automaticamente quando lançamentos pagos são inseridos, editados ou excluídos.
 - Lançamentos podem ser vinculados a uma conta financeira (campo opcional).
+
+---
+
+## Cartões de crédito
+
+- Cadastro em `/cards`: descrição, limite de crédito, dia de fechamento e dia de vencimento.
+- Cada cartão organiza **faturas mensais** (`credit_card_invoices`); dentro de cada fatura ficam os **lançamentos** (linhas de `expenses` com `credit_card_invoice_id`).
+- **Ciclo da fatura:** ao lançar uma compra no cartão, a fatura correta é resolvida pela data da compra e pelo dia de fechamento (compra após o fechamento vai para a próxima fatura). O vencimento cai no mês seguinte ao fechamento quando `dia_vencimento ≤ dia_fechamento`, senão no mesmo mês. A lógica pura está em `lib/credit-card.ts` (testada em `__tests__/lib/credit-card.test.ts`).
+- **Parcelamento:** N parcelas geram N lançamentos, um em cada fatura mensal consecutiva.
+- **Fechamento automático:** o cron diário `/api/cron/close-invoices` (Vercel Cron, `0 6 * * *`) fecha as faturas cujo fechamento passou e garante uma fatura aberta para o ciclo corrente de cada cartão.
+- **Correção:** um lançamento pode ser **movido entre faturas** do mesmo cartão (útil quando fechou no mês errado). Bloqueado para faturas já pagas.
+- **Pagamento da fatura:** faturas fechadas podem ser pagas escolhendo uma conta bancária; o saldo dessa conta é debitado pelo total da fatura (trigger `sync_invoice_payment_balance`).
+- **Impacto no dashboard:** lançamentos de cartão contam no total do mês (pela data), mas **não** entram em "não pagos" nem no saldo das contas bancárias até a fatura ser paga. O total de cada fatura é mantido pelo trigger `sync_invoice_total`.
+- **Limite:** o formulário avisa (sem bloquear) quando um lançamento ultrapassa o limite disponível (limite − soma das faturas não pagas).
 
 ---
 
@@ -253,8 +271,12 @@ Migrations em `supabase/migrations/` (executar em ordem alfabética = cronológi
 | `categories` | Categorias por conta; nome único case-insensitive |
 | `expenses` | Lançamentos; `user_id` referencia `profiles.id` |
 | `financial_accounts` | Contas por account (ex.: Carteira, Nubank); saldo mantido por trigger |
+| `credit_cards` | Cartões de crédito (limite, dia de fechamento, dia de vencimento) |
+| `credit_card_invoices` | Faturas mensais de cada cartão; `total` mantido por trigger |
 | `bank_connections` | Conexões Open Finance via Pluggy |
 
+- `expenses.credit_card_invoice_id` vincula o lançamento a uma fatura de cartão (mutuamente exclusivo com `financial_account_id`).
+- Triggers de cartão: `sync_invoice_total` (total da fatura) e `sync_invoice_payment_balance` (debita a conta bancária ao pagar a fatura).
 - `profiles.id = auth.users.id` (mesmo UUID).
 - Trigger `handle_new_user()` em `auth.users` cria automaticamente account + profile + conta "Carteira" no cadastro.
 - Convites gerenciados por RPC (`create_invite`, `get_invite_by_token`).
@@ -280,6 +302,7 @@ Execute todos os arquivos de `supabase/migrations/` em ordem alfabética no SQL 
 | `20260513000000_financial_accounts.sql` | Tabela `financial_accounts` + `financial_account_id` em expenses |
 | `20260513010000_seed_carteira.sql` | Trigger cria conta "Carteira" automaticamente no cadastro |
 | `20260515000000_balance_trigger.sql` | Trigger de saldo em `financial_accounts` |
+| `20260708000000_credit_cards.sql` | Cartões de crédito: `credit_cards`, `credit_card_invoices`, `credit_card_invoice_id` em expenses, triggers de total da fatura e de pagamento |
 
 ### Supabase
 

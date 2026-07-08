@@ -57,6 +57,15 @@ export default function DashboardHeader({ profile }: Props) {
             <span className="text-gray-700 dark:text-dm-muted font-medium hidden sm:inline">Contas</span>
           </Link>
 
+          <Link
+            href="/cards"
+            className="flex items-center gap-2 bg-gray-100 dark:bg-dm-field px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-dm-hover transition"
+            title="Cartões"
+          >
+            <CreditCard size={20} className="text-gray-600 dark:text-dm-muted" />
+            <span className="text-gray-700 dark:text-dm-muted font-medium hidden sm:inline">Cartões</span>
+          </Link>
+
           {profile.role === 'owner' ? (
             <Link
               href="/users"
@@ -110,6 +119,15 @@ export default function DashboardHeader({ profile }: Props) {
                 >
                   <Landmark size={16} className="text-gray-400" />
                   Contas
+                </Link>
+
+                <Link
+                  href="/cards"
+                  onClick={() => setShowAvatarMenu(false)}
+                  className="sm:hidden flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-dm-muted hover:bg-gray-50 dark:hover:bg-dm-field transition text-sm"
+                >
+                  <CreditCard size={16} className="text-gray-400" />
+                  Cartões
                 </Link>
 
                 {profile.role === 'owner' ? (

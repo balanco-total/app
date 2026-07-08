@@ -1,5 +1,6 @@
 {
   "crons": [
-    { "path": "/api/cron/due-this-week", "schedule": "0 11 * * 1" }
+    { "path": "/api/cron/due-this-week", "schedule": "0 11 * * 1" },
+    { "path": "/api/cron/close-invoices", "schedule": "0 6 * * *" }
   ]
 }
