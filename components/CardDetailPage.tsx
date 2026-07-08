@@ -1,9 +1,9 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
-import { ArrowLeft, ChevronDown, CreditCard as CreditCardIcon, ArrowRightLeft } from 'lucide-react'
+import { ArrowLeft, CreditCard as CreditCardIcon, ArrowRightLeft } from 'lucide-react'
 import { useToast, Toasts } from './toast'
 import BillingBanner from './BillingBanner'
 import DashboardHeader from './dashboard/DashboardHeader'
@@ -35,6 +35,11 @@ function referenceLabel(reference_month: string): string {
   return `${MONTHS_PT[m - 1]} de ${y}`
 }
 
+function shortReferenceLabel(reference_month: string): string {
+  const [y, m] = reference_month.split('-').map(Number)
+  return `${MONTHS_PT[m - 1].slice(0, 3)}/${String(y).slice(2)}`
+}
+
 function formatDate(iso: string): string {
   return new Date(iso.slice(0, 10) + 'T12:00:00.000Z').toLocaleDateString('pt-BR')
 }
@@ -63,8 +68,11 @@ export default function CardDetailPage({
 
   const [invoices, setInvoices] = useState<CreditCardInvoice[]>(initialInvoices)
   const [expenses, setExpenses] = useState<InvoiceExpense[]>(initialExpenses)
-  const [expandedId, setExpandedId] = useState<string | null>(
-    () => initialInvoices.find(i => i.status !== 'paid')?.id ?? initialInvoices[0]?.id ?? null
+  // Default to the current open invoice (the upcoming one), else the most recent.
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(
+    () => initialInvoices.find(i => i.status === 'open')?.id
+      ?? initialInvoices[initialInvoices.length - 1]?.id
+      ?? null
   )
 
   const [moveExpense, setMoveExpense] = useState<InvoiceExpense | null>(null)
@@ -92,6 +100,20 @@ export default function CardDetailPage({
     [invoices],
   )
   const available = Math.max(0, card.credit_limit - used)
+
+  const selectedInvoice = invoices.find(i => i.id === selectedInvoiceId) ?? null
+
+  // Center the carousel on the selected (current) invoice on mount.
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const selectedColRef = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    const col = selectedColRef.current
+    const container = carouselRef.current
+    if (col && container) {
+      container.scrollLeft = col.offsetLeft - container.clientWidth / 2 + col.clientWidth / 2
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const confirmMove = async () => {
     if (!moveExpense || !moveTargetId) { toast.error('Selecione a fatura de destino.'); return }
@@ -179,91 +201,121 @@ export default function CardDetailPage({
           <p className="text-xs text-gray-400 dark:text-dm-muted mt-1">Limite: {formatBRL(card.credit_limit)}</p>
         </div>
 
-        {/* Invoices */}
+        {/* Invoices carousel */}
         <div className="bg-white dark:bg-dm-card rounded-2xl shadow-lg p-6">
           <h3 className="text-lg font-bold text-gray-800 dark:text-dm-text mb-4">Faturas</h3>
 
-          {invoices.length === 0 && (
+          {invoices.length === 0 ? (
             <p className="text-center text-gray-500 dark:text-dm-muted py-8">Nenhuma fatura ainda. Lance uma compra neste cartão para gerar a fatura.</p>
-          )}
+          ) : (
+            <>
+              {/* One column per invoice; the bar shows how much of the limit it uses. */}
+              <div ref={carouselRef} className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
+                {invoices.map(inv => {
+                  const selected = selectedInvoiceId === inv.id
+                  const pct = card.credit_limit > 0
+                    ? Math.min(100, Math.round((inv.total / card.credit_limit) * 100))
+                    : (inv.total > 0 ? 100 : 0)
+                  return (
+                    <button
+                      key={inv.id}
+                      ref={selected ? selectedColRef : undefined}
+                      onClick={() => setSelectedInvoiceId(inv.id)}
+                      className={`shrink-0 w-28 rounded-xl border p-3 flex flex-col items-center text-center transition ${
+                        selected
+                          ? 'border-brand-500 bg-brand-500/5 dark:bg-brand-500/10'
+                          : 'border-gray-100 dark:border-white/[0.08] bg-gray-50 dark:bg-dm-surface hover:bg-gray-100 dark:hover:bg-dm-field'
+                      }`}
+                    >
+                      <span className="text-xs font-semibold text-gray-700 dark:text-dm-text">{shortReferenceLabel(inv.reference_month)}</span>
+                      <span className={`mt-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium ${STATUS_CLASS[inv.status]}`}>
+                        {STATUS_LABEL[inv.status]}
+                      </span>
 
-          <div className="space-y-3">
-            {invoices.map(inv => {
-              const items = expensesByInvoice.get(inv.id) ?? []
-              const expanded = expandedId === inv.id
-              const payFrom = inv.paid_from_account_id ? bankMap.get(inv.paid_from_account_id) : undefined
-              return (
-                <div key={inv.id} className="rounded-xl border border-gray-100 dark:border-white/[0.08] bg-gray-50 dark:bg-dm-surface overflow-hidden">
-                  <button
-                    onClick={() => setExpandedId(expanded ? null : inv.id)}
-                    className="w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-gray-100 dark:hover:bg-dm-field transition"
-                  >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-gray-800 dark:text-dm-text">{referenceLabel(inv.reference_month)}</span>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_CLASS[inv.status]}`}>
-                          {STATUS_LABEL[inv.status]}
-                        </span>
+                      <div className="my-2 h-24 w-6 rounded-full bg-gray-200 dark:bg-dm-field overflow-hidden flex flex-col justify-end">
+                        <div
+                          className={`w-full rounded-full transition-all ${pct >= 100 ? 'bg-red-500' : 'bg-brand-500'}`}
+                          style={{ height: `${pct}%` }}
+                        />
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-dm-muted mt-0.5">
-                        Fecha {formatDate(inv.closing_date)} • Vence {formatDate(inv.due_date)}
-                        {payFrom && <> • Paga via {payFrom.name}</>}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="font-bold text-gray-800 dark:text-dm-text">{formatBRL(inv.total)}</span>
-                      <ChevronDown size={16} className={`text-gray-400 transition-transform ${expanded ? 'rotate-180' : ''}`} />
-                    </div>
-                  </button>
 
-                  {expanded && (
-                    <div className="px-4 pb-4 pt-1 border-t border-gray-100 dark:border-white/[0.08]">
-                      {items.length === 0 ? (
-                        <p className="text-sm text-gray-500 dark:text-dm-muted py-3">Nenhum lançamento nesta fatura.</p>
-                      ) : (
-                        <div className="space-y-2 mt-2">
-                          {items.map(item => {
-                            const cat = item.category_id ? categoryMap.get(item.category_id) : undefined
-                            const isOwn = item.user_id === user.id
-                            return (
-                              <div key={item.id} className="flex items-center justify-between gap-3 py-1.5">
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <span className={`w-2 h-2 rounded-full shrink-0 ${cat?.color ?? 'bg-gray-400'}`} />
-                                  <span className="text-sm text-gray-700 dark:text-dm-text truncate">
-                                    {item.description} • {formatDate(item.date)}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-3 shrink-0">
-                                  <span className="text-sm font-semibold text-gray-800 dark:text-dm-text">{formatBRL(item.amount)}</span>
-                                  {isOwn && inv.status !== 'paid' && (
-                                    <button
-                                      onClick={() => { setMoveExpense(item); setMoveTargetId('') }}
-                                      title="Mover para outra fatura"
-                                      className="text-gray-400 hover:text-brand-600 transition"
-                                    >
-                                      <ArrowRightLeft size={16} />
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            )
-                          })}
+                      <span className="text-xs font-bold text-gray-800 dark:text-dm-text">{formatBRL(inv.total)}</span>
+                      <span className="text-[10px] text-gray-400 dark:text-dm-muted mt-0.5">{pct}% do limite</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Selected invoice details + its lançamentos */}
+              {selectedInvoice && (() => {
+                const items = expensesByInvoice.get(selectedInvoice.id) ?? []
+                const payFrom = selectedInvoice.paid_from_account_id ? bankMap.get(selectedInvoice.paid_from_account_id) : undefined
+                return (
+                  <div className="mt-5 pt-5 border-t border-gray-100 dark:border-white/[0.08]">
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-gray-800 dark:text-dm-text">{referenceLabel(selectedInvoice.reference_month)}</span>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_CLASS[selectedInvoice.status]}`}>
+                            {STATUS_LABEL[selectedInvoice.status]}
+                          </span>
                         </div>
-                      )}
-
-                      {inv.status === 'closed' && (
-                        <div className="mt-4">
-                          <Button size="sm" onClick={() => { setPayInvoice(inv); setPayAccountId(bankAccounts.find(a => a.is_default)?.id ?? '') }}>
+                        <p className="text-xs text-gray-500 dark:text-dm-muted mt-0.5">
+                          Fecha {formatDate(selectedInvoice.closing_date)} • Vence {formatDate(selectedInvoice.due_date)}
+                          {payFrom && <> • Paga via {payFrom.name}</>}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-bold text-gray-800 dark:text-dm-text">{formatBRL(selectedInvoice.total)}</p>
+                        {selectedInvoice.status === 'closed' && (
+                          <Button
+                            size="sm"
+                            className="mt-2"
+                            onClick={() => { setPayInvoice(selectedInvoice); setPayAccountId(bankAccounts.find(a => a.is_default)?.id ?? '') }}
+                          >
                             Pagar fatura
                           </Button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+
+                    {items.length === 0 ? (
+                      <p className="text-sm text-gray-500 dark:text-dm-muted py-3">Nenhum lançamento nesta fatura.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {items.map(item => {
+                          const cat = item.category_id ? categoryMap.get(item.category_id) : undefined
+                          const isOwn = item.user_id === user.id
+                          return (
+                            <div key={item.id} className="flex items-center justify-between gap-3 py-1.5">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className={`w-2 h-2 rounded-full shrink-0 ${cat?.color ?? 'bg-gray-400'}`} />
+                                <span className="text-sm text-gray-700 dark:text-dm-text truncate">
+                                  {item.description} • {formatDate(item.date)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3 shrink-0">
+                                <span className="text-sm font-semibold text-gray-800 dark:text-dm-text">{formatBRL(item.amount)}</span>
+                                {isOwn && selectedInvoice.status !== 'paid' && (
+                                  <button
+                                    onClick={() => { setMoveExpense(item); setMoveTargetId('') }}
+                                    title="Mover para outra fatura"
+                                    className="text-gray-400 hover:text-brand-600 transition"
+                                  >
+                                    <ArrowRightLeft size={16} />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
+            </>
+          )}
         </div>
       </div>
 

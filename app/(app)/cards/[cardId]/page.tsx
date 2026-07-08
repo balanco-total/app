@@ -31,7 +31,7 @@ export default async function Page({ params }: { params: { cardId: string } }) {
     .from('credit_card_invoices')
     .select('*')
     .eq('credit_card_id', cardRes.data.id)
-    .order('reference_month', { ascending: false })
+    .order('reference_month', { ascending: true })
 
   const invoiceIds = (invoices ?? []).map(i => i.id)
   const { data: expenses } = invoiceIds.length
