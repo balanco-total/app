@@ -50,7 +50,7 @@ import { parseSource } from './dashboard/AccountSelect'
 // Recurring helpers
 import { generateVirtualOccurrences } from '@/lib/recurring'
 
-import type { AsideExpense } from './charts/CategoryExpensesAside'
+import type { AsideExpense, AsideInvoice } from './charts/CategoryExpensesAside'
 
 // ─────────────────────────────────────────────
 // Monthly summary helpers
@@ -64,6 +64,17 @@ type MonthExpenseRow = {
   recurring_expense_id?: string | null
   occurrence_year_month?: string | null
   skipped?: boolean
+}
+
+/** Unpaid credit-card invoice (open or closed) falling due within the selected month. */
+type MonthInvoiceRow = {
+  id: string
+  credit_card_id: string
+  reference_month: string
+  closing_date: string
+  due_date: string
+  status: 'open' | 'closed' | 'paid'
+  total: number
 }
 
 /** Combines real month expenses with virtual recurring occurrences for the summary totals. */
@@ -103,6 +114,7 @@ export default function Dashboard({
   initialCreditCards,
   initialRecurring,
   initialMonthExpenses,
+  initialMonthInvoices,
   initialMonth,
 }: {
   user: User
@@ -114,6 +126,7 @@ export default function Dashboard({
   initialCreditCards: CreditCardOption[]
   initialRecurring: RecurringExpense[]
   initialMonthExpenses: MonthExpenseRow[]
+  initialMonthInvoices: MonthInvoiceRow[]
   initialMonth: string
 }) {
   const supabase = createClient()
@@ -126,6 +139,7 @@ export default function Dashboard({
   const [monthlyData, setMonthlyData] = useState<MonthExpenseRow[]>(
     () => buildMonthlyData(initialMonthExpenses, initialRecurring, initialMonth)
   )
+  const [monthInvoices, setMonthInvoices] = useState<MonthInvoiceRow[]>(initialMonthInvoices)
 
   // Default expense source: the default bank account, else first bank, else first card.
   const defaultSource = (() => {
@@ -158,6 +172,11 @@ export default function Dashboard({
   const [asideExpenses, setAsideExpenses] = useState<((Expense | VirtualExpense) & { categoryName?: string | null; categoryColor?: string | null })[]>([])
   const [asideLoading, setAsideLoading] = useState(false)
 
+  // ── Invoice payment (from the "Não pagos" aside) ──
+  const [payInvoice, setPayInvoice] = useState<AsideInvoice | null>(null)
+  const [payAccountId, setPayAccountId] = useState('')
+  const [payBusy, setPayBusy] = useState(false)
+
   const { toasts, toast, dismiss } = useToast()
   const { confirmState, showConfirm, handleConfirm, handleCancel } = useConfirm()
   const isFirstMonthEffect = useRef(true)
@@ -171,13 +190,23 @@ export default function Dashboard({
     const nextMonth = m === 12
       ? `${y + 1}-01-01`
       : `${y}-${String(m + 1).padStart(2, '0')}-01`
-    const { data } = await supabase
-      .from('expenses')
-      .select('category_id, amount, paid_at, credit_card_invoice_id, recurring_expense_id, occurrence_year_month, skipped')
-      .eq('account_id', profile.account_id)
-      .gte('date', `${month}-01`)
-      .lt('date', nextMonth)
+    const [{ data }, { data: invData }] = await Promise.all([
+      supabase
+        .from('expenses')
+        .select('category_id, amount, paid_at, credit_card_invoice_id, recurring_expense_id, occurrence_year_month, skipped')
+        .eq('account_id', profile.account_id)
+        .gte('date', `${month}-01`)
+        .lt('date', nextMonth),
+      supabase
+        .from('credit_card_invoices')
+        .select('id, credit_card_id, reference_month, closing_date, due_date, status, total')
+        .eq('account_id', profile.account_id)
+        .is('paid_at', null)
+        .gte('due_date', `${month}-01`)
+        .lt('due_date', nextMonth),
+    ])
     setMonthlyData(buildMonthlyData((data ?? []) as MonthExpenseRow[], recurringTemplatesRef.current, month))
+    setMonthInvoices((invData ?? []) as MonthInvoiceRow[])
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile.account_id])
 
@@ -252,6 +281,39 @@ export default function Dashboard({
     const realUnpaid = real.filter(e => !e.paid_at && !e.credit_card_invoice_id)
     setAsideExpenses([...virtuals, ...realUnpaid].map(withCategory))
     setAsideLoading(false)
+  }
+
+  // Lançamentos of a single invoice — loaded on demand when drilling into a fatura.
+  const fetchInvoiceExpenses = async (invoiceId: string): Promise<AsideExpense[]> => {
+    const { data } = await supabase
+      .from('expenses')
+      .select('id, description, amount, date, paid_at, financial_account_id, profiles(name)')
+      .eq('credit_card_invoice_id', invoiceId)
+      .order('date', { ascending: true })
+    return (data ?? []) as unknown as AsideExpense[]
+  }
+
+  const handlePayInvoice = (inv: AsideInvoice) => {
+    const def = financialAccounts.find(a => a.is_default) ?? financialAccounts[0]
+    setPayAccountId(def?.id ?? '')
+    setPayInvoice(inv)
+  }
+
+  const confirmPayInvoice = async () => {
+    if (!payInvoice) return
+    if (financialAccounts.length > 0 && !payAccountId) { toast.error('Selecione uma conta para o pagamento.'); return }
+    const now = new Date().toISOString()
+    setPayBusy(true)
+    const { error } = await supabase
+      .from('credit_card_invoices')
+      .update({ status: 'paid', paid_at: now, paid_from_account_id: payAccountId || null })
+      .eq('id', payInvoice.id)
+    setPayBusy(false)
+    if (error) { toast.error('Erro ao pagar fatura.'); return }
+    // A paid invoice leaves the "Não pagos" set → drops from the total and the aside list.
+    setMonthInvoices(prev => prev.filter(i => i.id !== payInvoice.id))
+    toast.success('Fatura paga.')
+    setPayInvoice(null)
   }
 
   const addExpense = async () => {
@@ -638,11 +700,22 @@ export default function Dashboard({
     let unpaid = 0
     for (const e of monthlyData) {
       total += e.amount
-      // Card lançamentos count toward the month total but are not "unpaid bills".
+      // Card lançamentos count toward the month total but are not "unpaid bills" on
+      // their own — the invoice (fatura) is the payable unit, added below.
       if (!e.paid_at && !e.credit_card_invoice_id) unpaid += e.amount
     }
+    // Unpaid card invoices (open + closed) due this month are things still to pay.
+    for (const inv of monthInvoices) unpaid += inv.total
     return { totalMonth: total, totalUnpaid: unpaid }
-  }, [monthlyData])
+  }, [monthlyData, monthInvoices])
+
+  // Invoices shown in the "Não pagos" aside (with the card name resolved). Empty for other views.
+  const asideInvoices = useMemo<AsideInvoice[]>(() => {
+    if (asideCategory?.id !== '__unpaid__') return []
+    return monthInvoices
+      .filter(inv => inv.total > 0)
+      .map(inv => ({ ...inv, cardName: cardMap.get(inv.credit_card_id)?.description ?? 'Cartão' }))
+  }, [asideCategory?.id, monthInvoices, cardMap])
 
   // ── Render ─────────────────────────────────
 
@@ -989,6 +1062,7 @@ export default function Dashboard({
       <CategoryExpensesAside
         category={asideCategory}
         expenses={asideExpenses as AsideExpense[]}
+        invoices={asideInvoices}
         onClose={() => setAsideCategory(null)}
         selectedMonth={selectedMonth}
         loading={asideLoading}
@@ -996,7 +1070,41 @@ export default function Dashboard({
         onEdit={(exp) => openEditModal(exp as unknown as Expense)}
         onEndRecurrence={handleEndRecurrence}
         onMaterializeEdit={handleMaterializeEdit}
+        onFetchInvoiceExpenses={fetchInvoiceExpenses}
+        onPayInvoice={handlePayInvoice}
       />
+
+      {/* Pay invoice modal (from the "Não pagos" aside) */}
+      <Modal open={!!payInvoice} onClose={() => (payBusy ? undefined : setPayInvoice(null))} size="sm" title="Pagar fatura" showClose>
+        {payInvoice && (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-500 dark:text-dm-muted">
+              Fatura {payInvoice.cardName} • <span className="font-semibold text-gray-700 dark:text-dm-text">R$ {payInvoice.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </p>
+            {financialAccounts.length > 0 ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Debitar da conta</label>
+                <select
+                  value={payAccountId}
+                  onChange={e => setPayAccountId(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-white/[0.14] rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm text-gray-700 dark:bg-dm-field dark:text-dm-text"
+                >
+                  <option value="">Selecione uma conta</option>
+                  {financialAccounts.map(acc => (
+                    <option key={acc.id} value={acc.id}>{acc.name}{acc.is_default ? ' (padrão)' : ''}</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 dark:text-dm-muted">Cadastre uma conta bancária para registrar o pagamento.</p>
+            )}
+            <div className="flex gap-3">
+              <Button onClick={confirmPayInvoice} isLoading={payBusy} className="flex-1">Confirmar pagamento</Button>
+              <Button variant="secondary" onClick={() => setPayInvoice(null)} className="flex-1">Cancelar</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }

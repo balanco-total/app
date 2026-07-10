@@ -26,7 +26,7 @@ export default async function AppPage() {
     ? `${y + 1}-01-01`
     : `${y}-${String(m + 1).padStart(2, '0')}-01`
 
-  const [accountRes, categoriesRes, expensesRes, finAccountsRes, cardsRes, cardInvoicesRes, recurringRes, monthExpensesRes] =
+  const [accountRes, categoriesRes, expensesRes, finAccountsRes, cardsRes, cardInvoicesRes, recurringRes, monthExpensesRes, monthInvoicesRes] =
     await Promise.all([
       supabase.from('accounts').select('id, trial_ends_at, subscription_status').eq('id', accountId).single(),
       supabase.from('categories').select('*').eq('account_id', accountId).order('name'),
@@ -36,6 +36,8 @@ export default async function AppPage() {
       supabase.from('credit_card_invoices').select('credit_card_id, total').eq('account_id', accountId).is('paid_at', null),
       supabase.from('recurring_expenses').select('*').eq('account_id', accountId).order('created_at', { ascending: true }),
       supabase.from('expenses').select('category_id, amount, paid_at, credit_card_invoice_id, recurring_expense_id, occurrence_year_month, skipped').eq('account_id', accountId).gte('date', `${month}-01`).lt('date', nextMonth),
+      // Unpaid invoices (open + closed) that fall due within the selected month — the card bills "to pay this month".
+      supabase.from('credit_card_invoices').select('id, credit_card_id, reference_month, closing_date, due_date, status, total').eq('account_id', accountId).is('paid_at', null).gte('due_date', `${month}-01`).lt('due_date', nextMonth),
     ])
 
   // Seed defaults for brand-new accounts (matches the previous client-side seeding)
@@ -79,6 +81,7 @@ export default async function AppPage() {
       initialCreditCards={creditCards}
       initialRecurring={recurringRes.data ?? []}
       initialMonthExpenses={monthExpensesRes.data ?? []}
+      initialMonthInvoices={monthInvoicesRes.data ?? []}
       initialMonth={month}
     />
   )

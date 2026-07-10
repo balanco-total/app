@@ -1,10 +1,33 @@
 'use client'
 
-import { useState } from 'react'
-import { X, Loader2, Circle, CheckCircle2, Repeat } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { X, Loader2, Circle, CheckCircle2, Repeat, CreditCard, ChevronLeft } from 'lucide-react'
 import { applyMask, parseMasked } from '@/lib/utils'
 import { MONTHS_PT } from './helpers'
 import type { VirtualExpense } from '@/lib/recurring'
+
+export type AsideInvoice = {
+  id: string
+  credit_card_id: string
+  cardName: string
+  reference_month: string
+  closing_date: string
+  due_date: string
+  status: 'open' | 'closed' | 'paid'
+  total: number
+}
+
+const INVOICE_STATUS_LABEL: Record<string, string> = { open: 'Aberta', closed: 'Fechada', paid: 'Paga' }
+const INVOICE_STATUS_CLASS: Record<string, string> = {
+  open: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  closed: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+  paid: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
+}
+
+function referenceLabel(reference_month: string) {
+  const [y, m] = reference_month.split('-').map(Number)
+  return `${MONTHS_PT[m - 1]} de ${y}`
+}
 
 export type AsideExpense = {
   id: string
@@ -40,6 +63,7 @@ function fmtDate(dateStr: string) {
 export default function CategoryExpensesAside({
   category,
   expenses,
+  invoices = [],
   onClose,
   selectedMonth,
   loading = false,
@@ -47,9 +71,12 @@ export default function CategoryExpensesAside({
   onEdit,
   onEndRecurrence,
   onMaterializeEdit,
+  onFetchInvoiceExpenses,
+  onPayInvoice,
 }: {
   category: AsideCategory | null
   expenses: AsideExpense[]
+  invoices?: AsideInvoice[]
   onClose: () => void
   selectedMonth: string
   loading?: boolean
@@ -63,11 +90,31 @@ export default function CategoryExpensesAside({
     amount: number,
     scope: 'month' | 'future'
   ) => void
+  // credit-card invoice handlers (only used by the "Não pagos" aside)
+  onFetchInvoiceExpenses?: (invoiceId: string) => Promise<AsideExpense[]>
+  onPayInvoice?: (invoice: AsideInvoice) => void
 }) {
   const isOpen = !!category
 
   const [selYear, selMonthNum] = selectedMonth.split('-').map(Number)
   const monthLabel = `${MONTHS_PT[selMonthNum - 1]} ${selYear}`
+
+  // Drill-in view: clicking an invoice's value replaces the panel body with its lançamentos.
+  const [detail, setDetail] = useState<{ invoice: AsideInvoice; loading: boolean; expenses: AsideExpense[] } | null>(null)
+
+  // Reset the drill-in whenever the aside switches to a different category/context or closes.
+  useEffect(() => { setDetail(null) }, [category?.id])
+
+  // If the open invoice is paid/removed elsewhere, fall back to the list view.
+  useEffect(() => {
+    if (detail && !invoices.some(i => i.id === detail.invoice.id)) setDetail(null)
+  }, [invoices, detail])
+
+  const openInvoiceDetail = async (invoice: AsideInvoice) => {
+    setDetail({ invoice, loading: true, expenses: [] })
+    const exps = (await onFetchInvoiceExpenses?.(invoice.id)) ?? []
+    setDetail(prev => (prev && prev.invoice.id === invoice.id ? { ...prev, loading: false, expenses: exps } : prev))
+  }
 
   // Edit state for virtual occurrence
   const [editingVirtual, setEditingVirtual] = useState<{
@@ -82,8 +129,14 @@ export default function CategoryExpensesAside({
     yearMonth: string
   } | null>(null)
 
-  const total = expenses.reduce((s, e) => s + e.amount, 0)
+  const invoicesTotal = invoices.reduce((s, i) => s + i.total, 0)
+  const total = expenses.reduce((s, e) => s + e.amount, 0) + invoicesTotal
   const sorted = [...expenses].sort((a, b) => a.date.localeCompare(b.date))
+  const sortedInvoices = [...invoices].sort((a, b) => a.due_date.localeCompare(b.due_date))
+  const itemCount = sorted.length + invoices.length
+  const itemNoun = invoices.length > 0
+    ? (itemCount === 1 ? 'item' : 'itens')
+    : (itemCount === 1 ? 'despesa' : 'despesas')
 
   const handleEditVirtualConfirm = (scope: 'month' | 'future') => {
     if (!editingVirtual) return
@@ -107,20 +160,49 @@ export default function CategoryExpensesAside({
       >
         {/* header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-white/[0.08]">
-          <div>
-            <h2 className="text-lg font-bold text-gray-800 dark:text-dm-text">{category?.name ?? ''}</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{monthLabel}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dm-field transition-colors"
-            aria-label="Fechar"
-          >
-            <X size={20} className="text-gray-500 dark:text-dm-muted" />
-          </button>
+          {detail ? (
+            <>
+              <div className="flex items-center gap-2 min-w-0">
+                <button
+                  onClick={() => setDetail(null)}
+                  className="p-1.5 -ml-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-dm-field transition-colors shrink-0"
+                  aria-label="Voltar"
+                >
+                  <ChevronLeft size={20} className="text-gray-500 dark:text-dm-muted" />
+                </button>
+                <div className="min-w-0">
+                  <h2 className="text-lg font-bold text-gray-800 dark:text-dm-text truncate">{detail.invoice.cardName}</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">{referenceLabel(detail.invoice.reference_month)}</p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dm-field transition-colors shrink-0"
+                aria-label="Fechar"
+              >
+                <X size={20} className="text-gray-500 dark:text-dm-muted" />
+              </button>
+            </>
+          ) : (
+            <>
+              <div>
+                <h2 className="text-lg font-bold text-gray-800 dark:text-dm-text">{category?.name ?? ''}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{monthLabel}</p>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dm-field transition-colors"
+                aria-label="Fechar"
+              >
+                <X size={20} className="text-gray-500 dark:text-dm-muted" />
+              </button>
+            </>
+          )}
         </div>
 
-        {loading ? (
+        {detail ? (
+          <InvoiceDetail detail={detail} onPay={onPayInvoice} />
+        ) : loading ? (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 size={24} className="text-gray-400 animate-spin" />
           </div>
@@ -130,17 +212,47 @@ export default function CategoryExpensesAside({
             <div className="px-5 py-3 bg-gray-50 dark:bg-dm-surface border-b border-gray-100 dark:border-white/[0.08]">
               <span className="text-sm text-gray-500 dark:text-dm-muted">Total: </span>
               <span className="text-sm font-semibold text-gray-800 dark:text-dm-text">{fmtAmount(total)}</span>
-              <span className="text-xs text-gray-400 ml-2">({sorted.length} despesa{sorted.length !== 1 ? 's' : ''})</span>
+              <span className="text-xs text-gray-400 ml-2">({itemCount} {itemNoun})</span>
             </div>
 
             {/* list */}
             <div className="flex-1 overflow-y-auto">
-              {sorted.length === 0 ? (
+              {itemCount === 0 ? (
                 <div className="flex items-center justify-center h-40 text-gray-400 dark:text-dm-muted text-sm">
                   Nenhuma despesa neste mês.
                 </div>
               ) : (
                 <ul className="divide-y divide-gray-50 dark:divide-white/[0.08]">
+                  {sortedInvoices.map(inv => (
+                    <li key={inv.id} className="px-5 py-3 hover:bg-gray-50 dark:hover:bg-dm-field transition-colors">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <CreditCard size={14} className="text-gray-400 shrink-0" />
+                            <p className="text-sm font-medium text-gray-800 dark:text-dm-text truncate">
+                              Fatura {inv.cardName}
+                            </p>
+                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium ${INVOICE_STATUS_CLASS[inv.status]}`}>
+                              {INVOICE_STATUS_LABEL[inv.status]}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                            <span className="text-xs text-gray-400">Vence {fmtDate(inv.due_date)}</span>
+                            <span className="text-xs text-gray-400">· {referenceLabel(inv.reference_month)}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={() => openInvoiceDetail(inv)}
+                            title="Ver lançamentos da fatura"
+                            className="text-sm font-semibold text-red-500 whitespace-nowrap underline underline-offset-2 decoration-dashed decoration-red-300 hover:text-red-700 transition"
+                          >
+                            {fmtAmount(inv.total)}
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
                   {sorted.map(exp => {
                     const isVirtual = exp._virtual === true
                     return (
@@ -329,6 +441,82 @@ export default function CategoryExpensesAside({
           </div>
         )
       })()}
+    </>
+  )
+}
+
+/** Drill-in view: a single invoice's lançamentos (read-only) with a pay action when closed. */
+function InvoiceDetail({
+  detail,
+  onPay,
+}: {
+  detail: { invoice: AsideInvoice; loading: boolean; expenses: AsideExpense[] }
+  onPay?: (invoice: AsideInvoice) => void
+}) {
+  const { invoice, loading, expenses } = detail
+  const sorted = [...expenses].sort((a, b) => a.date.localeCompare(b.date))
+  return (
+    <>
+      {/* invoice summary */}
+      <div className="px-5 py-3 bg-gray-50 dark:bg-dm-surface border-b border-gray-100 dark:border-white/[0.08] flex items-center justify-between gap-3">
+        <div>
+          <span className="text-sm text-gray-500 dark:text-dm-muted">Total: </span>
+          <span className="text-sm font-semibold text-gray-800 dark:text-dm-text">{fmtAmount(invoice.total)}</span>
+          <p className="text-xs text-gray-400 mt-0.5">Vence {fmtDate(invoice.due_date)}</p>
+        </div>
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${INVOICE_STATUS_CLASS[invoice.status]}`}>
+          {INVOICE_STATUS_LABEL[invoice.status]}
+        </span>
+      </div>
+
+      {/* lançamentos */}
+      <div className="flex-1 overflow-y-auto">
+        {loading ? (
+          <div className="flex items-center justify-center h-40">
+            <Loader2 size={24} className="text-gray-400 animate-spin" />
+          </div>
+        ) : sorted.length === 0 ? (
+          <div className="flex items-center justify-center h-40 text-gray-400 dark:text-dm-muted text-sm">
+            Nenhum lançamento nesta fatura.
+          </div>
+        ) : (
+          <ul className="divide-y divide-gray-50 dark:divide-white/[0.08]">
+            {sorted.map(exp => (
+              <li key={exp.id} className="px-5 py-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-800 dark:text-dm-text truncate">{exp.description ?? '—'}</p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="text-xs text-gray-400">{fmtDate(exp.date)}</span>
+                      {exp.profiles?.name && <span className="text-xs text-gray-400">· {exp.profiles.name}</span>}
+                    </div>
+                  </div>
+                  <span className="text-sm font-semibold text-red-500 whitespace-nowrap shrink-0">{fmtAmount(exp.amount)}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* pay action — only when the invoice is closed */}
+      {!loading && invoice.status === 'closed' && onPay && (
+        <div className="px-5 py-4 border-t border-gray-100 dark:border-white/[0.08]">
+          <button
+            onClick={() => onPay(invoice)}
+            className="w-full px-4 py-2.5 rounded-lg font-semibold text-sm bg-brand-500 hover:bg-brand-600 text-white transition"
+          >
+            Pagar fatura
+          </button>
+        </div>
+      )}
+      {!loading && invoice.status === 'open' && (
+        <div className="px-5 py-4 border-t border-gray-100 dark:border-white/[0.08]">
+          <p className="text-xs text-gray-400 dark:text-dm-muted text-center">
+            A fatura ainda está aberta. Você poderá pagá-la quando ela fechar.
+          </p>
+        </div>
+      )}
     </>
   )
 }
