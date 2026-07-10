@@ -17,6 +17,15 @@ export type AsideInvoice = {
   total: number
 }
 
+/** A card invoice whose lançamentos are shown grouped inside a category aside. */
+export type AsideInvoiceGroup = {
+  invoiceId: string
+  cardName: string
+  reference_month: string
+  due_date: string
+  items: AsideExpense[]
+}
+
 const INVOICE_STATUS_LABEL: Record<string, string> = { open: 'Aberta', closed: 'Fechada', paid: 'Paga' }
 const INVOICE_STATUS_CLASS: Record<string, string> = {
   open: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
@@ -27,6 +36,12 @@ const INVOICE_STATUS_CLASS: Record<string, string> = {
 function referenceLabel(reference_month: string) {
   const [y, m] = reference_month.split('-').map(Number)
   return `${MONTHS_PT[m - 1]} de ${y}`
+}
+
+/** "julho de 2026" from a YYYY-MM(-DD) string. */
+function monthYearLabel(dateStr: string) {
+  const [y, m] = dateStr.slice(0, 7).split('-').map(Number)
+  return `${MONTHS_PT[m - 1].toLowerCase()} de ${y}`
 }
 
 export type AsideExpense = {
@@ -64,6 +79,7 @@ export default function CategoryExpensesAside({
   category,
   expenses,
   invoices = [],
+  invoiceGroups = [],
   onClose,
   selectedMonth,
   loading = false,
@@ -77,6 +93,7 @@ export default function CategoryExpensesAside({
   category: AsideCategory | null
   expenses: AsideExpense[]
   invoices?: AsideInvoice[]
+  invoiceGroups?: AsideInvoiceGroup[]
   onClose: () => void
   selectedMonth: string
   loading?: boolean
@@ -130,10 +147,13 @@ export default function CategoryExpensesAside({
   } | null>(null)
 
   const invoicesTotal = invoices.reduce((s, i) => s + i.total, 0)
-  const total = expenses.reduce((s, e) => s + e.amount, 0) + invoicesTotal
+  const groupItems = invoiceGroups.flatMap(g => g.items)
+  const groupsTotal = groupItems.reduce((s, e) => s + e.amount, 0)
+  const total = expenses.reduce((s, e) => s + e.amount, 0) + invoicesTotal + groupsTotal
   const sorted = [...expenses].sort((a, b) => a.date.localeCompare(b.date))
   const sortedInvoices = [...invoices].sort((a, b) => a.due_date.localeCompare(b.due_date))
-  const itemCount = sorted.length + invoices.length
+  const sortedGroups = [...invoiceGroups].sort((a, b) => a.due_date.localeCompare(b.due_date))
+  const itemCount = sorted.length + invoices.length + groupItems.length
   const itemNoun = invoices.length > 0
     ? (itemCount === 1 ? 'item' : 'itens')
     : (itemCount === 1 ? 'despesa' : 'despesas')
@@ -222,6 +242,7 @@ export default function CategoryExpensesAside({
                   Nenhuma despesa neste mês.
                 </div>
               ) : (
+                <>
                 <ul className="divide-y divide-gray-50 dark:divide-white/[0.08]">
                   {sortedInvoices.map(inv => (
                     <li key={inv.id} className="px-5 py-3 hover:bg-gray-50 dark:hover:bg-dm-field transition-colors">
@@ -354,6 +375,48 @@ export default function CategoryExpensesAside({
                     )
                   })}
                 </ul>
+
+                {/* Card invoices due this month whose lançamentos feed this category — grouped, read-only.
+                    Their purchases may have happened in another month, so we spell that out. */}
+                {sortedGroups.map(group => {
+                  const purchaseMonths = Array.from(new Set(group.items.map(i => i.date.slice(0, 7)))).sort()
+                  const purchaseLabel = purchaseMonths.map(monthYearLabel).join(', ')
+                  const items = [...group.items].sort((a, b) => a.date.localeCompare(b.date))
+                  const groupTotal = group.items.reduce((s, i) => s + i.amount, 0)
+                  return (
+                    <div key={group.invoiceId}>
+                      <div className="px-5 py-2.5 bg-gray-50 dark:bg-dm-surface border-y border-gray-100 dark:border-white/[0.08]">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <CreditCard size={14} className="text-gray-400 shrink-0" />
+                            <span className="text-sm font-semibold text-gray-700 dark:text-dm-text truncate">Fatura {group.cardName}</span>
+                          </div>
+                          <span className="text-sm font-semibold text-gray-700 dark:text-dm-text shrink-0">{fmtAmount(groupTotal)}</span>
+                        </div>
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                          Vence em {monthYearLabel(group.due_date)} · compras de {purchaseLabel}
+                        </p>
+                      </div>
+                      <ul className="divide-y divide-gray-50 dark:divide-white/[0.08]">
+                        {items.map(item => (
+                          <li key={item.id} className="px-5 py-3">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium text-gray-800 dark:text-dm-text truncate">{item.description ?? '—'}</p>
+                                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                  <span className="text-xs text-gray-400">{fmtDate(item.date)}</span>
+                                  {item.profiles?.name && <span className="text-xs text-gray-400">· {item.profiles.name}</span>}
+                                </div>
+                              </div>
+                              <span className="text-sm font-semibold text-red-500 whitespace-nowrap shrink-0">{fmtAmount(item.amount)}</span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )
+                })}
+                </>
               )}
             </div>
           </>

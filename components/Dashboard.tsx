@@ -50,7 +50,7 @@ import { parseSource } from './dashboard/AccountSelect'
 // Recurring helpers
 import { generateVirtualOccurrences } from '@/lib/recurring'
 
-import type { AsideExpense, AsideInvoice } from './charts/CategoryExpensesAside'
+import type { AsideExpense, AsideInvoice, AsideInvoiceGroup } from './charts/CategoryExpensesAside'
 
 // ─────────────────────────────────────────────
 // Monthly summary helpers
@@ -179,6 +179,7 @@ export default function Dashboard({
   // ── Category aside ─────────────────────────
   const [asideCategory, setAsideCategory] = useState<{ id: string; name: string } | null>(null)
   const [asideExpenses, setAsideExpenses] = useState<((Expense | VirtualExpense) & { categoryName?: string | null; categoryColor?: string | null })[]>([])
+  const [asideInvoiceGroups, setAsideInvoiceGroups] = useState<AsideInvoiceGroup[]>([])
   const [asideLoading, setAsideLoading] = useState(false)
 
   // ── Invoice payment (from the "Não pagos" aside) ──
@@ -249,16 +250,30 @@ export default function Dashboard({
     if (asideCategory?.id === cat.id) { setAsideCategory(null); return }
     setAsideCategory(cat)
     setAsideExpenses([])
+    setAsideInvoiceGroups([])
     setAsideLoading(true)
     const [y, m] = selectedMonth.split('-').map(Number)
     const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
-    const { data } = await supabase
-      .from('expenses')
-      .select('id, description, amount, date, category_id, paid_at, user_id, financial_account_id, credit_card_invoice_id, credit_card_invoices(credit_card_id), recurring_expense_id, occurrence_year_month, skipped, profiles(name)')
-      .eq('account_id', profile.account_id)
-      .eq('category_id', cat.id)
-      .gte('date', `${selectedMonth}-01`)
-      .lt('date', nextMonth)
+    // (A) non-card expenses dated in this month; (B) lançamentos of the faturas due this month.
+    // Together these are exactly what makes up the category total (no card lançamento counted twice).
+    const [{ data }, { data: invItems }] = await Promise.all([
+      supabase
+        .from('expenses')
+        .select('id, description, amount, date, category_id, paid_at, user_id, financial_account_id, credit_card_invoice_id, recurring_expense_id, occurrence_year_month, skipped, profiles(name)')
+        .eq('account_id', profile.account_id)
+        .eq('category_id', cat.id)
+        .is('credit_card_invoice_id', null)
+        .gte('date', `${selectedMonth}-01`)
+        .lt('date', nextMonth),
+      supabase
+        .from('expenses')
+        .select('id, description, amount, date, credit_card_invoice_id, credit_card_invoices!inner(credit_card_id, reference_month, due_date, paid_at), profiles(name)')
+        .eq('account_id', profile.account_id)
+        .eq('category_id', cat.id)
+        .is('credit_card_invoices.paid_at', null)
+        .gte('credit_card_invoices.due_date', `${selectedMonth}-01`)
+        .lt('credit_card_invoices.due_date', nextMonth),
+    ])
     const real = ((data ?? []) as unknown as Expense[]).filter(e => !e.skipped)
     const materializedKeys = new Set(
       real.filter(e => e.recurring_expense_id && e.occurrence_year_month)
@@ -267,6 +282,31 @@ export default function Dashboard({
     const virtuals = generateVirtualOccurrences(recurringTemplatesRef.current, selectedMonth, materializedKeys)
       .filter(v => v.category_id === cat.id)
     setAsideExpenses([...virtuals, ...real])
+
+    // Group the fatura lançamentos by invoice for the read-only "Fatura do cartão" sections.
+    type InvItemRow = {
+      id: string; description: string | null; amount: number; date: string; credit_card_invoice_id: string
+      credit_card_invoices: { credit_card_id: string; reference_month: string; due_date: string } | null
+      profiles: { name: string } | null
+    }
+    const groups = new Map<string, AsideInvoiceGroup>()
+    for (const row of (invItems ?? []) as unknown as InvItemRow[]) {
+      const inv = row.credit_card_invoices
+      if (!inv) continue
+      let group = groups.get(row.credit_card_invoice_id)
+      if (!group) {
+        group = {
+          invoiceId: row.credit_card_invoice_id,
+          cardName: cardMap.get(inv.credit_card_id)?.description ?? 'Cartão',
+          reference_month: inv.reference_month,
+          due_date: inv.due_date,
+          items: [],
+        }
+        groups.set(row.credit_card_invoice_id, group)
+      }
+      group.items.push({ id: row.id, description: row.description, amount: row.amount, date: row.date, profiles: row.profiles })
+    }
+    setAsideInvoiceGroups(Array.from(groups.values()))
     setAsideLoading(false)
   }
 
@@ -280,6 +320,7 @@ export default function Dashboard({
     if (asideCategory?.id === '__unpaid__') { setAsideCategory(null); return }
     setAsideCategory(unpaidCategory)
     setAsideExpenses([])
+    setAsideInvoiceGroups([])
     setAsideLoading(true)
     const [y, m] = selectedMonth.split('-').map(Number)
     const nextMonth = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`
@@ -1093,6 +1134,7 @@ export default function Dashboard({
         category={asideCategory}
         expenses={asideExpenses as AsideExpense[]}
         invoices={asideInvoices}
+        invoiceGroups={asideInvoiceGroups}
         onClose={() => setAsideCategory(null)}
         selectedMonth={selectedMonth}
         loading={asideLoading}
