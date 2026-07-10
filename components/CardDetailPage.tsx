@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
-import { ArrowLeft, CreditCard as CreditCardIcon, ArrowRightLeft } from 'lucide-react'
+import { ArrowLeft, CreditCard as CreditCardIcon, ArrowRightLeft, Trash2 } from 'lucide-react'
 import { useToast, Toasts } from './toast'
 import BillingBanner from './BillingBanner'
 import DashboardHeader from './dashboard/DashboardHeader'
 import Button from './ui/Button'
 import Modal from './ui/Modal'
-import { formatBRL } from '@/lib/utils'
+import { formatBRL, applyMask, parseMasked } from '@/lib/utils'
 import { MONTHS_PT } from './dashboard/helpers'
 import type { User } from '@supabase/supabase-js'
 import type {
@@ -77,6 +77,15 @@ export default function CardDetailPage({
 
   const [moveExpense, setMoveExpense] = useState<InvoiceExpense | null>(null)
   const [moveTargetId, setMoveTargetId] = useState('')
+  const [editing, setEditing] = useState<{
+    expense: InvoiceExpense
+    description: string
+    amountDisplay: string
+    categoryId: string
+    dateStr: string
+    invoiceId: string
+  } | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [payInvoice, setPayInvoice] = useState<CreditCardInvoice | null>(null)
   const [payAccountId, setPayAccountId] = useState<string>(() => bankAccounts.find(a => a.is_default)?.id ?? '')
   const [busy, setBusy] = useState(false)
@@ -136,6 +145,87 @@ export default function CardDetailPage({
     setMoveExpense(null)
     setMoveTargetId('')
   }
+
+  const openEdit = (item: InvoiceExpense) => {
+    setConfirmDelete(false)
+    setEditing({
+      expense: item,
+      description: item.description,
+      amountDisplay: item.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      categoryId: item.category_id ?? '',
+      dateStr: item.date.slice(0, 10),
+      invoiceId: item.credit_card_invoice_id ?? '',
+    })
+  }
+
+  const saveEdit = async () => {
+    if (!editing) return
+    const { expense } = editing
+
+    const description = editing.description.trim()
+    if (!description) { toast.error('Descrição é obrigatória.'); return }
+    const parsedAmount = parseMasked(editing.amountDisplay)
+    if (parsedAmount <= 0) { toast.error('Valor deve ser maior que zero.'); return }
+    if (parsedAmount > 1_000_000) { toast.error('Valor excede o limite de R$ 1.000.000,00.'); return }
+    if (!editing.categoryId) { toast.error('Selecione uma categoria.'); return }
+    if (!editing.dateStr) { toast.error('Data inválida.'); return }
+
+    const today = new Date()
+    const [ey, em, ed] = editing.dateStr.split('-').map(Number)
+    const parsedDate = new Date(ey, em - 1, ed)
+    const minDate = new Date(today.getFullYear() - 10, today.getMonth(), today.getDate())
+    const maxDate = new Date(today.getFullYear() + 10, today.getMonth(), today.getDate())
+    if (parsedDate < minDate || parsedDate > maxDate) { toast.error('Data fora do intervalo permitido.'); return }
+
+    const fromId = expense.credit_card_invoice_id
+    const toId = editing.invoiceId || fromId
+    const updates: Record<string, unknown> = {
+      description,
+      amount: parsedAmount,
+      category_id: editing.categoryId || null,
+      date: editing.dateStr,
+    }
+    if (toId !== fromId) updates.credit_card_invoice_id = toId
+
+    setBusy(true)
+    const { error } = await supabase.from('expenses').update(updates).eq('id', expense.id)
+    setBusy(false)
+    if (error) { toast.error('Erro ao atualizar lançamento.'); return }
+
+    setExpenses(prev => prev.map(e => e.id === expense.id
+      ? { ...e, description, amount: parsedAmount, category_id: editing.categoryId || null, date: editing.dateStr, credit_card_invoice_id: toId }
+      : e))
+    setInvoices(prev => prev.map(inv => {
+      if (fromId === toId) {
+        return inv.id === fromId ? { ...inv, total: inv.total - expense.amount + parsedAmount } : inv
+      }
+      if (inv.id === fromId) return { ...inv, total: inv.total - expense.amount }
+      if (inv.id === toId) return { ...inv, total: inv.total + parsedAmount }
+      return inv
+    }))
+    toast.success('Lançamento atualizado.')
+    setEditing(null)
+  }
+
+  const deleteEdit = async () => {
+    if (!editing) return
+    const { expense } = editing
+    const fromId = expense.credit_card_invoice_id
+    setBusy(true)
+    const { error } = await supabase.from('expenses').delete().eq('id', expense.id)
+    setBusy(false)
+    if (error) { toast.error('Erro ao excluir lançamento.'); return }
+
+    setExpenses(prev => prev.filter(e => e.id !== expense.id))
+    setInvoices(prev => prev.map(inv => inv.id === fromId ? { ...inv, total: inv.total - expense.amount } : inv))
+    toast.success('Lançamento excluído.')
+    setEditing(null)
+    setConfirmDelete(false)
+  }
+
+  const editTargets = editing
+    ? invoices.filter(i => i.status !== 'paid')
+    : []
 
   const confirmPay = async () => {
     if (!payInvoice) return
@@ -295,7 +385,17 @@ export default function CardDetailPage({
                                 </span>
                               </div>
                               <div className="flex items-center gap-3 shrink-0">
-                                <span className="text-sm font-semibold text-gray-800 dark:text-dm-text">{formatBRL(item.amount)}</span>
+                                {isOwn && selectedInvoice.status !== 'paid' ? (
+                                  <button
+                                    onClick={() => openEdit(item)}
+                                    title="Editar lançamento"
+                                    className="text-sm font-semibold text-gray-800 dark:text-dm-text underline decoration-dotted decoration-gray-400 underline-offset-2 hover:text-brand-600 transition"
+                                  >
+                                    {formatBRL(item.amount)}
+                                  </button>
+                                ) : (
+                                  <span className="text-sm font-semibold text-gray-800 dark:text-dm-text">{formatBRL(item.amount)}</span>
+                                )}
                                 {isOwn && selectedInvoice.status !== 'paid' && (
                                   <button
                                     onClick={() => { setMoveExpense(item); setMoveTargetId('') }}
@@ -345,6 +445,90 @@ export default function CardDetailPage({
               <Button onClick={confirmMove} isLoading={busy} disabled={moveTargets.length === 0} className="flex-1">Mover</Button>
               <Button variant="secondary" onClick={() => setMoveExpense(null)} className="flex-1">Cancelar</Button>
             </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Edit lançamento modal */}
+      <Modal open={!!editing} onClose={() => (busy ? undefined : setEditing(null))} size="sm" title="Editar lançamento" showClose>
+        {editing && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Descrição</label>
+              <input
+                type="text"
+                maxLength={60}
+                value={editing.description}
+                onChange={e => setEditing({ ...editing, description: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-white/[0.14] rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm text-gray-700 dark:bg-dm-field dark:text-dm-text"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Valor R$</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={editing.amountDisplay}
+                onChange={e => setEditing({ ...editing, amountDisplay: applyMask(e.target.value) })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-white/[0.14] rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm text-gray-700 dark:bg-dm-field dark:text-dm-text"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Data da compra</label>
+              <input
+                type="date"
+                value={editing.dateStr}
+                onChange={e => setEditing({ ...editing, dateStr: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-white/[0.14] rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm text-gray-700 dark:bg-dm-field dark:text-dm-text"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Categoria</label>
+              <select
+                value={editing.categoryId}
+                onChange={e => setEditing({ ...editing, categoryId: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-white/[0.14] rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm text-gray-700 dark:bg-dm-field dark:text-dm-text"
+              >
+                <option value="">Sem categoria</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-dm-muted mb-1.5">Fatura</label>
+              <select
+                value={editing.invoiceId}
+                onChange={e => setEditing({ ...editing, invoiceId: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-white/[0.14] rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm text-gray-700 dark:bg-dm-field dark:text-dm-text"
+              >
+                {editTargets.map(inv => (
+                  <option key={inv.id} value={inv.id}>{referenceLabel(inv.reference_month)} ({STATUS_LABEL[inv.status]})</option>
+                ))}
+              </select>
+            </div>
+
+            {confirmDelete ? (
+              <div className="flex items-center gap-3 pt-1">
+                <span className="text-sm text-gray-600 dark:text-dm-muted flex-1">Confirmar exclusão?</span>
+                <Button variant="destructive" onClick={deleteEdit} isLoading={busy} className="text-sm">Sim, excluir</Button>
+                <Button variant="secondary" onClick={() => setConfirmDelete(false)} disabled={busy} className="text-sm">Cancelar</Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  disabled={busy}
+                  title="Excluir lançamento"
+                  className="text-red-600 hover:text-red-700 disabled:opacity-50 transition p-2"
+                >
+                  <Trash2 size={18} />
+                </button>
+                <div className="flex-1" />
+                <Button variant="secondary" onClick={() => setEditing(null)} disabled={busy}>Cancelar</Button>
+                <Button onClick={saveEdit} isLoading={busy}>Salvar</Button>
+              </div>
+            )}
           </div>
         )}
       </Modal>
