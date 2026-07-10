@@ -9,6 +9,10 @@ export type Expense = {
   financial_account_id: string | null
   date: string
   description: string | null
+  // Card lançamentos carry the fatura they belong to; they count toward the
+  // invoice's due month (see effectiveMonth in charts/helpers), not their purchase date.
+  credit_card_invoice_id: string | null
+  credit_card_invoices: { reference_month: string; due_date: string } | null
   profiles: { name: string } | null
 }
 export type FinancialAccount = { id: string; name: string }

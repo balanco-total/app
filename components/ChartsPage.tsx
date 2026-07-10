@@ -6,7 +6,7 @@ import BillingBanner from './BillingBanner'
 import DashboardHeader from './dashboard/DashboardHeader'
 import MonthSelector from './charts/MonthSelector'
 import { useToast, Toasts } from './toast'
-import { COLOR_MAP, FALLBACK_COLORS, MONTHS_PT } from './charts/helpers'
+import { COLOR_MAP, FALLBACK_COLORS, MONTHS_PT, effectiveMonth } from './charts/helpers'
 import type { Profile, Account, Category, Expense } from './charts/types'
 import type { AsideExpense } from './charts/CategoryExpensesAside'
 import { generateVirtualOccurrences } from '@/lib/recurring'
@@ -54,7 +54,7 @@ export default function ChartsPage({ profile, categories, expenses, account, rec
   }
 
   const monthlyExpenses = useMemo(() => {
-    const real = expenses.filter(e => e.date.slice(0, 7) === selectedMonth && !(e as unknown as { skipped?: boolean }).skipped)
+    const real = expenses.filter(e => effectiveMonth(e) === selectedMonth && !(e as unknown as { skipped?: boolean }).skipped)
     const materializedKeys = new Set(
       real
         .filter(e => (e as unknown as { recurring_expense_id?: string }).recurring_expense_id && (e as unknown as { occurrence_year_month?: string }).occurrence_year_month)
@@ -71,7 +71,7 @@ export default function ChartsPage({ profile, categories, expenses, account, rec
       const d = new Date(selYear, selMonthNum - 1 - 4 + i)
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
       const label = `${MONTHS_PT[d.getMonth()].slice(0, 3)} ${String(d.getFullYear()).slice(2)}`
-      const real = expenses.filter(e => e.date.slice(0, 7) === key && !(e as unknown as { skipped?: boolean }).skipped)
+      const real = expenses.filter(e => effectiveMonth(e) === key && !(e as unknown as { skipped?: boolean }).skipped)
       const materializedKeys = new Set(
         real
           .filter(e => (e as unknown as { recurring_expense_id?: string }).recurring_expense_id && (e as unknown as { occurrence_year_month?: string }).occurrence_year_month)
