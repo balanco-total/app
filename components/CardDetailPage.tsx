@@ -30,6 +30,18 @@ const STATUS_CLASS: Record<string, string> = {
   paid: 'bg-green-100 text-green-700',
 }
 
+// Bar-chart carousel geometry (px). Heights are normalized against the largest invoice.
+const BAR_MAX_H = 160
+const BAR_MIN_H = 8
+const PLOT_H = 200
+
+function barColorClass(status: string, selected: boolean): string {
+  if (selected) return 'bg-blue-500'
+  if (status === 'paid') return 'bg-emerald-500'
+  if (status === 'closed') return 'bg-amber-400'
+  return 'bg-gray-300 dark:bg-gray-600'
+}
+
 function referenceLabel(reference_month: string): string {
   const [y, m] = reference_month.split('-').map(Number)
   return `${MONTHS_PT[m - 1]} de ${y}`
@@ -109,6 +121,12 @@ export default function CardDetailPage({
     [invoices],
   )
   const available = Math.max(0, card.credit_limit - used)
+
+  // Tallest bar = largest invoice total; every other bar is scaled relative to it.
+  const maxInvoiceTotal = useMemo(
+    () => invoices.reduce((m, i) => Math.max(m, i.total), 0),
+    [invoices],
+  )
 
   const selectedInvoice = invoices.find(i => i.id === selectedInvoiceId) ?? null
 
@@ -299,46 +317,75 @@ export default function CardDetailPage({
             <p className="text-center text-gray-500 dark:text-dm-muted py-8">Nenhuma fatura ainda. Lance uma compra neste cartão para gerar a fatura.</p>
           ) : (
             <>
-              {/* One column per invoice; the bar shows how much of the limit it uses. */}
-              <div ref={carouselRef} className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
+              {/* Bar chart: each column's height is proportional to the largest invoice total. */}
+              <div ref={carouselRef} className="fatura-carousel flex overflow-x-auto snap-x scroll-smooth pt-2 pb-3">
                 {invoices.map(inv => {
                   const selected = selectedInvoiceId === inv.id
-                  const pct = card.credit_limit > 0
-                    ? Math.min(100, Math.round((inv.total / card.credit_limit) * 100))
-                    : (inv.total > 0 ? 100 : 0)
+                  const barPx = maxInvoiceTotal > 0
+                    ? Math.max(BAR_MIN_H, Math.round((inv.total / maxInvoiceTotal) * BAR_MAX_H))
+                    : BAR_MIN_H
                   return (
                     <button
                       key={inv.id}
                       ref={selected ? selectedColRef : undefined}
                       onClick={() => setSelectedInvoiceId(inv.id)}
-                      className={`shrink-0 w-28 rounded-xl border p-3 flex flex-col items-center text-center transition ${
-                        selected
-                          ? 'border-brand-500 bg-brand-500/5 dark:bg-brand-500/10'
-                          : 'border-gray-100 dark:border-white/[0.08] bg-gray-50 dark:bg-dm-surface hover:bg-gray-100 dark:hover:bg-dm-field'
-                      }`}
+                      className="group shrink-0 w-28 snap-center flex flex-col items-center outline-none"
                     >
-                      <span className="text-xs font-semibold text-gray-700 dark:text-dm-text">{shortReferenceLabel(inv.reference_month)}</span>
-                      <span className={`mt-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium ${STATUS_CLASS[inv.status]}`}>
-                        {STATUS_LABEL[inv.status]}
-                      </span>
-
-                      <div className="my-2 h-24 w-6 rounded-full bg-gray-200 dark:bg-dm-field overflow-hidden flex flex-col justify-end">
+                      {/* plot area: value label floats above the bar; bar is grounded on the baseline */}
+                      <div
+                        className="w-full flex flex-col items-center justify-end border-b border-gray-200 dark:border-white/[0.10]"
+                        style={{ height: PLOT_H }}
+                      >
+                        <span className={`mb-1.5 text-xs whitespace-nowrap transition-colors ${
+                          selected
+                            ? 'font-bold text-gray-800 dark:text-dm-text'
+                            : 'font-medium text-gray-400 dark:text-dm-muted group-hover:text-gray-600 dark:group-hover:text-gray-300'
+                        }`}>
+                          {formatBRL(inv.total)}
+                        </span>
                         <div
-                          className={`w-full rounded-full transition-all ${pct >= 100 ? 'bg-red-500' : 'bg-brand-500'}`}
-                          style={{ height: `${pct}%` }}
-                        />
+                          className={`relative w-11 rounded-t-lg transition-all duration-300 ${barColorClass(inv.status, selected)} ${
+                            selected ? 'shadow-lg' : 'opacity-90 group-hover:opacity-100'
+                          }`}
+                          style={{ height: barPx }}
+                        >
+                          {selected && (
+                            <span className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 w-4 h-4 rounded-full bg-white shadow-md ring-1 ring-black/10" />
+                          )}
+                        </div>
                       </div>
-
-                      <span className="text-xs font-bold text-gray-800 dark:text-dm-text">{formatBRL(inv.total)}</span>
-                      <span className="text-[10px] text-gray-400 dark:text-dm-muted mt-0.5">{pct}% do limite</span>
+                      {/* month label below the baseline */}
+                      <span className={`mt-3 text-sm transition-colors ${
+                        selected
+                          ? 'font-semibold text-gray-800 dark:text-dm-text'
+                          : 'text-gray-500 dark:text-dm-muted group-hover:text-gray-700 dark:group-hover:text-gray-300'
+                      }`}>
+                        {shortReferenceLabel(inv.reference_month)}
+                      </span>
                     </button>
                   )
                 })}
               </div>
+              <style jsx global>{`
+                .fatura-carousel::-webkit-scrollbar { height: 8px; }
+                .fatura-carousel::-webkit-scrollbar-track { background: transparent; }
+                .fatura-carousel::-webkit-scrollbar-thumb {
+                  background: rgba(120, 120, 120, 0.35);
+                  border-radius: 9999px;
+                }
+                .fatura-carousel::-webkit-scrollbar-thumb:hover {
+                  background: rgba(120, 120, 120, 0.55);
+                }
+                .fatura-carousel {
+                  scrollbar-width: thin;
+                  scrollbar-color: rgba(120, 120, 120, 0.35) transparent;
+                }
+              `}</style>
 
               {/* Selected invoice details + its lançamentos */}
               {selectedInvoice && (() => {
-                const items = expensesByInvoice.get(selectedInvoice.id) ?? []
+                const items = [...(expensesByInvoice.get(selectedInvoice.id) ?? [])]
+                  .sort((a, b) => a.date.localeCompare(b.date))
                 const payFrom = selectedInvoice.paid_from_account_id ? bankMap.get(selectedInvoice.paid_from_account_id) : undefined
                 return (
                   <div className="mt-5 pt-5 border-t border-gray-100 dark:border-white/[0.08]">
