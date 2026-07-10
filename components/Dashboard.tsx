@@ -77,6 +77,12 @@ type MonthInvoiceRow = {
   total: number
 }
 
+/** A lançamento inside a month's due (unpaid) invoices — the card's categorized contribution. */
+type MonthInvoiceItemRow = {
+  category_id: string | null
+  amount: number
+}
+
 /** Combines real month expenses with virtual recurring occurrences for the summary totals. */
 function buildMonthlyData(
   monthExpenses: MonthExpenseRow[],
@@ -115,6 +121,7 @@ export default function Dashboard({
   initialRecurring,
   initialMonthExpenses,
   initialMonthInvoices,
+  initialMonthInvoiceItems,
   initialMonth,
 }: {
   user: User
@@ -127,6 +134,7 @@ export default function Dashboard({
   initialRecurring: RecurringExpense[]
   initialMonthExpenses: MonthExpenseRow[]
   initialMonthInvoices: MonthInvoiceRow[]
+  initialMonthInvoiceItems: MonthInvoiceItemRow[]
   initialMonth: string
 }) {
   const supabase = createClient()
@@ -140,6 +148,7 @@ export default function Dashboard({
     () => buildMonthlyData(initialMonthExpenses, initialRecurring, initialMonth)
   )
   const [monthInvoices, setMonthInvoices] = useState<MonthInvoiceRow[]>(initialMonthInvoices)
+  const [monthInvoiceItems, setMonthInvoiceItems] = useState<MonthInvoiceItemRow[]>(initialMonthInvoiceItems)
 
   // Default expense source: the default bank account, else first bank, else first card.
   const defaultSource = (() => {
@@ -190,7 +199,7 @@ export default function Dashboard({
     const nextMonth = m === 12
       ? `${y + 1}-01-01`
       : `${y}-${String(m + 1).padStart(2, '0')}-01`
-    const [{ data }, { data: invData }] = await Promise.all([
+    const [{ data }, { data: invData }, { data: invItemsData }] = await Promise.all([
       supabase
         .from('expenses')
         .select('category_id, amount, paid_at, credit_card_invoice_id, recurring_expense_id, occurrence_year_month, skipped')
@@ -204,9 +213,17 @@ export default function Dashboard({
         .is('paid_at', null)
         .gte('due_date', `${month}-01`)
         .lt('due_date', nextMonth),
+      supabase
+        .from('expenses')
+        .select('category_id, amount, credit_card_invoices!inner(due_date, paid_at)')
+        .eq('account_id', profile.account_id)
+        .is('credit_card_invoices.paid_at', null)
+        .gte('credit_card_invoices.due_date', `${month}-01`)
+        .lt('credit_card_invoices.due_date', nextMonth),
     ])
     setMonthlyData(buildMonthlyData((data ?? []) as MonthExpenseRow[], recurringTemplatesRef.current, month))
     setMonthInvoices((invData ?? []) as MonthInvoiceRow[])
+    setMonthInvoiceItems((invItemsData ?? []).map(r => ({ category_id: r.category_id, amount: r.amount })) as MonthInvoiceItemRow[])
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile.account_id])
 
@@ -310,8 +327,10 @@ export default function Dashboard({
       .eq('id', payInvoice.id)
     setPayBusy(false)
     if (error) { toast.error('Erro ao pagar fatura.'); return }
-    // A paid invoice leaves the "Não pagos" set → drops from the total and the aside list.
+    // A paid invoice leaves the "Não pagos" set: drop it from the aside list immediately,
+    // then refetch so the month total / breakdown (derived from the invoice line items) update too.
     setMonthInvoices(prev => prev.filter(i => i.id !== payInvoice.id))
+    fetchMonthlySummary(selectedMonth)
     toast.success('Fatura paga.')
     setPayInvoice(null)
   }
@@ -688,26 +707,37 @@ export default function Dashboard({
     const totalsByCategory = new Map<string, number>()
     for (const e of monthlyData) {
       if (!e.category_id) continue
+      // Card lançamentos are represented by their invoice (fatura), added below — not by purchase date.
+      if (e.credit_card_invoice_id) continue
       totalsByCategory.set(e.category_id, (totalsByCategory.get(e.category_id) ?? 0) + e.amount)
+    }
+    // Lançamentos of the faturas due this month, keeping each one's category.
+    for (const it of monthInvoiceItems) {
+      if (!it.category_id) continue
+      totalsByCategory.set(it.category_id, (totalsByCategory.get(it.category_id) ?? 0) + it.amount)
     }
     return categories
       .map(cat => ({ ...cat, total: totalsByCategory.get(cat.id) ?? 0 }))
       .sort((a, b) => b.total - a.total)
-  }, [categories, monthlyData])
+  }, [categories, monthlyData, monthInvoiceItems])
 
   const { totalMonth, totalUnpaid } = useMemo(() => {
     let total = 0
     let unpaid = 0
     for (const e of monthlyData) {
+      // Card lançamentos enter the month via their fatura (below), not by purchase date.
+      if (e.credit_card_invoice_id) continue
       total += e.amount
-      // Card lançamentos count toward the month total but are not "unpaid bills" on
-      // their own — the invoice (fatura) is the payable unit, added below.
-      if (!e.paid_at && !e.credit_card_invoice_id) unpaid += e.amount
+      if (!e.paid_at) unpaid += e.amount
     }
-    // Unpaid card invoices (open + closed) due this month are things still to pay.
-    for (const inv of monthInvoices) unpaid += inv.total
+    // Faturas (open + closed) due this month: their lançamentos are the card's contribution
+    // to both the month total and "Não pagos". Sums to the same as the invoice totals.
+    for (const it of monthInvoiceItems) {
+      total += it.amount
+      unpaid += it.amount
+    }
     return { totalMonth: total, totalUnpaid: unpaid }
-  }, [monthlyData, monthInvoices])
+  }, [monthlyData, monthInvoiceItems])
 
   // Invoices shown in the "Não pagos" aside (with the card name resolved). Empty for other views.
   const asideInvoices = useMemo<AsideInvoice[]>(() => {
